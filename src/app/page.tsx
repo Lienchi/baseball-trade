@@ -53,7 +53,7 @@ export default async function HomePage() {
       </div>
 
       {/* 兩個導覽入口 */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-4">
         <Link
           href="/tickets"
           className="card group flex items-center justify-between border-l-4 border-field p-6 transition hover:shadow-md"
