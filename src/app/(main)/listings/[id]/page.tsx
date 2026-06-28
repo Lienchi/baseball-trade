@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { formatDate } from '@/lib/utils'
 import { CommentSection } from '@/components/listings/CommentSection'
 import { ContactSellerButton } from '@/components/listings/ContactSellerButton'
+import { MarkSoldButton } from '@/components/listings/MarkSoldButton'
 import { MapPin, Calendar, Package, Users } from 'lucide-react'
 import type { Listing } from '@/types'
 
@@ -21,6 +22,9 @@ export default async function ListingDetailPage({ params }: Props) {
     .single()
 
   if (!listing) notFound()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  const isOwner = user?.id === listing.user_id
 
   await supabase.rpc('increment_view_count', { listing_id: params.id })
 
@@ -122,7 +126,11 @@ export default async function ListingDetailPage({ params }: Props) {
               </div>
             )}
 
-            <ContactSellerButton listingId={l.id} sellerId={l.user_id} />
+            {isOwner ? (
+              l.status === 'active' && <MarkSoldButton listingId={l.id} />
+            ) : (
+              <ContactSellerButton listingId={l.id} sellerId={l.user_id} />
+            )}
           </div>
         </div>
       </div>
