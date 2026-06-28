@@ -30,23 +30,14 @@ export function ContactSellerButton({ listingId, sellerId }: Props) {
       return
     }
 
-    const { data: existing } = await supabase
-      .from('conversation_participants')
-      .select('conversation_id')
-      .eq('user_id', user.id)
+    const { data: existingId } = await supabase.rpc('get_existing_conversation', {
+      p_seller_id: sellerId,
+      p_listing_id: listingId,
+    })
 
-    if (existing && existing.length > 0) {
-      const conversationIds = existing.map(e => e.conversation_id)
-      const { data: shared } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', sellerId)
-        .in('conversation_id', conversationIds)
-
-      if (shared && shared.length > 0) {
-        router.push(`/messages/${shared[0].conversation_id}`)
-        return
-      }
+    if (existingId) {
+      router.push(`/messages/${existingId}`)
+      return
     }
 
     const { data: convId } = await supabase.rpc('create_conversation', {
