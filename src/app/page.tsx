@@ -116,7 +116,7 @@ export default async function HomePage() {
                   查看全部 <ArrowRight size={12} />
                 </Link>
               </div>
-              <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-3">
                 {merchandise.map(listing => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
