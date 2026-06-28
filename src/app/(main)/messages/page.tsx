@@ -5,11 +5,26 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { formatRelativeTime } from '@/lib/utils'
 import { MessageCircle } from 'lucide-react'
-import type { Conversation } from '@/types'
+
+interface ConversationRow {
+  id: string
+  listing_id: string | null
+  created_at: string
+  buyer_confirmed_at: string | null
+  seller_confirmed_at: string | null
+  listing_title: string | null
+  listing_images: string[] | null
+  other_user_id: string
+  other_username: string
+  other_avatar_url: string | null
+  last_message?: string
+  last_message_at?: string
+  unread_count?: number
+}
 
 export default function MessagesListPage() {
   const supabase = createClient()
-  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [conversations, setConversations] = useState<ConversationRow[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -17,33 +32,14 @@ export default function MessagesListPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoading(false); return }
 
-      // 找出我參與的所有對話 ID
-      const { data: conversationIds } = await supabase.rpc('get_my_conversation_ids')
+      const { data: convos } = await supabase.rpc('get_my_conversations')
+      if (!convos || convos.length === 0) { setLoading(false); return }
 
-      if (!conversationIds || conversationIds.length === 0) {
-        setLoading(false)
-        return
-      }
-
-      // 取得對話詳情 + 關聯的貼文 + 對話參與者
-      const { data: convos } = await supabase
-        .from('conversations')
-        .select(`
-          *,
-          listing:listings(id, title, images),
-          conversation_participants(user_id, profiles(id, username, avatar_url))
-        `)
-        .in('id', conversationIds)
-        .order('created_at', { ascending: false })
-
-      if (!convos) { setLoading(false); return }
-
-      // 對每個對話取得最後一筆訊息 + 未讀數
       const enriched = await Promise.all(
-        convos.map(async (c) => {
+        convos.map(async (c: ConversationRow) => {
           const { data: lastMsg } = await supabase
             .from('messages')
-            .select('*')
+            .select('content, created_at')
             .eq('conversation_id', c.id)
             .order('created_at', { ascending: false })
             .limit(1)
@@ -56,20 +52,16 @@ export default function MessagesListPage() {
             .eq('is_read', false)
             .neq('sender_id', user.id)
 
-          // 找出對話另一方（排除自己）
-          const otherParticipant = (c.conversation_participants as any[])
-            ?.find((p) => p.user_id !== user.id)?.profiles
-
           return {
             ...c,
-            last_message: lastMsg,
+            last_message: lastMsg?.content,
+            last_message_at: lastMsg?.created_at,
             unread_count: unreadCount ?? 0,
-            participants: otherParticipant ? [otherParticipant] : [],
           }
         })
       )
 
-      setConversations(enriched as Conversation[])
+      setConversations(enriched)
       setLoading(false)
     }
     load()
@@ -95,43 +87,40 @@ export default function MessagesListPage() {
         </div>
       ) : (
         <div className="mt-6 space-y-2">
-          {conversations.map(conv => {
-            const other = conv.participants?.[0]
-            return (
-              <Link
-                key={conv.id}
-                href={`/messages/${conv.id}`}
-                className="card flex items-center gap-3 p-3 transition hover:bg-dugout/5"
-              >
-                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-field text-sm font-bold text-chalk">
-                  {other?.username?.slice(0, 2).toUpperCase() ?? '?'}
-                </div>
-                <div className="flex-1 overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    <p className="truncate text-sm font-semibold text-scoreboard">
-                      {other?.username ?? '未知用戶'}
-                    </p>
-                    {conv.last_message && (
-                      <span className="flex-shrink-0 text-xs text-dugout/60">
-                        {formatRelativeTime(conv.last_message.created_at)}
-                      </span>
-                    )}
-                  </div>
-                  {conv.listing && (
-                    <p className="truncate text-xs text-clay">關於：{conv.listing.title}</p>
-                  )}
-                  <p className="truncate text-xs text-dugout">
-                    {conv.last_message?.content ?? '尚無訊息'}
+          {conversations.map(conv => (
+            <Link
+              key={conv.id}
+              href={`/messages/${conv.id}`}
+              className="card flex items-center gap-3 p-3 transition hover:bg-dugout/5"
+            >
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-field text-sm font-bold text-chalk">
+                {conv.other_username?.slice(0, 2).toUpperCase() ?? '?'}
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <p className="truncate text-sm font-semibold text-scoreboard">
+                    {conv.other_username ?? '未知用戶'}
                   </p>
+                  {conv.last_message_at && (
+                    <span className="flex-shrink-0 text-xs text-dugout/60">
+                      {formatRelativeTime(conv.last_message_at)}
+                    </span>
+                  )}
                 </div>
-                {conv.unread_count! > 0 && (
-                  <span className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-clay px-1 text-[11px] font-bold text-chalk">
-                    {conv.unread_count}
-                  </span>
+                {conv.listing_title && (
+                  <p className="truncate text-xs text-clay">關於：{conv.listing_title}</p>
                 )}
-              </Link>
-            )
-          })}
+                <p className="truncate text-xs text-dugout">
+                  {conv.last_message ?? '尚無訊息'}
+                </p>
+              </div>
+              {(conv.unread_count ?? 0) > 0 && (
+                <span className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-clay px-1 text-[11px] font-bold text-chalk">
+                  {conv.unread_count}
+                </span>
+              )}
+            </Link>
+          ))}
         </div>
       )}
     </div>
