@@ -46,6 +46,32 @@ export function TicketListRow({ listing }: Props) {
               {formatDate(listing.game_date)}
             </span>
           )}
+          {listing.profile && (
+            <span className="flex items-center gap-1.5">
+              {listing.profile.avatar_url ? (
+                <Image
+                  src={listing.profile.avatar_url}
+                  alt={listing.profile.username}
+                  width={14}
+                  height={14}
+                  className="rounded-full object-cover"
+                />
+              ) : (
+                <span className="h-3.5 w-3.5 flex-shrink-0 rounded-full bg-dugout/20 flex items-center justify-center text-[8px] font-bold text-dugout">
+                  {listing.profile.username[0]?.toUpperCase()}
+                </span>
+              )}
+              <span>{listing.profile.username}</span>
+              {listing.profile.rating > 0 && (
+                <span className="flex items-center gap-0.5 text-gold">
+                  <Star size={10} fill="currentColor" />
+                  {listing.profile.rating.toFixed(1)}
+                </span>
+              )}
+            </span>
+          )}
+        </div>
+        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-dugout">
           {listing.location && (
             <span className="flex items-center gap-1">
               <MapPin size={12} />
@@ -57,30 +83,6 @@ export function TicketListRow({ listing }: Props) {
             {listing.comment_count ?? 0}
           </span>
         </div>
-        {listing.profile && (
-          <div className="mt-1.5 flex items-center gap-1.5 text-xs text-dugout">
-            {listing.profile.avatar_url ? (
-              <Image
-                src={listing.profile.avatar_url}
-                alt={listing.profile.username}
-                width={16}
-                height={16}
-                className="rounded-full object-cover"
-              />
-            ) : (
-              <div className="h-4 w-4 rounded-full bg-dugout/20 flex items-center justify-center text-[9px] font-bold text-dugout">
-                {listing.profile.username[0]?.toUpperCase()}
-              </div>
-            )}
-            <span>{listing.profile.username}</span>
-            {listing.profile.rating > 0 && (
-              <span className="flex items-center gap-0.5 text-gold">
-                <Star size={10} fill="currentColor" />
-                {listing.profile.rating.toFixed(1)}
-              </span>
-            )}
-          </div>
-        )}
       </div>
 
       {/* 價格 */}
