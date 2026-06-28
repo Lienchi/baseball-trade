@@ -49,18 +49,13 @@ export function ContactSellerButton({ listingId, sellerId }: Props) {
       }
     }
 
-    const { data: conv } = await supabase
-      .from('conversations')
-      .insert({ listing_id: listingId })
-      .select()
-      .single()
+    const { data: convId } = await supabase.rpc('create_conversation', {
+      p_listing_id: listingId,
+      p_seller_id: sellerId,
+    })
 
-    if (conv) {
-      await supabase.from('conversation_participants').insert([
-        { conversation_id: conv.id, user_id: user.id },
-        { conversation_id: conv.id, user_id: sellerId },
-      ])
-      router.push(`/messages/${conv.id}`)
+    if (convId) {
+      router.push(`/messages/${convId}`)
     }
 
     setLoading(false)
