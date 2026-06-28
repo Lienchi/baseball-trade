@@ -18,17 +18,12 @@ export default function MessagesListPage() {
       if (!user) { setLoading(false); return }
 
       // 找出我參與的所有對話 ID
-      const { data: participating } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', user.id)
+      const { data: conversationIds } = await supabase.rpc('get_my_conversation_ids')
 
-      if (!participating || participating.length === 0) {
+      if (!conversationIds || conversationIds.length === 0) {
         setLoading(false)
         return
       }
-
-      const conversationIds = participating.map(p => p.conversation_id)
 
       // 取得對話詳情 + 關聯的貼文 + 對話參與者
       const { data: convos } = await supabase
