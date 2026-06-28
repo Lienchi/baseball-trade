@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: 'Archivo Black', sans-serif;
+  --font-body: 'Archivo', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-chalk text-scoreboard antialiased font-body;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-clay ring-offset-2 ring-offset-chalk;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  /* ===== 按鈕 ===== */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-clay px-5 py-2.5
+           text-sm font-bold text-chalk transition-all
+           hover:bg-clay-dark active:scale-[0.97]
+           disabled:opacity-40 disabled:cursor-not-allowed
+           shadow-[0_2px_0_0_theme(colors.clay.dark)] hover:shadow-[0_1px_0_0_theme(colors.clay.dark)] hover:translate-y-[1px];
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border-2 border-scoreboard/10
+           bg-transparent px-5 py-2.5 text-sm font-bold text-scoreboard transition-all
+           hover:border-scoreboard/20 hover:bg-scoreboard/5 active:scale-[0.97]
+           disabled:opacity-40;
+  }
+
+  /* ===== 輸入框 ===== */
+  .input {
+    @apply block w-full rounded-md border-2 border-scoreboard/10 bg-white px-3 py-2.5 text-sm
+           placeholder-dugout/50 transition-colors
+           focus:border-clay focus:ring-0;
+  }
+
+  /* ===== 卡片 ===== */
+  .card {
+    @apply rounded-lg border border-scoreboard/10 bg-white;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold tracking-wide;
+  }
+
+  /* ===== 簽名元素：計分板翻牌價格標籤 ===== */
+  .scoreboard-price {
+    @apply inline-flex items-baseline gap-1 rounded-sm bg-scoreboard px-2.5 py-1
+           font-mono font-bold text-chalk;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      0 1px 2px rgba(0,0,0,0.3);
+    background-image:
+      linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 50%),
+      repeating-linear-gradient(180deg, transparent 0, transparent 1px, rgba(0,0,0,0.15) 1px, rgba(0,0,0,0.15) 2px);
+  }
+
+  .scoreboard-price .currency {
+    @apply text-[0.65em] text-gold font-bold;
+  }
+
+  /* 縫線分隔線（呼應棒球縫線細節，節制使用） */
+  .stitch-divider {
+    @apply relative h-px bg-scoreboard/10;
+  }
+}
