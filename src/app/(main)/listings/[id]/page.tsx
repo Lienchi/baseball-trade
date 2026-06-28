@@ -22,7 +22,7 @@ export default async function ListingDetailPage({ params }: Props) {
 
   if (!listing) notFound()
 
-  supabase.rpc('increment_view_count', { listing_id: params.id })
+  await supabase.rpc('increment_view_count', { listing_id: params.id })
 
   const l = listing as Listing
 
