@@ -18,38 +18,56 @@ export function MerchandiseSortFilterBar() {
     router.push(`${pathname}?${params.toString()}`)
   }, [router, pathname, searchParams])
 
+  const currentTeam = searchParams.get('team') ?? ''
+
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <div className="relative flex-1 min-w-[180px]">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-dugout/50" />
-        <input
-          className="input pl-8"
-          placeholder="搜尋標題..."
-          defaultValue={searchParams.get('q') ?? ''}
-          onChange={e => update('q', e.target.value)}
-        />
+    <div className="space-y-3">
+      <div className="flex gap-3">
+        <div className="relative flex-1">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-dugout/50" />
+          <input
+            className="input pl-8"
+            placeholder="搜尋標題..."
+            defaultValue={searchParams.get('q') ?? ''}
+            onChange={e => update('q', e.target.value)}
+          />
+        </div>
+        <select
+          className="input w-auto"
+          value={searchParams.get('sort') ?? 'created_desc'}
+          onChange={e => update('sort', e.target.value)}
+        >
+          <option value="created_desc">最新上架</option>
+          <option value="price_asc">價格（低到高）</option>
+          <option value="price_desc">價格（高到低）</option>
+        </select>
       </div>
 
-      <select
-        className="input w-auto"
-        value={searchParams.get('team') ?? ''}
-        onChange={e => update('team', e.target.value)}
-      >
-        <option value="">全部球隊</option>
+      <div className="flex flex-wrap gap-2">
+        <button
+          className={`rounded-full border px-3 py-1 text-xs font-bold transition ${
+            currentTeam === ''
+              ? 'border-scoreboard bg-scoreboard text-chalk'
+              : 'border-scoreboard/20 text-dugout hover:border-scoreboard/40'
+          }`}
+          onClick={() => update('team', '')}
+        >
+          全部
+        </button>
         {CPBL_TEAMS.map(team => (
-          <option key={team} value={team}>{team}</option>
+          <button
+            key={team}
+            className={`rounded-full border px-3 py-1 text-xs font-bold transition ${
+              currentTeam === team
+                ? 'border-scoreboard bg-scoreboard text-chalk'
+                : 'border-scoreboard/20 text-dugout hover:border-scoreboard/40'
+            }`}
+            onClick={() => update('team', currentTeam === team ? '' : team)}
+          >
+            {team}
+          </button>
         ))}
-      </select>
-
-      <select
-        className="input w-auto"
-        value={searchParams.get('sort') ?? 'created_desc'}
-        onChange={e => update('sort', e.target.value)}
-      >
-        <option value="created_desc">最新上架</option>
-        <option value="price_asc">價格（低到高）</option>
-        <option value="price_desc">價格（高到低）</option>
-      </select>
+      </div>
     </div>
   )
 }

@@ -16,7 +16,8 @@ export default function ProfilePage() {
   const avatarInputRef = useRef<HTMLInputElement>(null)
 
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [listings, setListings] = useState<Listing[]>([])
+  const [activeListings, setActiveListings] = useState<Listing[]>([])
+  const [soldListings, setSoldListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [bio, setBio] = useState('')
@@ -49,8 +50,9 @@ export default function ProfilePage() {
         const normalized = listingsData.map(l => ({
           ...l,
           comment_count: Array.isArray(l.comment_count) ? (l.comment_count[0]?.count ?? 0) : 0,
-        }))
-        setListings(normalized as Listing[])
+        })) as Listing[]
+        setActiveListings(normalized.filter(l => l.status === 'active'))
+        setSoldListings(normalized.filter(l => l.status === 'sold'))
       }
 
       setLoading(false)
@@ -175,28 +177,42 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* 我的貼文 */}
+      {/* 刊登中 */}
       <div className="mt-8">
         <div className="flex items-center justify-between border-b-2 border-scoreboard/10 pb-3">
-          <h2 className="font-display text-base text-scoreboard">我的刊登（{listings.length}）</h2>
+          <h2 className="font-display text-base text-scoreboard">刊登中（{activeListings.length}）</h2>
           <Link href="/listings/new" className="btn-primary px-3 py-1.5 text-xs">
             + 刊登
           </Link>
         </div>
 
-        {listings.length === 0 ? (
+        {activeListings.length === 0 ? (
           <div className="mt-10 flex flex-col items-center text-center">
             <span className="text-3xl">⚾</span>
             <p className="mt-2 text-sm text-dugout">還沒有刊登過商品</p>
           </div>
         ) : (
           <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3">
-            {listings.map(listing => (
+            {activeListings.map(listing => (
               <ListingCard key={listing.id} listing={listing} />
             ))}
           </div>
         )}
       </div>
+
+      {/* 已售出 */}
+      {soldListings.length > 0 && (
+        <div className="mt-10">
+          <div className="border-b-2 border-scoreboard/10 pb-3">
+            <h2 className="font-display text-base text-scoreboard">已售出（{soldListings.length}）</h2>
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3">
+            {soldListings.map(listing => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
