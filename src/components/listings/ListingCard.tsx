@@ -79,7 +79,7 @@ export function ListingCard({ listing }: Props) {
               )}
               <span className="truncate">{listing.profile.username}</span>
               <Star size={10} className="text-gold fill-gold flex-shrink-0 ml-auto" />
-              <span className="font-medium text-gold flex-shrink-0">{listing.profile.rating > 0 ? listing.profile.rating.toFixed(1) : '–'}</span>
+              <span className="font-medium text-gold flex-shrink-0">{listing.profile.rating_count ?? 0}</span>
             </div>
           )}
           <div className="flex items-center justify-between">

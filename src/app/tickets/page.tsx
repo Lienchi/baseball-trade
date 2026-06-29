@@ -29,7 +29,7 @@ export default async function TicketsPage({
     .from('listings')
     .select(`
       *,
-      profile:profiles(id, username, avatar_url, rating),
+      profile:profiles(id, username, avatar_url, rating, rating_count),
       comment_count:comments(count)
     `, { count: 'exact' })
     .eq('status', 'active')

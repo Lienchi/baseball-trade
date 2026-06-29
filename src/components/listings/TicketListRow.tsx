@@ -57,7 +57,7 @@ export function TicketListRow({ listing }: Props) {
               )}
               <span>{listing.profile.username}</span>
               <Star size={10} className="text-gold fill-gold flex-shrink-0" />
-              <span className="font-medium text-gold">{listing.profile.rating > 0 ? listing.profile.rating.toFixed(1) : '–'}</span>
+              <span className="font-medium text-gold">{listing.profile.rating_count ?? 0}</span>
             </span>
           )}
         </div>
