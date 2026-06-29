@@ -8,6 +8,19 @@
   --font-display: 'Archivo Black', sans-serif;
   --font-body: 'Archivo', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+
+  /* Light mode */
+  --color-chalk: 247 244 237;
+  --color-scoreboard: 21 25 28;
+  --color-dugout: 91 103 96;
+  --color-surface: 255 255 255;
+}
+
+.dark {
+  --color-chalk: 20 23 26;
+  --color-scoreboard: 236 232 224;
+  --color-dugout: 138 155 148;
+  --color-surface: 30 36 40;
 }
 
 @layer base {
@@ -44,14 +57,14 @@
 
   /* ===== 輸入框 ===== */
   .input {
-    @apply block w-full rounded-md border-2 border-scoreboard/10 bg-white px-3 py-2.5 text-sm
-           placeholder-dugout/50 transition-colors
+    @apply block w-full rounded-md border-2 border-scoreboard/10 bg-surface px-3 py-2.5 text-sm
+           text-scoreboard placeholder-dugout/50 transition-colors
            focus:border-clay focus:ring-0;
   }
 
   /* ===== 卡片 ===== */
   .card {
-    @apply rounded-lg border border-scoreboard/10 bg-white;
+    @apply rounded-lg border border-scoreboard/10 bg-surface;
   }
 
   .badge {
@@ -74,7 +87,7 @@
     @apply text-[0.65em] text-gold font-bold;
   }
 
-  /* 縫線分隔線（呼應棒球縫線細節，節制使用） */
+  /* 縫線分隔線 */
   .stitch-divider {
     @apply relative h-px bg-scoreboard/10;
   }

@@ -3,13 +3,18 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Bell, MessageCircle, PlusCircle, User } from 'lucide-react'
+import { MessageCircle, PlusCircle, User, Sun, Moon } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export function Navbar() {
   const supabase = createClient()
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [unread, setUnread] = useState(0)
+  const [dark, setDark] = useState(false)
+
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains('dark'))
+  }, [])
 
   useEffect(() => {
     const getUser = async () => {
@@ -33,6 +38,13 @@ export function Navbar() {
     return () => subscription.unsubscribe()
   }, [supabase])
 
+  const toggleDark = () => {
+    const next = !dark
+    setDark(next)
+    document.documentElement.classList.toggle('dark', next)
+    localStorage.setItem('theme', next ? 'dark' : 'light')
+  }
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     window.location.href = '/'
@@ -48,6 +60,9 @@ export function Navbar() {
 
         {/* 右側按鈕 */}
         <div className="flex items-center gap-2">
+          <button onClick={toggleDark} className="p-2 text-chalk/80 hover:text-chalk">
+            {dark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
           <Link href="/listings/new" className="btn-primary hidden sm:inline-flex">
             <PlusCircle size={16} />
             刊登

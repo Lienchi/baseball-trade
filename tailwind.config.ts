@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -31,9 +32,10 @@ const config: Config = {
           light: '#D9603F',
           dark: '#A8381F',
         },
-        chalk: '#F7F4ED',       // 壘線白 — 背景
-        scoreboard: '#15191C',  // 計分板黑 — 主要文字
-        dugout: '#5B6760',      // 休息區墨綠 — 次要文字
+        chalk: 'rgb(var(--color-chalk) / <alpha-value>)',
+        scoreboard: 'rgb(var(--color-scoreboard) / <alpha-value>)',
+        dugout: 'rgb(var(--color-dugout) / <alpha-value>)',
+        surface: 'rgb(var(--color-surface) / <alpha-value>)',
         gold: '#D4A437',        // 冠軍金 — 評分 / 稀有強調
 
         // 中華職棒六隊代表色
