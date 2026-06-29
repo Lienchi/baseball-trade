@@ -18,14 +18,18 @@ export function TicketSortFilterBar({ showGameDateSort = false }: Props) {
     const params = new URLSearchParams(searchParams.toString())
     if (value) params.set(key, value)
     else params.delete(key)
-    params.delete('page') // 改變篩選/排序時重置回第一頁
+    params.delete('page')
     router.push(`${pathname}?${params.toString()}`)
   }, [router, pathname, searchParams])
 
+  const currentTeam = searchParams.get('team') ?? ''
+  const currentDateFrom = searchParams.get('date_from') ?? ''
+  const currentDateTo = searchParams.get('date_to') ?? ''
+
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="space-y-3">
       {/* 搜尋 */}
-      <div className="relative flex-1 min-w-[180px]">
+      <div className="relative">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-dugout/50" />
         <input
           className="input pl-8"
@@ -35,42 +39,75 @@ export function TicketSortFilterBar({ showGameDateSort = false }: Props) {
         />
       </div>
 
-      {/* 球隊 */}
-      <select
-        className="input w-auto"
-        value={searchParams.get('team') ?? ''}
-        onChange={e => update('team', e.target.value)}
-      >
-        <option value="">全部球隊</option>
+      {/* 球隊按鈕 */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          className={`rounded-full border px-3 py-1 text-xs font-bold transition ${
+            currentTeam === ''
+              ? 'border-scoreboard bg-scoreboard text-chalk'
+              : 'border-scoreboard/20 text-dugout hover:border-scoreboard/40'
+          }`}
+          onClick={() => update('team', '')}
+        >
+          全部
+        </button>
         {CPBL_TEAMS.map(team => (
-          <option key={team} value={team}>{team}</option>
+          <button
+            key={team}
+            className={`rounded-full border px-3 py-1 text-xs font-bold transition ${
+              currentTeam === team
+                ? 'border-scoreboard bg-scoreboard text-chalk'
+                : 'border-scoreboard/20 text-dugout hover:border-scoreboard/40'
+            }`}
+            onClick={() => update('team', currentTeam === team ? '' : team)}
+          >
+            {team}
+          </button>
         ))}
-      </select>
+      </div>
 
-      {/* 交易方式 */}
-      <select
-        className="input w-auto"
-        value={searchParams.get('deal_method') ?? ''}
-        onChange={e => update('deal_method', e.target.value)}
-      >
-        <option value="">不限交易方式</option>
-        <option value="meetup">面交</option>
-        <option value="mail">郵寄</option>
-      </select>
+      {/* 日期範圍 + 交易方式 + 排序 */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-dugout">比賽日期</span>
+          <input
+            type="date"
+            className="input w-auto text-xs"
+            value={currentDateFrom}
+            onChange={e => update('date_from', e.target.value)}
+          />
+          <span className="text-xs text-dugout">～</span>
+          <input
+            type="date"
+            className="input w-auto text-xs"
+            value={currentDateTo}
+            onChange={e => update('date_to', e.target.value)}
+          />
+        </div>
 
-      {/* 排序 */}
-      <select
-        className="input w-auto"
-        value={searchParams.get('sort') ?? 'created_desc'}
-        onChange={e => update('sort', e.target.value)}
-      >
-        {showGameDateSort && (
-          <option value="game_date_asc">比賽日期（近到遠）</option>
-        )}
-        <option value="created_desc">最新上架</option>
-        <option value="price_asc">價格（低到高）</option>
-        <option value="price_desc">價格（高到低）</option>
-      </select>
+        <select
+          className="input w-auto"
+          value={searchParams.get('deal_method') ?? ''}
+          onChange={e => update('deal_method', e.target.value)}
+        >
+          <option value="">不限交易方式</option>
+          <option value="meetup">面交</option>
+          <option value="mail">郵寄</option>
+        </select>
+
+        <select
+          className="input w-auto"
+          value={searchParams.get('sort') ?? 'created_desc'}
+          onChange={e => update('sort', e.target.value)}
+        >
+          {showGameDateSort && (
+            <option value="game_date_asc">比賽日期（近到遠）</option>
+          )}
+          <option value="created_desc">最新上架</option>
+          <option value="price_asc">價格（低到高）</option>
+          <option value="price_desc">價格（高到低）</option>
+        </select>
+      </div>
     </div>
   )
 }

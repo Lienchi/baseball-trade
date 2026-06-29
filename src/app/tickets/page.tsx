@@ -13,6 +13,8 @@ interface SearchParams {
   q?: string
   deal_method?: string
   sort?: string
+  date_from?: string
+  date_to?: string
 }
 
 export default async function TicketsPage({
@@ -40,6 +42,8 @@ export default async function TicketsPage({
   if (searchParams.deal_method) {
     query = query.in('deal_method', [searchParams.deal_method, 'both'])
   }
+  if (searchParams.date_from) query = query.gte('game_date', searchParams.date_from)
+  if (searchParams.date_to) query = query.lte('game_date', searchParams.date_to)
 
   // 排序
   switch (searchParams.sort) {
