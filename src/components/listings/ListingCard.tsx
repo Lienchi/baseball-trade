@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { MessageCircle, MapPin, Tag, Star } from 'lucide-react'
 import { formatRelativeTime, cn } from '@/lib/utils'
