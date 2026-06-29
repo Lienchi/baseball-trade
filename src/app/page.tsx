@@ -48,8 +48,8 @@ export default async function HomePage() {
         <p className="font-mono text-xs font-bold uppercase tracking-widest text-clay">
           CPBL Marketplace
         </p>
-        <h1 className="mt-1 font-display text-2xl text-scoreboard">球票市集</h1>
-        <p className="mt-1 text-sm text-dugout">中華職棒球票 &amp; 周邊商品交易社群</p>
+        <h1 className="mt-1 font-display text-2xl text-scoreboard">本質球迷交易所</h1>
+        <p className="mt-1 text-sm text-dugout">中華職棒球票 &amp; 周邊商品交易</p>
       </div>
 
       {/* 兩個導覽入口 */}
