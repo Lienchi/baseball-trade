@@ -5,6 +5,8 @@ import { formatDate } from '@/lib/utils'
 import { CommentSection } from '@/components/listings/CommentSection'
 import { ContactSellerButton } from '@/components/listings/ContactSellerButton'
 import { MarkSoldButton } from '@/components/listings/MarkSoldButton'
+import { DeleteListingButton } from '@/components/listings/DeleteListingButton'
+import Link from 'next/link'
 import { MapPin, Calendar, Package, Users } from 'lucide-react'
 import type { Listing } from '@/types'
 
@@ -25,6 +27,18 @@ export default async function ListingDetailPage({ params }: Props) {
 
   const { data: { user } } = await supabase.auth.getUser()
   const isOwner = user?.id === listing.user_id
+
+  let isAdmin = false
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+    isAdmin = (profile as any)?.is_admin === true
+  }
+
+  const canManage = isOwner || isAdmin
 
   await supabase.rpc('increment_view_count', { listing_id: params.id })
 
@@ -126,8 +140,17 @@ export default async function ListingDetailPage({ params }: Props) {
               </div>
             )}
 
-            {isOwner ? (
-              l.status === 'active' && <MarkSoldButton listingId={l.id} />
+            {canManage ? (
+              <div className="mt-4 space-y-2">
+                {l.status === 'active' && <MarkSoldButton listingId={l.id} />}
+                <Link
+                  href={`/listings/${l.id}/edit`}
+                  className="btn-secondary mt-2 flex w-full items-center justify-center"
+                >
+                  編輯刊登
+                </Link>
+                <DeleteListingButton listingId={l.id} />
+              </div>
             ) : (
               <ContactSellerButton listingId={l.id} sellerId={l.user_id} />
             )}
