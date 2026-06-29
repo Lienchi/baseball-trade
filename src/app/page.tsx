@@ -43,15 +43,6 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      {/* Hero */}
-      <div className="mb-8 border-b-2 border-scoreboard/10 pb-6">
-        <p className="font-mono text-xs font-bold uppercase tracking-widest text-clay">
-          CPBL Marketplace
-        </p>
-        <h1 className="mt-1 font-display text-2xl text-scoreboard">本質球迷交易所</h1>
-        <p className="mt-1 text-sm text-dugout">中華職棒球票 &amp; 周邊商品交易</p>
-      </div>
-
       {/* 兩個導覽入口 */}
       <div className="grid grid-cols-2 gap-4">
         <Link

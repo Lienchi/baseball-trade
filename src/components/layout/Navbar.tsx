@@ -43,8 +43,7 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="text-2xl">⚾</span>
-          <span className="font-display text-lg tracking-tight text-chalk">球票市集</span>
+          <span className="font-display text-lg tracking-tight text-chalk">本質球迷交易所</span>
         </Link>
 
         {/* 右側按鈕 */}
