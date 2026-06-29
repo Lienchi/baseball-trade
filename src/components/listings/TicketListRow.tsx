@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { MapPin, Calendar, MessageCircle, Star } from 'lucide-react'
 import { formatRelativeTime, formatDate, cn } from '@/lib/utils'
 import { getTeamColor } from '@/types'
@@ -47,6 +48,13 @@ export function TicketListRow({ listing }: Props) {
           )}
           {listing.profile && (
             <span className="flex items-center gap-1.5">
+              {listing.profile.avatar_url ? (
+                <Image src={listing.profile.avatar_url} alt={listing.profile.username} width={14} height={14} className="rounded-full object-cover flex-shrink-0" />
+              ) : (
+                <span className="h-3.5 w-3.5 flex-shrink-0 rounded-full bg-dugout/20 flex items-center justify-center text-[8px] font-bold text-dugout">
+                  {listing.profile.username[0]?.toUpperCase()}
+                </span>
+              )}
               <span>{listing.profile.username}</span>
               <Star size={10} className="text-gold fill-gold flex-shrink-0" />
               <span className="font-medium text-gold">{listing.profile.rating > 0 ? listing.profile.rating.toFixed(1) : '–'}</span>
