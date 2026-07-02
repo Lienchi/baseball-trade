@@ -47,9 +47,9 @@ export default async function HomePage() {
       <div className="grid grid-cols-2 gap-4">
         <Link
           href="/tickets"
-          className="card group flex items-center justify-between p-6 transition hover:shadow-md"
+          className="card group flex flex-col items-center justify-between gap-3 p-6 text-center transition hover:shadow-md sm:flex-row sm:gap-0 sm:text-left"
         >
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
             <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-field/10 text-field">
               <Ticket size={20} strokeWidth={2} />
             </span>
@@ -58,14 +58,14 @@ export default async function HomePage() {
               <p className="mt-1 text-sm text-dugout">瀏覽所有球票刊登，依日期、球隊篩選</p>
             </div>
           </div>
-          <ArrowRight size={20} className="text-dugout/40 transition group-hover:translate-x-1 group-hover:text-field" />
+          <ArrowRight size={20} className="hidden text-dugout/40 transition group-hover:translate-x-1 group-hover:text-field sm:block" />
         </Link>
 
         <Link
           href="/merchandise"
-          className="card group flex items-center justify-between p-6 transition hover:shadow-md"
+          className="card group flex flex-col items-center justify-between gap-3 p-6 text-center transition hover:shadow-md sm:flex-row sm:gap-0 sm:text-left"
         >
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
             <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-clay/10 text-clay">
               <Shirt size={20} strokeWidth={2} />
             </span>
@@ -74,7 +74,7 @@ export default async function HomePage() {
               <p className="mt-1 text-sm text-dugout">球衣、簽名球、應援小物盡在這裡</p>
             </div>
           </div>
-          <ArrowRight size={20} className="text-dugout/40 transition group-hover:translate-x-1 group-hover:text-clay" />
+          <ArrowRight size={20} className="hidden text-dugout/40 transition group-hover:translate-x-1 group-hover:text-clay sm:block" />
         </Link>
       </div>
 
