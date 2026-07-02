@@ -79,8 +79,7 @@ export default async function TicketsPage({
       {/* Hero */}
       <div className="mb-6 flex items-center justify-between border-b-2 border-scoreboard/10 pb-6">
         <div>
-          <Link href="/" className="text-xs font-medium text-clay hover:underline">← 回首頁</Link>
-          <h1 className="mt-1 flex items-center gap-2 font-display text-2xl text-scoreboard">
+          <h1 className="flex items-center gap-2 font-display text-2xl text-scoreboard">
             <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-field/10 text-field">
               <Ticket size={18} strokeWidth={2} />
             </span>
