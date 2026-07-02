@@ -23,14 +23,15 @@ const config: Config = {
     extend: {
       colors: {
         field: {
-          DEFAULT: '#1E5FA8',  // 主色：藍色
-          light: '#2C72C4',
-          dark: '#154780',
+          DEFAULT: '#0D3B66',  // 主色：深藏青藍（參考富邦悍將視覺）
+          light: '#1957A6',
+          dark: '#082849',
         },
+        banner: '#1E6FD9',     // 頂部橫幅：藍色底
         clay: {
-          DEFAULT: '#C8472E',  // 紅土橘紅 — CTA / 強調
-          light: '#D9603F',
-          dark: '#A8381F',
+          DEFAULT: '#154C99',  // CTA / 強調藍（深）
+          light: '#1E6FD9',
+          dark: '#0D3B78',
         },
         chalk: 'rgb(var(--color-chalk) / <alpha-value>)',
         scoreboard: 'rgb(var(--color-scoreboard) / <alpha-value>)',

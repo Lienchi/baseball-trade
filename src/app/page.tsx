@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { ListingCard } from '@/components/listings/ListingCard'
 import { TicketListRow } from '@/components/listings/TicketListRow'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Ticket, Shirt } from 'lucide-react'
 import type { Listing } from '@/types'
 
 export const revalidate = 60
@@ -47,26 +47,34 @@ export default async function HomePage() {
       <div className="grid grid-cols-2 gap-4">
         <Link
           href="/tickets"
-          className="card group flex items-center justify-between border-l-4 border-field p-6 transition hover:shadow-md"
+          className="card group flex items-center justify-between p-6 transition hover:shadow-md"
         >
-          <div>
-            <span className="text-2xl">⚾</span>
-            <h2 className="mt-2 font-display text-lg text-scoreboard">球票交易</h2>
-            <p className="mt-1 text-sm text-dugout">瀏覽所有球票刊登，依日期、球隊篩選</p>
+          <div className="flex items-center gap-4">
+            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-field/10 text-field">
+              <Ticket size={20} strokeWidth={2} />
+            </span>
+            <div>
+              <h2 className="font-display text-lg text-scoreboard">球票交易</h2>
+              <p className="mt-1 text-sm text-dugout">瀏覽所有球票刊登，依日期、球隊篩選</p>
+            </div>
           </div>
           <ArrowRight size={20} className="text-dugout/40 transition group-hover:translate-x-1 group-hover:text-field" />
         </Link>
 
         <Link
           href="/merchandise"
-          className="card group flex items-center justify-between border-l-4 border-gold p-6 transition hover:shadow-md"
+          className="card group flex items-center justify-between p-6 transition hover:shadow-md"
         >
-          <div>
-            <span className="text-2xl">🎽</span>
-            <h2 className="mt-2 font-display text-lg text-scoreboard">周邊商品</h2>
-            <p className="mt-1 text-sm text-dugout">球衣、簽名球、應援小物盡在這裡</p>
+          <div className="flex items-center gap-4">
+            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-clay/10 text-clay">
+              <Shirt size={20} strokeWidth={2} />
+            </span>
+            <div>
+              <h2 className="font-display text-lg text-scoreboard">周邊商品</h2>
+              <p className="mt-1 text-sm text-dugout">球衣、簽名球、應援小物盡在這裡</p>
+            </div>
           </div>
-          <ArrowRight size={20} className="text-dugout/40 transition group-hover:translate-x-1 group-hover:text-gold" />
+          <ArrowRight size={20} className="text-dugout/40 transition group-hover:translate-x-1 group-hover:text-clay" />
         </Link>
       </div>
 
@@ -85,7 +93,9 @@ export default async function HomePage() {
           {tickets.length > 0 && (
             <section className="mt-10">
               <div className="flex items-center justify-between">
-                <h2 className="font-display text-base text-scoreboard">⚾ 最新球票</h2>
+                <h2 className="flex items-center gap-1.5 font-display text-base text-scoreboard">
+                  <Ticket size={16} className="text-field" /> 最新球票
+                </h2>
                 <Link href="/tickets" className="flex items-center gap-1 text-xs font-bold text-clay hover:underline">
                   查看全部 <ArrowRight size={12} />
                 </Link>
@@ -102,7 +112,9 @@ export default async function HomePage() {
           {merchandise.length > 0 && (
             <section className="mt-10">
               <div className="flex items-center justify-between">
-                <h2 className="font-display text-base text-scoreboard">🎽 最新周邊</h2>
+                <h2 className="flex items-center gap-1.5 font-display text-base text-scoreboard">
+                  <Shirt size={16} className="text-clay" /> 最新周邊
+                </h2>
                 <Link href="/merchandise" className="flex items-center gap-1 text-xs font-bold text-clay hover:underline">
                   查看全部 <ArrowRight size={12} />
                 </Link>

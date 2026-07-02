@@ -51,28 +51,25 @@ export function Navbar() {
   }
 
   return (
-    <nav className="fixed inset-x-0 top-0 z-50 border-b border-chalk/10 bg-field bg-stitch-pattern">
+    <nav className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-banner">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <svg width="34" height="34" viewBox="0 0 60 80" className="flex-shrink-0">
-            <path d="M 0 0 L 60 0 L 60 42 Q 60 70 30 80 Q 0 70 0 42 Z" fill="#0A2D54" />
-            <path d="M 7 7 L 53 7 L 53 40 Q 53 63 30 71 Q 7 63 7 40 Z" fill="none" stroke="#C8A84B" strokeWidth="1.5" />
-            <circle cx="30" cy="37" r="14" fill="#F5F0E8" />
-            <path d="M 24 29 Q 30 37 24 45" fill="none" stroke="#C8472E" strokeWidth="1.5" />
-            <path d="M 36 29 Q 30 37 36 45" fill="none" stroke="#C8472E" strokeWidth="1.5" />
-            <text x="30" y="22" fontFamily="serif" fontWeight="900" fontSize="12" fill="#C8A84B" textAnchor="middle">本</text>
+          <svg width="34" height="38" viewBox="0 0 60 68" className="flex-shrink-0">
+            <path d="M 30 2 L 56 10 L 56 34 Q 56 54 30 66 Q 4 54 4 34 L 4 10 Z" fill="#082849" stroke="#D4A437" strokeWidth="2" />
+            <path d="M 30 9 L 49 15 L 49 34 Q 49 48 30 58 Q 11 48 11 34 L 11 15 Z" fill="none" stroke="#D4A437" strokeWidth="1" opacity="0.6" />
+            <text x="30" y="40" fontFamily="'Archivo Black', sans-serif" fontWeight="900" fontSize="24" fill="#F5F0E8" textAnchor="middle">本</text>
           </svg>
           <div className="hidden flex-col leading-none sm:flex">
-            <span className="font-display text-lg tracking-tight text-chalk">本質球迷交易所</span>
-            <span className="mt-0.5 font-mono text-[9px] font-bold tracking-[0.15em] text-gold">BEN2 FAN EXCHANGE</span>
+            <span className="font-display text-lg tracking-tight text-white">本質球迷交易所</span>
+            <span className="mt-0.5 bg-transparent font-mono text-[9px] font-bold tracking-[0.15em] text-gold">BEN2 FAN EXCHANGE</span>
           </div>
-          <span className="font-display text-lg tracking-tight text-chalk sm:hidden">本質球迷交易所</span>
+          <span className="font-display text-lg tracking-tight text-white sm:hidden">本質球迷交易所</span>
         </Link>
 
         {/* 右側按鈕 */}
         <div className="flex items-center gap-2">
-          <button onClick={toggleDark} className="p-2 text-chalk/80 hover:text-chalk">
+          <button onClick={toggleDark} className="p-2 text-white/70 hover:text-white">
             {dark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
           <Link href="/listings/new" className="btn-primary hidden sm:inline-flex">
@@ -82,27 +79,27 @@ export function Navbar() {
 
           {user ? (
             <>
-              <Link href="/messages" className="relative p-2 text-chalk/80 hover:text-chalk">
+              <Link href="/messages" className="relative p-2 text-white/70 hover:text-white">
                 <MessageCircle size={20} />
                 {unread > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-scoreboard">
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-field-dark">
                     {unread > 9 ? '9+' : unread}
                   </span>
                 )}
               </Link>
-              <Link href="/profile" className="p-2 text-chalk/80 hover:text-chalk">
+              <Link href="/profile" className="p-2 text-white/70 hover:text-white">
                 <User size={20} />
               </Link>
               <button
                 onClick={handleLogout}
-                className="rounded-md border-2 border-chalk/25 px-3 py-1.5 text-xs font-bold text-chalk transition hover:bg-chalk/10"
+                className="rounded-md border-2 border-white/25 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/10"
               >
                 登出
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="rounded-md border-2 border-chalk/25 px-3 py-1.5 text-xs font-bold text-chalk transition hover:bg-chalk/10">
+              <Link href="/login" className="rounded-md border-2 border-white/25 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/10">
                 登入
               </Link>
               <Link href="/register" className="btn-primary hidden sm:inline-flex">註冊</Link>
