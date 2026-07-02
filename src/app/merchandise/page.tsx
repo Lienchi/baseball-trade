@@ -3,6 +3,7 @@ import { ListingCard } from '@/components/listings/ListingCard'
 import { MerchandiseSortFilterBar } from '@/components/listings/MerchandiseSortFilterBar'
 import { Pagination } from '@/components/listings/Pagination'
 import Link from 'next/link'
+import { Shirt } from 'lucide-react'
 import type { Listing } from '@/types'
 
 const PAGE_SIZE = 20
@@ -66,7 +67,12 @@ export default async function MerchandisePage({
       <div className="mb-6 flex items-center justify-between border-b-2 border-scoreboard/10 pb-6">
         <div>
           <Link href="/" className="text-xs font-medium text-clay hover:underline">← 回首頁</Link>
-          <h1 className="mt-1 font-display text-2xl text-scoreboard">🎽 周邊商品</h1>
+          <h1 className="mt-1 flex items-center gap-2 font-display text-2xl text-scoreboard">
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-clay/10 text-clay">
+              <Shirt size={18} strokeWidth={2} />
+            </span>
+            周邊商品
+          </h1>
           <p className="mt-1 text-sm text-dugout">
             {count ?? 0} 件周邊商品刊登中
           </p>
@@ -89,7 +95,9 @@ export default async function MerchandisePage({
         </>
       ) : (
         <div className="mt-20 flex flex-col items-center text-center">
-          <span className="text-4xl">🎽</span>
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-clay/10 text-clay">
+            <Shirt size={26} strokeWidth={2} />
+          </span>
           <p className="mt-3 text-lg font-semibold text-scoreboard">目前沒有符合條件的商品</p>
           <Link href="/listings/new" className="btn-primary mt-5 inline-flex">
             成為第一個刊登者

@@ -60,11 +60,10 @@ export function Navbar() {
             <path d="M 30 9 L 49 15 L 49 34 Q 49 48 30 58 Q 11 48 11 34 L 11 15 Z" fill="none" stroke="#D4A437" strokeWidth="1" opacity="0.6" />
             <text x="30" y="40" fontFamily="'Archivo Black', sans-serif" fontWeight="900" fontSize="24" fill="#F5F0E8" textAnchor="middle">本</text>
           </svg>
-          <div className="hidden flex-col leading-none sm:flex">
-            <span className="font-display text-lg tracking-tight text-white">本質球迷交易所</span>
-            <span className="mt-0.5 bg-transparent font-mono text-[9px] font-bold tracking-[0.15em] text-gold">BEN2 FAN EXCHANGE</span>
+          <div className="flex flex-col leading-none">
+            <span className="font-display text-base tracking-tight text-white sm:text-lg">本質球迷交易所</span>
+            <span className="mt-0.5 bg-transparent font-mono text-[8px] font-bold tracking-[0.15em] text-gold sm:text-[9px]">BEN2 FAN EXCHANGE</span>
           </div>
-          <span className="font-display text-lg tracking-tight text-white sm:hidden">本質球迷交易所</span>
         </Link>
 
         {/* 右側按鈕 */}

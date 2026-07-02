@@ -3,6 +3,7 @@ import { TicketListRow } from '@/components/listings/TicketListRow'
 import { TicketSortFilterBar } from '@/components/listings/TicketSortFilterBar'
 import { Pagination } from '@/components/listings/Pagination'
 import Link from 'next/link'
+import { Ticket } from 'lucide-react'
 import type { Listing } from '@/types'
 
 const PAGE_SIZE = 20
@@ -79,7 +80,12 @@ export default async function TicketsPage({
       <div className="mb-6 flex items-center justify-between border-b-2 border-scoreboard/10 pb-6">
         <div>
           <Link href="/" className="text-xs font-medium text-clay hover:underline">← 回首頁</Link>
-          <h1 className="mt-1 font-display text-2xl text-scoreboard">⚾ 球票交易</h1>
+          <h1 className="mt-1 flex items-center gap-2 font-display text-2xl text-scoreboard">
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-field/10 text-field">
+              <Ticket size={18} strokeWidth={2} />
+            </span>
+            球票交易
+          </h1>
           <p className="mt-1 text-sm text-dugout">
             {count ?? 0} 筆球票刊登中
           </p>
@@ -102,7 +108,9 @@ export default async function TicketsPage({
         </>
       ) : (
         <div className="mt-20 flex flex-col items-center text-center">
-          <span className="text-4xl">⚾</span>
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-field/10 text-field">
+            <Ticket size={26} strokeWidth={2} />
+          </span>
           <p className="mt-3 text-lg font-semibold text-scoreboard">目前沒有符合條件的球票</p>
           <Link href="/listings/new" className="btn-primary mt-5 inline-flex">
             成為第一個刊登者
