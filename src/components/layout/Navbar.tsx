@@ -55,7 +55,19 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="font-display text-lg tracking-tight text-chalk">本質球迷交易所</span>
+          <svg width="34" height="34" viewBox="0 0 60 80" className="flex-shrink-0">
+            <path d="M 0 0 L 60 0 L 60 42 Q 60 70 30 80 Q 0 70 0 42 Z" fill="#0A2D54" />
+            <path d="M 7 7 L 53 7 L 53 40 Q 53 63 30 71 Q 7 63 7 40 Z" fill="none" stroke="#C8A84B" strokeWidth="1.5" />
+            <circle cx="30" cy="37" r="14" fill="#F5F0E8" />
+            <path d="M 24 29 Q 30 37 24 45" fill="none" stroke="#C8472E" strokeWidth="1.5" />
+            <path d="M 36 29 Q 30 37 36 45" fill="none" stroke="#C8472E" strokeWidth="1.5" />
+            <text x="30" y="22" fontFamily="serif" fontWeight="900" fontSize="12" fill="#C8A84B" textAnchor="middle">本</text>
+          </svg>
+          <div className="hidden flex-col leading-none sm:flex">
+            <span className="font-display text-lg tracking-tight text-chalk">本質球迷交易所</span>
+            <span className="mt-0.5 font-mono text-[9px] font-bold tracking-[0.15em] text-gold">BEN2 FAN EXCHANGE</span>
+          </div>
+          <span className="font-display text-lg tracking-tight text-chalk sm:hidden">本質球迷交易所</span>
         </Link>
 
         {/* 右側按鈕 */}
