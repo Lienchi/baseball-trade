@@ -49,6 +49,11 @@ export function TicketListRow({ listing }: Props) {
                   {formatDate(item.date)}
                 </span>
                 {item.seat && <span className="truncate">{item.seat}</span>}
+                {item.price != null && (
+                  <span className="flex-shrink-0 font-bold text-field dark:text-blue-400">
+                    NT$ {item.price.toLocaleString('zh-TW')}
+                  </span>
+                )}
               </li>
             ))}
             {listing.ticket_items.length > 3 && (

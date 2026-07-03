@@ -122,7 +122,7 @@ export type CpblTeam = typeof CPBL_TEAMS[number]
 // 球隊代表色對照表（對應 tailwind.config.ts 裡定義的顏色）
 // textOnBg: 球隊色底色上要配的文字顏色（黃色系需要深色文字才有足夠對比度）
 export const TEAM_COLORS: Record<string, { bg: string; text: string; border: string; textOnBg: string }> = {
-  '中信兄弟':       { bg: 'bg-brother',  text: 'text-brother',  border: 'border-brother', textOnBg: 'text-scoreboard' },
+  '中信兄弟':       { bg: 'bg-brother',  text: 'text-brother',  border: 'border-brother', textOnBg: 'text-black' },
   '統一7-ELEVEn獅': { bg: 'bg-uni',      text: 'text-uni',      border: 'border-uni',     textOnBg: 'text-white' },
   '富邦悍將':       { bg: 'bg-fubon',    text: 'text-fubon',    border: 'border-fubon',   textOnBg: 'text-white' },
   '樂天桃猿':       { bg: 'bg-rakuten',  text: 'text-rakuten',  border: 'border-rakuten', textOnBg: 'text-white' },

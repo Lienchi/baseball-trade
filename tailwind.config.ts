@@ -17,7 +17,7 @@ const config: Config = {
     'bg-wei', 'text-wei', 'border-wei',
     'bg-tsg', 'text-tsg', 'border-tsg',
     'bg-dugout', 'text-dugout', 'border-dugout',
-    'text-white', 'text-scoreboard',
+    'text-white', 'text-scoreboard', 'text-black',
   ],
   theme: {
     extend: {
