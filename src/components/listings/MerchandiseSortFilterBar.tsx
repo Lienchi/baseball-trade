@@ -32,15 +32,6 @@ export function MerchandiseSortFilterBar() {
             onChange={e => update('q', e.target.value)}
           />
         </div>
-        <select
-          className="input w-auto"
-          value={searchParams.get('sort') ?? 'created_desc'}
-          onChange={e => update('sort', e.target.value)}
-        >
-          <option value="created_desc">最新上架</option>
-          <option value="price_asc">價格（低到高）</option>
-          <option value="price_desc">價格（高到低）</option>
-        </select>
       </div>
 
       <div className="flex flex-wrap gap-2">

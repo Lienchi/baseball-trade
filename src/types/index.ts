@@ -10,7 +10,27 @@ export interface Profile {
 
 export type ListingType = 'ticket' | 'merchandise'
 export type ListingStatus = 'active' | 'sold' | 'closed'
-export type DealMethod = 'meetup' | 'mail' | 'both'
+export type DealMethod = 'meetup' | 'mail' | 'eticket' | 'app_transfer'
+
+export const DEAL_METHOD_LABELS: Record<DealMethod, string> = {
+  meetup: '面交',
+  mail: '郵寄',
+  eticket: '電子票券',
+  app_transfer: 'APP轉票',
+}
+
+// 各刊登類型可選的交易方式（電子票券/APP轉票 僅適用於球票）
+export const DEAL_METHOD_OPTIONS: Record<ListingType, DealMethod[]> = {
+  ticket: ['meetup', 'mail', 'eticket', 'app_transfer'],
+  merchandise: ['meetup', 'mail'],
+}
+
+// 球票場次：一篇刊登可包含多筆「日期 + 座位資訊 + 票價」
+export interface TicketItem {
+  date: string
+  seat: string
+  price: number | null
+}
 
 export interface Listing {
   id: string
@@ -19,12 +39,13 @@ export interface Listing {
   description: string
   type: ListingType
   status: ListingStatus
-  price: number
+  price: number | null
   is_negotiable: boolean
-  deal_method: DealMethod
+  deal_methods: DealMethod[]
   location: string | null
   team: string | null
-  game_date: string | null
+  game_date: string | null  // 最早場次日期（由 ticket_items 推算，供排序/篩選用）
+  ticket_items: TicketItem[]
   images: string[]
   view_count: number
   created_at: string

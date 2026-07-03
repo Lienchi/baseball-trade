@@ -42,7 +42,7 @@
   /* ===== 按鈕 ===== */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-md bg-clay px-5 py-2.5
-           text-sm font-bold text-chalk transition-all
+           text-sm font-bold text-white transition-all
            hover:bg-clay-dark active:scale-[0.97]
            disabled:opacity-40 disabled:cursor-not-allowed
            shadow-[0_2px_0_0_theme(colors.clay.dark)] hover:shadow-[0_1px_0_0_theme(colors.clay.dark)] hover:translate-y-[1px];

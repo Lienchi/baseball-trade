@@ -93,6 +93,8 @@ export function TicketSortFilterBar({ showGameDateSort = false }: Props) {
           <option value="">不限交易方式</option>
           <option value="meetup">面交</option>
           <option value="mail">郵寄</option>
+          <option value="eticket">電子票券</option>
+          <option value="app_transfer">APP轉票</option>
         </select>
 
         <select
@@ -104,8 +106,6 @@ export function TicketSortFilterBar({ showGameDateSort = false }: Props) {
             <option value="game_date_asc">比賽日期（近到遠）</option>
           )}
           <option value="created_desc">最新上架</option>
-          <option value="price_asc">價格（低到高）</option>
-          <option value="price_desc">價格（高到低）</option>
         </select>
       </div>
     </div>

@@ -4,15 +4,35 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, Calendar, MessageCircle, Star } from 'lucide-react'
 import { formatRelativeTime, formatDate, cn } from '@/lib/utils'
-import { getTeamColor } from '@/types'
+import { getTeamColor, DEAL_METHOD_LABELS } from '@/types'
 import type { Listing } from '@/types'
 
 interface Props {
   listing: Listing
 }
 
+// 比賽日倒數文字：今天 / 明天 / N 天後 / 已過期
+function gameCountdown(gameDate: string): { text: string; expired: boolean } {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const game = new Date(gameDate)
+  game.setHours(0, 0, 0, 0)
+  const days = Math.round((game.getTime() - today.getTime()) / 86400000)
+  if (days < 0) return { text: '已過期', expired: true }
+  if (days === 0) return { text: '今天開打', expired: false }
+  if (days === 1) return { text: '明天開打', expired: false }
+  return { text: `${days} 天後`, expired: false }
+}
+
 export function TicketListRow({ listing }: Props) {
   const team = getTeamColor(listing.team)
+
+  // 倒數以「最近的未來場次」為準，全部過期才顯示已過期
+  const dates = (listing.ticket_items ?? []).map(t => t.date).filter(Boolean)
+  if (dates.length === 0 && listing.game_date) dates.push(listing.game_date)
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const upcoming = dates.filter(d => d >= todayStr).sort()
+  const countdownDate = upcoming[0] ?? (dates.length > 0 ? [...dates].sort().at(-1) : null)
 
   return (
     <Link
@@ -40,10 +60,11 @@ export function TicketListRow({ listing }: Props) {
           {listing.title}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-dugout">
-          {listing.game_date && (
+          {countdownDate && (
             <span className="flex items-center gap-1">
               <Calendar size={12} />
-              {formatDate(listing.game_date)}
+              {formatDate(countdownDate)}
+              {dates.length > 1 && <span className="text-dugout/60">等 {dates.length} 場</span>}
             </span>
           )}
           {listing.profile && (
@@ -75,14 +96,27 @@ export function TicketListRow({ listing }: Props) {
         </div>
       </div>
 
-      {/* 價格 */}
+      {/* 比賽倒數 + 交易方式 */}
       <div className="flex-shrink-0 text-right">
-        <span className="scoreboard-price text-sm">
-          <span className="currency">NT$</span>
-          {listing.price.toLocaleString('zh-TW')}
-        </span>
-        {listing.is_negotiable && (
-          <p className="mt-1 text-xs text-dugout">可議</p>
+        {countdownDate && (() => {
+          const countdown = gameCountdown(countdownDate)
+          return (
+            <p className={cn(
+              'text-sm font-bold',
+              countdown.expired ? 'text-dugout/50' : 'text-field dark:text-blue-400'
+            )}>
+              {countdown.text}
+            </p>
+          )
+        })()}
+        {listing.deal_methods?.length > 0 && (
+          <div className="mt-1 flex flex-wrap justify-end gap-1">
+            {listing.deal_methods.map(m => (
+              <span key={m} className="rounded-sm bg-field/10 px-1.5 py-0.5 text-[10px] font-medium text-field dark:bg-blue-400/15 dark:text-blue-400">
+                {DEAL_METHOD_LABELS[m]}
+              </span>
+            ))}
+          </div>
         )}
         <p className="mt-1 text-xs text-dugout/60">{formatRelativeTime(listing.created_at)}</p>
       </div>

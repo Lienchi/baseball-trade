@@ -93,7 +93,7 @@ export default function MessagesListPage() {
               href={`/messages/${conv.id}`}
               className="card flex items-center gap-3 p-3 transition hover:bg-dugout/5"
             >
-              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-field text-sm font-bold text-chalk">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-field text-sm font-bold text-white">
                 {conv.other_username?.slice(0, 2).toUpperCase() ?? '?'}
               </div>
               <div className="flex-1 overflow-hidden">
@@ -115,7 +115,7 @@ export default function MessagesListPage() {
                 </p>
               </div>
               {(conv.unread_count ?? 0) > 0 && (
-                <span className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-clay px-1 text-[11px] font-bold text-chalk">
+                <span className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-clay px-1 text-[11px] font-bold text-white">
                   {conv.unread_count}
                 </span>
               )}

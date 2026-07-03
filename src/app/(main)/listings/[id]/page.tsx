@@ -8,6 +8,7 @@ import { MarkSoldButton } from '@/components/listings/MarkSoldButton'
 import { DeleteListingButton } from '@/components/listings/DeleteListingButton'
 import Link from 'next/link'
 import { MapPin, Calendar, Package, Users } from 'lucide-react'
+import { DEAL_METHOD_LABELS } from '@/types'
 import type { Listing } from '@/types'
 
 interface Props {
@@ -44,11 +45,6 @@ export default async function ListingDetailPage({ params }: Props) {
 
   const l = listing as Listing
 
-  const DEAL_METHOD_LABEL = {
-    meetup: '面交',
-    mail: '郵寄',
-    both: '面交 / 郵寄',
-  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -89,24 +85,34 @@ export default async function ListingDetailPage({ params }: Props) {
 
         <div className="lg:col-span-2">
           <div className="sticky top-20 card p-5">
-            <div className="flex items-center gap-2">
-              <span className="scoreboard-price text-xl">
-                <span className="currency">NT$</span>
-                {l.price.toLocaleString('zh-TW')}
-              </span>
-              {l.is_negotiable && (
-                <span className="badge bg-field/10 text-field">可議價</span>
-              )}
-            </div>
-
-            <ul className="mt-4 space-y-2 text-sm text-dugout">
+            <ul className="space-y-2 text-sm text-dugout">
               {l.team && (
                 <li className="flex items-center gap-2">
                   <Users size={14} className="text-dugout/50" />
                   {l.team}
                 </li>
               )}
-              {l.game_date && (
+              {(l.ticket_items?.length ?? 0) > 0 ? (
+                <li>
+                  <div className="flex items-center gap-2">
+                    <Calendar size={14} className="text-dugout/50" />
+                    場次資訊
+                  </div>
+                  <ul className="mt-1.5 space-y-1">
+                    {l.ticket_items.map((item, i) => (
+                      <li key={i} className="ml-6 flex items-baseline gap-2 rounded-md bg-scoreboard/5 px-2.5 py-1.5">
+                        <span className="flex-shrink-0 font-medium text-scoreboard">{formatDate(item.date)}</span>
+                        {item.seat && <span className="text-dugout">{item.seat}</span>}
+                        {item.price != null && (
+                          <span className="ml-auto flex-shrink-0 font-bold text-field dark:text-blue-400">
+                            NT$ {item.price.toLocaleString('zh-TW')}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ) : l.game_date && (
                 <li className="flex items-center gap-2">
                   <Calendar size={14} className="text-dugout/50" />
                   {formatDate(l.game_date)}
@@ -118,15 +124,17 @@ export default async function ListingDetailPage({ params }: Props) {
                   {l.location}
                 </li>
               )}
-              <li className="flex items-center gap-2">
-                <Package size={14} className="text-dugout/50" />
-                {DEAL_METHOD_LABEL[l.deal_method]}
-              </li>
+              {l.deal_methods?.length > 0 && (
+                <li className="flex items-center gap-2">
+                  <Package size={14} className="text-dugout/50" />
+                  {l.deal_methods.map(m => DEAL_METHOD_LABELS[m]).join('、')}
+                </li>
+              )}
             </ul>
 
             {l.profile && (
               <div className="mt-5 flex items-center gap-3 border-t border-scoreboard/10 pt-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-field text-sm font-bold text-chalk">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-field text-sm font-bold text-white">
                   {l.profile.username.slice(0, 2).toUpperCase()}
                 </div>
                 <div>

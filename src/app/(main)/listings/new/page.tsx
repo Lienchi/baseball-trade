@@ -4,8 +4,16 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { compressImage } from '@/lib/utils'
-import { CPBL_TEAMS } from '@/types'
-import { Upload, X } from 'lucide-react'
+import { CPBL_TEAMS, DEAL_METHOD_LABELS, DEAL_METHOD_OPTIONS } from '@/types'
+import type { DealMethod } from '@/types'
+import { Upload, X, Ticket, Shirt, Plus, Trash2 } from 'lucide-react'
+
+// 表單內的場次列（票價以字串暫存，送出時轉數字）
+interface TicketItemForm {
+  date: string
+  seat: string
+  price: string
+}
 
 export default function NewListingPage() {
   const supabase = createClient()
@@ -17,11 +25,11 @@ export default function NewListingPage() {
     type: 'ticket' as 'ticket' | 'merchandise',
     price: '',
     is_negotiable: false,
-    deal_method: 'both' as 'meetup' | 'mail' | 'both',
+    deal_methods: ['meetup'] as DealMethod[],
     location: '',
     team: '',
-    game_date: '',
   })
+  const [ticketItems, setTicketItems] = useState<TicketItemForm[]>([{ date: '', seat: '', price: '' }])
   const [images, setImages] = useState<File[]>([])
   const [previews, setPreviews] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
@@ -41,6 +49,10 @@ export default function NewListingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (form.deal_methods.length === 0) {
+      setError('請至少選擇一種交易方式')
+      return
+    }
     setLoading(true)
     setError('')
 
@@ -59,6 +71,18 @@ export default function NewListingPage() {
       imageUrls.push(publicUrl)
     }
 
+    // 過濾掉沒填日期的場次，game_date 存最早場次供排序/篩選
+    const validItems = form.type === 'ticket'
+      ? ticketItems.filter(t => t.date).map(t => ({
+          date: t.date,
+          seat: t.seat,
+          price: t.price ? parseInt(t.price) : null,
+        }))
+      : []
+    const earliestDate = validItems.length > 0
+      ? validItems.map(t => t.date).sort()[0]
+      : null
+
     const { data, error: insertError } = await supabase
       .from('listings')
       .insert({
@@ -66,12 +90,13 @@ export default function NewListingPage() {
         title: form.title,
         description: form.description,
         type: form.type,
-        price: parseInt(form.price),
-        is_negotiable: form.is_negotiable,
-        deal_method: form.deal_method,
+        price: null,
+        is_negotiable: false,
+        deal_methods: form.deal_methods,
         location: form.location || null,
         team: form.team || null,
-        game_date: form.game_date || null,
+        game_date: earliestDate,
+        ticket_items: validItems,
         images: imageUrls,
       })
       .select()
@@ -87,6 +112,20 @@ export default function NewListingPage() {
   }
 
   const set = (k: string, v: unknown) => setForm(f => ({ ...f, [k]: v }))
+
+  // 切換類型時，把該類型不支援的交易方式（如周邊不適用電子票券）從已選項目中移除
+  const setType = (t: 'ticket' | 'merchandise') => setForm(f => ({
+    ...f,
+    type: t,
+    deal_methods: f.deal_methods.filter(m => DEAL_METHOD_OPTIONS[t].includes(m)),
+  }))
+
+  const toggleDealMethod = (m: DealMethod) => setForm(f => ({
+    ...f,
+    deal_methods: f.deal_methods.includes(m)
+      ? f.deal_methods.filter(x => x !== m)
+      : [...f.deal_methods, m],
+  }))
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
@@ -107,9 +146,12 @@ export default function NewListingPage() {
                   ? 'border-field bg-field/10 text-field'
                   : 'border-scoreboard/10 text-dugout hover:border-scoreboard/20'
               }`}
-              onClick={() => set('type', t)}
+              onClick={() => setType(t)}
             >
-              {t === 'ticket' ? '⚾ 球票' : '🎽 周邊商品'}
+              <span className="inline-flex items-center gap-1.5">
+                {t === 'ticket' ? <Ticket size={16} /> : <Shirt size={16} />}
+                {t === 'ticket' ? '球票' : '周邊商品'}
+              </span>
             </button>
           ))}
         </div>
@@ -124,21 +166,9 @@ export default function NewListingPage() {
           <textarea className="input" rows={4} value={form.description} onChange={e => set('description', e.target.value)} required />
         </div>
 
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <label className="mb-1 block text-sm font-medium text-scoreboard">售價（NT$）*</label>
-            <input className="input" type="number" min={0} value={form.price} onChange={e => set('price', e.target.value)} required />
-          </div>
-          <div className="flex items-end pb-2">
-            <label className="flex items-center gap-2 text-sm text-scoreboard">
-              <input type="checkbox" checked={form.is_negotiable} onChange={e => set('is_negotiable', e.target.checked)} />
-              可議價
-            </label>
-          </div>
-        </div>
 
         {form.type === 'ticket' && (
-          <div className="grid grid-cols-2 gap-3">
+          <>
             <div>
               <label className="mb-1 block text-sm font-medium text-scoreboard">球隊</label>
               <select className="input" value={form.team} onChange={e => set('team', e.target.value)}>
@@ -146,26 +176,81 @@ export default function NewListingPage() {
                 {CPBL_TEAMS.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
+
             <div>
-              <label className="mb-1 block text-sm font-medium text-scoreboard">比賽日期</label>
-              <input type="date" className="input" value={form.game_date} onChange={e => set('game_date', e.target.value)} />
+              <label className="mb-1 block text-sm font-medium text-scoreboard">場次與座位 *</label>
+              <div className="space-y-2">
+                {ticketItems.map((item, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      className="input w-auto flex-shrink-0"
+                      value={item.date}
+                      required
+                      onChange={e => setTicketItems(prev => prev.map((t, idx) => idx === i ? { ...t, date: e.target.value } : t))}
+                    />
+                    <input
+                      className="input flex-1"
+                      placeholder="座位，e.g. 內野 A13 區 3 排"
+                      value={item.seat}
+                      required
+                      onChange={e => setTicketItems(prev => prev.map((t, idx) => idx === i ? { ...t, seat: e.target.value } : t))}
+                    />
+                    <input
+                      type="number"
+                      min={0}
+                      className="input w-24 flex-shrink-0"
+                      placeholder="票價"
+                      value={item.price}
+                      required
+                      onChange={e => setTicketItems(prev => prev.map((t, idx) => idx === i ? { ...t, price: e.target.value } : t))}
+                    />
+                    {ticketItems.length > 1 && (
+                      <button
+                        type="button"
+                        className="flex-shrink-0 p-2 text-dugout/50 hover:text-clay"
+                        onClick={() => setTicketItems(prev => prev.filter((_, idx) => idx !== i))}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-field hover:underline dark:text-blue-400"
+                onClick={() => setTicketItems(prev => [...prev, { date: '', seat: '', price: '' }])}
+              >
+                <Plus size={14} /> 新增場次
+              </button>
             </div>
-          </div>
+          </>
         )}
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-scoreboard">交易方式</label>
-            <select className="input" value={form.deal_method} onChange={e => set('deal_method', e.target.value)}>
-              <option value="both">面交 / 郵寄</option>
-              <option value="meetup">僅限面交</option>
-              <option value="mail">僅限郵寄</option>
-            </select>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-scoreboard">交易方式（可複選）*</label>
+          <div className="flex flex-wrap gap-2">
+            {DEAL_METHOD_OPTIONS[form.type].map(m => (
+              <button
+                key={m}
+                type="button"
+                className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
+                  form.deal_methods.includes(m)
+                    ? 'border-field bg-field/10 text-field'
+                    : 'border-scoreboard/20 text-dugout hover:border-scoreboard/40'
+                }`}
+                onClick={() => toggleDealMethod(m)}
+              >
+                {DEAL_METHOD_LABELS[m]}
+              </button>
+            ))}
           </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-scoreboard">地點（選填）</label>
-            <input className="input" placeholder="e.g. 台北市大安區" value={form.location} onChange={e => set('location', e.target.value)} />
-          </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium text-scoreboard">地點（選填）</label>
+          <input className="input" placeholder="e.g. 台北市大安區" value={form.location} onChange={e => set('location', e.target.value)} />
         </div>
 
         <div>
@@ -177,7 +262,7 @@ export default function NewListingPage() {
                 <img src={url} alt="" className="h-full w-full rounded-md object-cover" />
                 <button
                   type="button"
-                  className="absolute -right-1 -top-1 rounded-full bg-clay p-0.5 text-chalk"
+                  className="absolute -right-1 -top-1 rounded-full bg-clay p-0.5 text-white"
                   onClick={() => removeImage(i)}
                 >
                   <X size={12} />

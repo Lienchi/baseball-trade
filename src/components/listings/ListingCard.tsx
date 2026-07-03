@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { MessageCircle, MapPin, Tag, Star } from 'lucide-react'
 import { formatRelativeTime, cn } from '@/lib/utils'
-import { getTeamColor } from '@/types'
+import { getTeamColor, DEAL_METHOD_LABELS } from '@/types'
 import type { Listing } from '@/types'
 
 interface Props {
@@ -39,7 +39,7 @@ export function ListingCard({ listing }: Props) {
         {/* 已售出 overlay */}
         {listing.status === 'sold' && (
           <div className="absolute inset-0 flex items-center justify-center bg-scoreboard/60">
-            <span className="rounded-sm bg-clay px-4 py-1 text-sm font-display text-chalk">
+            <span className="rounded-sm bg-clay px-4 py-1 text-sm font-display text-white">
               已售出
             </span>
           </div>
@@ -55,16 +55,15 @@ export function ListingCard({ listing }: Props) {
         )}
         <p className="line-clamp-2 text-sm font-semibold text-scoreboard">{listing.title}</p>
 
-        {/* 價格 — 計分板翻牌樣式 */}
-        <div className="mt-2 flex items-center gap-2">
-          <span className="scoreboard-price text-base">
-            <span className="currency">NT$</span>
-            {listing.price.toLocaleString('zh-TW')}
-          </span>
-          {listing.is_negotiable && (
-            <span className="text-xs font-medium text-dugout">可議</span>
-          )}
-        </div>
+        {listing.deal_methods?.length > 0 && (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {listing.deal_methods.map(m => (
+              <span key={m} className="rounded-sm bg-field/10 px-1.5 py-0.5 text-[10px] font-medium text-field dark:bg-blue-400/15 dark:text-blue-400">
+                {DEAL_METHOD_LABELS[m]}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* 底部資訊 */}
         <div className="mt-auto pt-2.5 text-xs text-dugout">

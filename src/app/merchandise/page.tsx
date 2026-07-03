@@ -38,16 +38,7 @@ export default async function MerchandisePage({
   if (searchParams.team) query = query.eq('team', searchParams.team)
   if (searchParams.q) query = query.ilike('title', `%${searchParams.q}%`)
 
-  switch (searchParams.sort) {
-    case 'price_asc':
-      query = query.order('price', { ascending: true })
-      break
-    case 'price_desc':
-      query = query.order('price', { ascending: false })
-      break
-    default:
-      query = query.order('created_at', { ascending: false })
-  }
+  query = query.order('created_at', { ascending: false })
 
   query = query.range(from, to)
 
@@ -67,7 +58,7 @@ export default async function MerchandisePage({
       <div className="mb-6 flex items-center justify-between border-b-2 border-scoreboard/10 pb-6">
         <div>
           <h1 className="flex items-center gap-2 font-display text-2xl text-scoreboard">
-            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-clay/10 text-clay">
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-clay/10 text-clay dark:bg-blue-300/15 dark:text-blue-300">
               <Shirt size={18} strokeWidth={2} />
             </span>
             周邊商品
@@ -94,7 +85,7 @@ export default async function MerchandisePage({
         </>
       ) : (
         <div className="mt-20 flex flex-col items-center text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-clay/10 text-clay">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-clay/10 text-clay dark:bg-blue-300/15 dark:text-blue-300">
             <Shirt size={26} strokeWidth={2} />
           </span>
           <p className="mt-3 text-lg font-semibold text-scoreboard">目前沒有符合條件的商品</p>

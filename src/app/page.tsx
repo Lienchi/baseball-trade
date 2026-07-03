@@ -50,7 +50,7 @@ export default async function HomePage() {
           className="card group flex flex-col items-center justify-between gap-3 p-6 text-center transition hover:shadow-md sm:flex-row sm:gap-0 sm:text-left"
         >
           <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
-            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-field/10 text-field">
+            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-field/10 text-field dark:bg-blue-400/15 dark:text-blue-400">
               <Ticket size={20} strokeWidth={2} />
             </span>
             <div>
@@ -66,7 +66,7 @@ export default async function HomePage() {
           className="card group flex flex-col items-center justify-between gap-3 p-6 text-center transition hover:shadow-md sm:flex-row sm:gap-0 sm:text-left"
         >
           <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
-            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-clay/10 text-clay">
+            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-clay/10 text-clay dark:bg-blue-300/15 dark:text-blue-300">
               <Shirt size={20} strokeWidth={2} />
             </span>
             <div>
@@ -94,7 +94,7 @@ export default async function HomePage() {
             <section className="mt-10">
               <div className="flex items-center justify-between">
                 <h2 className="flex items-center gap-1.5 font-display text-base text-scoreboard">
-                  <Ticket size={16} className="text-field" /> 最新球票
+                  <Ticket size={16} className="text-field dark:text-blue-400" /> 最新球票
                 </h2>
                 <Link href="/tickets" className="flex items-center gap-1 text-xs font-bold text-clay hover:underline">
                   查看全部 <ArrowRight size={12} />
@@ -113,7 +113,7 @@ export default async function HomePage() {
             <section className="mt-10">
               <div className="flex items-center justify-between">
                 <h2 className="flex items-center gap-1.5 font-display text-base text-scoreboard">
-                  <Shirt size={16} className="text-clay" /> 最新周邊
+                  <Shirt size={16} className="text-clay dark:text-blue-300" /> 最新周邊
                 </h2>
                 <Link href="/merchandise" className="flex items-center gap-1 text-xs font-bold text-clay hover:underline">
                   查看全部 <ArrowRight size={12} />

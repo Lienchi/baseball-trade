@@ -244,7 +244,7 @@ export default function ConversationPage({ params }: Props) {
                 ) : (
                   <div className={`rounded-2xl px-3 py-2 text-sm ${
                     isMe
-                      ? 'bg-field text-chalk rounded-tr-sm'
+                      ? 'bg-field text-white rounded-tr-sm'
                       : 'bg-dugout/10 text-scoreboard rounded-tl-sm'
                   }`}>
                     {msg.content}

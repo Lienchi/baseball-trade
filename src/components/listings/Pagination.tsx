@@ -60,7 +60,7 @@ export function Pagination({ currentPage, totalPages, basePath }: Props) {
               className={cn(
                 'flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold transition',
                 page === currentPage
-                  ? 'bg-field text-chalk'
+                  ? 'bg-field text-white'
                   : 'border-2 border-scoreboard/10 text-dugout hover:border-field hover:text-field'
               )}
             >
