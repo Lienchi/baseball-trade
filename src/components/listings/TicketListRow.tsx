@@ -59,14 +59,29 @@ export function TicketListRow({ listing }: Props) {
         <p className="truncate text-sm font-semibold text-scoreboard">
           {listing.title}
         </p>
+        {/* 場次清單：日期 + 座位 + 票價（最多 3 筆，其餘收合） */}
+        {(listing.ticket_items?.length ?? 0) > 0 && (
+          <ul className="mt-1.5 space-y-0.5">
+            {listing.ticket_items.slice(0, 3).map((item, i) => (
+              <li key={i} className="flex items-center gap-2 text-xs text-dugout">
+                <span className="flex flex-shrink-0 items-center gap-1 font-medium text-scoreboard">
+                  <Calendar size={11} className="text-dugout/50" />
+                  {formatDate(item.date)}
+                </span>
+                {item.seat && <span className="truncate">{item.seat}</span>}
+                {item.price != null && (
+                  <span className="flex-shrink-0 font-bold text-field dark:text-blue-400">
+                    NT$ {item.price.toLocaleString('zh-TW')}
+                  </span>
+                )}
+              </li>
+            ))}
+            {listing.ticket_items.length > 3 && (
+              <li className="text-xs text-dugout/60">還有 {listing.ticket_items.length - 3} 場…</li>
+            )}
+          </ul>
+        )}
         <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-dugout">
-          {countdownDate && (
-            <span className="flex items-center gap-1">
-              <Calendar size={12} />
-              {formatDate(countdownDate)}
-              {dates.length > 1 && <span className="text-dugout/60">等 {dates.length} 場</span>}
-            </span>
-          )}
           {listing.profile && (
             <span className="flex items-center gap-1.5">
               {listing.profile.avatar_url ? (
