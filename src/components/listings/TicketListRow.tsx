@@ -2,37 +2,17 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, Calendar, MessageCircle, Star } from 'lucide-react'
-import { formatRelativeTime, formatDate, cn } from '@/lib/utils'
-import { getTeamColor, DEAL_METHOD_LABELS } from '@/types'
+import { Calendar, MessageCircle, Star } from 'lucide-react'
+import { formatDate, cn } from '@/lib/utils'
+import { getTeamColor } from '@/types'
 import type { Listing } from '@/types'
 
 interface Props {
   listing: Listing
 }
 
-// 比賽日倒數文字：今天 / 明天 / N 天後 / 已過期
-function gameCountdown(gameDate: string): { text: string; expired: boolean } {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const game = new Date(gameDate)
-  game.setHours(0, 0, 0, 0)
-  const days = Math.round((game.getTime() - today.getTime()) / 86400000)
-  if (days < 0) return { text: '已過期', expired: true }
-  if (days === 0) return { text: '今天開打', expired: false }
-  if (days === 1) return { text: '明天開打', expired: false }
-  return { text: `${days} 天後`, expired: false }
-}
-
 export function TicketListRow({ listing }: Props) {
   const team = getTeamColor(listing.team)
-
-  // 倒數以「最近的未來場次」為準，全部過期才顯示已過期
-  const dates = (listing.ticket_items ?? []).map(t => t.date).filter(Boolean)
-  if (dates.length === 0 && listing.game_date) dates.push(listing.game_date)
-  const todayStr = new Date().toISOString().slice(0, 10)
-  const upcoming = dates.filter(d => d >= todayStr).sort()
-  const countdownDate = upcoming[0] ?? (dates.length > 0 ? [...dates].sort().at(-1) : null)
 
   return (
     <Link
@@ -59,7 +39,7 @@ export function TicketListRow({ listing }: Props) {
         <p className="truncate text-sm font-semibold text-scoreboard">
           {listing.title}
         </p>
-        {/* 場次清單：日期 + 座位 + 票價（最多 3 筆，其餘收合） */}
+        {/* 場次清單：日期 + 座位（最多 3 筆，其餘收合） */}
         {(listing.ticket_items?.length ?? 0) > 0 && (
           <ul className="mt-1.5 space-y-0.5">
             {listing.ticket_items.slice(0, 3).map((item, i) => (
@@ -69,11 +49,6 @@ export function TicketListRow({ listing }: Props) {
                   {formatDate(item.date)}
                 </span>
                 {item.seat && <span className="truncate">{item.seat}</span>}
-                {item.price != null && (
-                  <span className="flex-shrink-0 font-bold text-field dark:text-blue-400">
-                    NT$ {item.price.toLocaleString('zh-TW')}
-                  </span>
-                )}
               </li>
             ))}
             {listing.ticket_items.length > 3 && (
@@ -81,9 +56,10 @@ export function TicketListRow({ listing }: Props) {
             )}
           </ul>
         )}
-        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-dugout">
+        {/* 刊登者 + 星星數 + 留言數 */}
+        <div className="mt-1 flex items-center gap-3 text-xs text-dugout">
           {listing.profile && (
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5 overflow-hidden">
               {listing.profile.avatar_url ? (
                 <Image src={listing.profile.avatar_url} alt={listing.profile.username} width={14} height={14} className="rounded-full object-cover flex-shrink-0" />
               ) : (
@@ -91,49 +67,16 @@ export function TicketListRow({ listing }: Props) {
                   {listing.profile.username[0]?.toUpperCase()}
                 </span>
               )}
-              <span>{listing.profile.username}</span>
+              <span className="truncate">{listing.profile.username}</span>
               <Star size={10} className="text-gold fill-gold flex-shrink-0" />
               <span className="font-medium text-gold">{listing.profile.rating_count ?? 0}</span>
             </span>
           )}
-        </div>
-        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-dugout">
-          {listing.location && (
-            <span className="flex items-center gap-1">
-              <MapPin size={12} />
-              {listing.location}
-            </span>
-          )}
-          <span className="flex items-center gap-1">
+          <span className="flex flex-shrink-0 items-center gap-1">
             <MessageCircle size={12} />
             {listing.comment_count ?? 0}
           </span>
         </div>
-      </div>
-
-      {/* 比賽倒數 + 交易方式 */}
-      <div className="flex-shrink-0 text-right">
-        {countdownDate && (() => {
-          const countdown = gameCountdown(countdownDate)
-          return (
-            <p className={cn(
-              'text-sm font-bold',
-              countdown.expired ? 'text-dugout/50' : 'text-field dark:text-blue-400'
-            )}>
-              {countdown.text}
-            </p>
-          )
-        })()}
-        {listing.deal_methods?.length > 0 && (
-          <div className="mt-1 flex flex-wrap justify-end gap-1">
-            {listing.deal_methods.map(m => (
-              <span key={m} className="rounded-sm bg-field/10 px-1.5 py-0.5 text-[10px] font-medium text-field dark:bg-blue-400/15 dark:text-blue-400">
-                {DEAL_METHOD_LABELS[m]}
-              </span>
-            ))}
-          </div>
-        )}
-        <p className="mt-1 text-xs text-dugout/60">{formatRelativeTime(listing.created_at)}</p>
       </div>
     </Link>
   )
