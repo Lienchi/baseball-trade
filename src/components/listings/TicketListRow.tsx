@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, MessageCircle, Star } from 'lucide-react'
-import { formatDate, cn } from '@/lib/utils'
+import { formatDate, formatPrice, cn } from '@/lib/utils'
 import { getTeamColor } from '@/types'
 import type { Listing } from '@/types'
 
@@ -51,7 +51,7 @@ export function TicketListRow({ listing }: Props) {
                 {item.seat && <span className="truncate">{item.seat}</span>}
                 {item.price != null && (
                   <span className="flex-shrink-0 font-bold text-field dark:text-blue-400">
-                    NT$ {item.price.toLocaleString('zh-TW')}
+                    {formatPrice(item.price)}
                   </span>
                 )}
               </li>

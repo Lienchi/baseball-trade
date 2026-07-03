@@ -42,7 +42,7 @@ export default function ProfilePage() {
 
       const { data: listingsData } = await supabase
         .from('listings')
-        .select('*, profile:profiles(id, username, avatar_url, rating, rating_count), comment_count:comments(count)')
+        .select('*, profile:profiles(id, username, avatar_url, rating_count), comment_count:comments(count)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
@@ -74,19 +74,24 @@ export default function ProfilePage() {
     if (!file || !profile) return
     setUploadingAvatar(true)
 
-    const blob = await compressImage(file, 400, 0.85)
-    const path = `avatars/${profile.id}.webp`
-    const { error } = await supabase.storage
-      .from('images')
-      .upload(path, blob, { contentType: 'image/webp', upsert: true })
+    try {
+      const blob = await compressImage(file, 400, 0.85)
+      const path = `avatars/${profile.id}.webp`
+      const { error } = await supabase.storage
+        .from('images')
+        .upload(path, blob, { contentType: 'image/webp', upsert: true })
 
-    if (!error) {
-      const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
-      const avatarUrl = `${publicUrl}?t=${Date.now()}`
-      await supabase.from('profiles').update({ avatar_url: avatarUrl }).eq('id', profile.id)
-      setProfile({ ...profile, avatar_url: avatarUrl })
+      if (!error) {
+        const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
+        const avatarUrl = `${publicUrl}?t=${Date.now()}`
+        await supabase.from('profiles').update({ avatar_url: avatarUrl }).eq('id', profile.id)
+        setProfile({ ...profile, avatar_url: avatarUrl })
+      }
+    } catch {
+      // 壓縮失敗（損毀檔、不支援格式）：不讓按鈕卡在上傳中
+    } finally {
+      setUploadingAvatar(false)
     }
-    setUploadingAvatar(false)
   }
 
   if (loading) {

@@ -19,6 +19,10 @@ export function formatRelativeTime(date: string): string {
 }
 
 export function formatDate(date: string): string {
+  // 純日期字串（YYYY-MM-DD）不能丟給 new Date()：會被當成 UTC 午夜，
+  // 在 UTC 以西的時區顯示會少一天，直接字串重組即可
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date)
+  if (dateOnly) return `${dateOnly[1]}/${dateOnly[2]}/${dateOnly[3]}`
   return format(new Date(date), 'yyyy/MM/dd', { locale: zhTW })
 }
 

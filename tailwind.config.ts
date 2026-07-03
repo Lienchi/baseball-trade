@@ -10,14 +10,14 @@ const config: Config = {
   // 球隊代表色是透過 getTeamColor() 動態組合出 class 字串（例如 bg-uni、border-fubon），
   // Tailwind 靜態掃描抓不到這種動態組合，必須明確列在 safelist 才會被編譯進最終 CSS
   safelist: [
-    'bg-brother', 'text-brother', 'border-brother',
-    'bg-uni', 'text-uni', 'border-uni',
-    'bg-fubon', 'text-fubon', 'border-fubon',
-    'bg-rakuten', 'text-rakuten', 'border-rakuten',
-    'bg-wei', 'text-wei', 'border-wei',
-    'bg-tsg', 'text-tsg', 'border-tsg',
-    'bg-dugout', 'text-dugout', 'border-dugout',
-    'text-white', 'text-scoreboard', 'text-black',
+    'bg-brother', 'border-brother',
+    'bg-uni', 'border-uni',
+    'bg-fubon', 'border-fubon',
+    'bg-rakuten', 'border-rakuten',
+    'bg-wei', 'border-wei',
+    'bg-tsg', 'border-tsg',
+    'bg-dugout', 'border-dugout',
+    'text-white', 'text-black',
   ],
   theme: {
     extend: {

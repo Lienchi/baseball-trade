@@ -16,7 +16,12 @@ export function DeleteListingButton({ listingId }: Props) {
   const handleDelete = async () => {
     if (!confirm('確定要刪除這個刊登嗎？此操作無法復原。')) return
     setLoading(true)
-    await supabase.from('listings').delete().eq('id', listingId)
+    const { error } = await supabase.from('listings').delete().eq('id', listingId)
+    if (error) {
+      alert('刪除失敗，請稍後再試')
+      setLoading(false)
+      return
+    }
     router.push('/')
   }
 

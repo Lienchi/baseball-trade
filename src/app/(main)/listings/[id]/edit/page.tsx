@@ -25,8 +25,6 @@ export default function EditListingPage() {
     title: '',
     description: '',
     type: 'ticket' as 'ticket' | 'merchandise',
-    price: '',
-    is_negotiable: false,
     deal_methods: [] as DealMethod[],
     location: '',
     team: '',
@@ -66,8 +64,6 @@ export default function EditListingPage() {
         title: listing.title,
         description: listing.description,
         type: listing.type,
-        price: listing.price != null ? String(listing.price) : '',
-        is_negotiable: listing.is_negotiable,
         deal_methods: listing.deal_methods ?? [],
         location: listing.location ?? '',
         team: listing.team ?? '',
@@ -110,18 +106,24 @@ export default function EditListingPage() {
     setError('')
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) { router.push('/login'); return }
 
-    const uploadedUrls: string[] = []
-    for (const file of newImages) {
-      const blob = await compressImage(file)
-      const path = `listings/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`
-      const { error: uploadError } = await supabase.storage
-        .from('images')
-        .upload(path, blob, { contentType: 'image/webp' })
-      if (uploadError) { setError('圖片上傳失敗'); setSaving(false); return }
-      const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
-      uploadedUrls.push(publicUrl)
+    // 平行壓縮+上傳，總時間 = 最慢的一張（Promise.all 保留原本順序）
+    let uploadedUrls: string[]
+    try {
+      uploadedUrls = await Promise.all(newImages.map(async file => {
+        const blob = await compressImage(file)
+        const path = `listings/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`
+        const { error: uploadError } = await supabase.storage
+          .from('images')
+          .upload(path, blob, { contentType: 'image/webp' })
+        if (uploadError) throw uploadError
+        return supabase.storage.from('images').getPublicUrl(path).data.publicUrl
+      }))
+    } catch {
+      setError('圖片上傳失敗')
+      setSaving(false)
+      return
     }
 
     // 過濾掉沒填日期的場次，game_date 存最早場次供排序/篩選
@@ -132,9 +134,9 @@ export default function EditListingPage() {
           price: t.price ? parseInt(t.price) : null,
         }))
       : []
-    const earliestDate = validItems.length > 0
-      ? validItems.map(t => t.date).sort()[0]
-      : null
+    const sortedDates = validItems.map(t => t.date).sort()
+    const earliestDate = sortedDates[0] ?? null
+    const latestDate = sortedDates[sortedDates.length - 1] ?? null
 
     const { error: updateError } = await supabase
       .from('listings')
@@ -142,12 +144,11 @@ export default function EditListingPage() {
         title: form.title,
         description: form.description,
         type: form.type,
-        price: null,
-        is_negotiable: false,
         deal_methods: form.deal_methods,
         location: form.location || null,
         team: form.team || null,
         game_date: earliestDate,
+        last_game_date: latestDate,
         ticket_items: validItems,
         images: [...existingImages, ...uploadedUrls],
       })

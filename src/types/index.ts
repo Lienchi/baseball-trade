@@ -3,8 +3,7 @@ export interface Profile {
   username: string
   avatar_url: string | null
   bio: string | null
-  rating: number
-  rating_count: number
+  rating_count: number  // 星星數 = 完成交易次數（DB 另有 rating 欄位，前端未使用）
   created_at: string
 }
 
@@ -44,7 +43,8 @@ export interface Listing {
   deal_methods: DealMethod[]
   location: string | null
   team: string | null
-  game_date: string | null  // 最早場次日期（由 ticket_items 推算，供排序/篩選用）
+  game_date: string | null       // 最早場次日期（由 ticket_items 推算，供排序/篩選用）
+  last_game_date: string | null  // 最晚場次日期（供日期範圍重疊篩選用）
   ticket_items: TicketItem[]
   images: string[]
   view_count: number
@@ -98,16 +98,6 @@ export interface Review {
   reviewer?: Profile
 }
 
-export interface ListingFilters {
-  type?: ListingType
-  team?: string
-  minPrice?: number
-  maxPrice?: number
-  dealMethod?: DealMethod
-  status?: ListingStatus
-  query?: string
-}
-
 export const CPBL_TEAMS = [
   '中信兄弟',
   '統一7-ELEVEn獅',
@@ -119,18 +109,18 @@ export const CPBL_TEAMS = [
 
 export type CpblTeam = typeof CPBL_TEAMS[number]
 
-// 球隊代表色對照表（對應 tailwind.config.ts 裡定義的顏色）
+// 球隊代表色對照表（對應 tailwind.config.ts 裡定義的顏色；動態組出的 class 需列在 safelist）
 // textOnBg: 球隊色底色上要配的文字顏色（黃色系需要深色文字才有足夠對比度）
-export const TEAM_COLORS: Record<string, { bg: string; text: string; border: string; textOnBg: string }> = {
-  '中信兄弟':       { bg: 'bg-brother',  text: 'text-brother',  border: 'border-brother', textOnBg: 'text-black' },
-  '統一7-ELEVEn獅': { bg: 'bg-uni',      text: 'text-uni',      border: 'border-uni',     textOnBg: 'text-white' },
-  '富邦悍將':       { bg: 'bg-fubon',    text: 'text-fubon',    border: 'border-fubon',   textOnBg: 'text-white' },
-  '樂天桃猿':       { bg: 'bg-rakuten',  text: 'text-rakuten',  border: 'border-rakuten', textOnBg: 'text-white' },
-  '味全龍':         { bg: 'bg-wei',      text: 'text-wei',      border: 'border-wei',     textOnBg: 'text-white' },
-  '台鋼雄鷹':       { bg: 'bg-tsg',      text: 'text-tsg',      border: 'border-tsg',     textOnBg: 'text-white' },
+export const TEAM_COLORS: Record<string, { bg: string; border: string; textOnBg: string }> = {
+  '中信兄弟':       { bg: 'bg-brother',  border: 'border-brother', textOnBg: 'text-black' },
+  '統一7-ELEVEn獅': { bg: 'bg-uni',      border: 'border-uni',     textOnBg: 'text-white' },
+  '富邦悍將':       { bg: 'bg-fubon',    border: 'border-fubon',   textOnBg: 'text-white' },
+  '樂天桃猿':       { bg: 'bg-rakuten',  border: 'border-rakuten', textOnBg: 'text-white' },
+  '味全龍':         { bg: 'bg-wei',      border: 'border-wei',     textOnBg: 'text-white' },
+  '台鋼雄鷹':       { bg: 'bg-tsg',      border: 'border-tsg',     textOnBg: 'text-white' },
 }
 
 export function getTeamColor(team: string | null | undefined) {
-  return TEAM_COLORS[team ?? ''] ?? { bg: 'bg-dugout', text: 'text-dugout', border: 'border-dugout', textOnBg: 'text-white' }
+  return TEAM_COLORS[team ?? ''] ?? { bg: 'bg-dugout', border: 'border-dugout', textOnBg: 'text-white' }
 }
 

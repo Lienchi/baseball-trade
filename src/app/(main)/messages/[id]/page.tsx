@@ -122,30 +122,37 @@ export default function ConversationPage({ params }: Props) {
   }, [messages])
 
   const sendMessage = async () => {
-    if (!content.trim() || !me) return
+    if (!content.trim() || !me || sending) return
     setSending(true)
-    await supabase.from('messages').insert({
-      conversation_id: params.id,
-      sender_id: me.id,
-      content: content.trim(),
-    })
-    setContent('')
-    setSending(false)
+    try {
+      const { error } = await supabase.from('messages').insert({
+        conversation_id: params.id,
+        sender_id: me.id,
+        content: content.trim(),
+      })
+      if (!error) setContent('')
+    } finally {
+      setSending(false)
+    }
   }
 
   const sendImage = async (file: File) => {
     if (!me) return
-    const blob = await compressImage(file)
-    const path = `messages/${params.id}/${Date.now()}.webp`
-    const { error } = await supabase.storage.from('images').upload(path, blob)
-    if (error) return
-    const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
-    await supabase.from('messages').insert({
-      conversation_id: params.id,
-      sender_id: me.id,
-      content: '[圖片]',
-      image_url: publicUrl,
-    })
+    try {
+      const blob = await compressImage(file)
+      const path = `messages/${params.id}/${Date.now()}.webp`
+      const { error } = await supabase.storage.from('images').upload(path, blob)
+      if (error) return
+      const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
+      await supabase.from('messages').insert({
+        conversation_id: params.id,
+        sender_id: me.id,
+        content: '[圖片]',
+        image_url: publicUrl,
+      })
+    } catch {
+      // 壓縮失敗（損毀檔、不支援格式）時靜默略過，不讓 unhandled rejection 中斷頁面
+    }
   }
 
   const isSeller = me && deal && me.id === deal.sellerId
@@ -274,7 +281,12 @@ export default function ConversationPage({ params }: Props) {
             placeholder="輸入訊息..."
             value={content}
             onChange={e => setContent(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+            onKeyDown={e => {
+              // isComposing：中文輸入法選字的 Enter 不能當送出
+              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && !sending) {
+                sendMessage()
+              }
+            }}
           />
 
           <button

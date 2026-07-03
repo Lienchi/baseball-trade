@@ -2,12 +2,14 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { MessageCircle, PlusCircle, User, Sun, Moon } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export function Navbar() {
   const supabase = createClient()
+  const pathname = usePathname()
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [unread, setUnread] = useState(0)
   const [dark, setDark] = useState(false)
@@ -20,15 +22,6 @@ export function Navbar() {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
-
-      if (user) {
-        const { count } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('is_read', false)
-          .neq('sender_id', user.id)
-        setUnread(count ?? 0)
-      }
     }
     getUser()
 
@@ -37,6 +30,29 @@ export function Navbar() {
     )
     return () => subscription.unsubscribe()
   }, [supabase])
+
+  // 未讀數：換頁時重查（讀完訊息回上頁數字才會清掉），並訂閱新訊息即時更新
+  useEffect(() => {
+    if (!user) { setUnread(0); return }
+
+    const fetchUnread = async () => {
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_read', false)
+        .neq('sender_id', user.id)
+      setUnread(count ?? 0)
+    }
+    fetchUnread()
+
+    const channel = supabase
+      .channel('navbar-unread')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+        if (payload.new.sender_id !== user.id) fetchUnread()
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [supabase, user, pathname])
 
   const toggleDark = () => {
     const next = !dark

@@ -71,22 +71,6 @@
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold tracking-wide;
   }
 
-  /* ===== 簽名元素：計分板翻牌價格標籤 ===== */
-  .scoreboard-price {
-    @apply inline-flex items-baseline gap-1 rounded-sm bg-scoreboard px-2.5 py-1
-           font-mono font-bold text-chalk;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.08),
-      0 1px 2px rgba(0,0,0,0.3);
-    background-image:
-      linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 50%),
-      repeating-linear-gradient(180deg, transparent 0, transparent 1px, rgba(0,0,0,0.15) 1px, rgba(0,0,0,0.15) 2px);
-  }
-
-  .scoreboard-price .currency {
-    @apply text-[0.65em] text-gold font-bold;
-  }
-
   /* 縫線分隔線 */
   .stitch-divider {
     @apply relative h-px bg-scoreboard/10;

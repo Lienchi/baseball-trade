@@ -23,8 +23,6 @@ export default function NewListingPage() {
     title: '',
     description: '',
     type: 'ticket' as 'ticket' | 'merchandise',
-    price: '',
-    is_negotiable: false,
     deal_methods: ['meetup'] as DealMethod[],
     location: '',
     team: '',
@@ -59,16 +57,22 @@ export default function NewListingPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    const imageUrls: string[] = []
-    for (const file of images) {
-      const blob = await compressImage(file)
-      const path = `listings/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`
-      const { error: uploadError } = await supabase.storage
-        .from('images')
-        .upload(path, blob, { contentType: 'image/webp' })
-      if (uploadError) { setError('圖片上傳失敗'); setLoading(false); return }
-      const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
-      imageUrls.push(publicUrl)
+    // 平行壓縮+上傳，總時間 = 最慢的一張（Promise.all 保留原本順序）
+    let imageUrls: string[]
+    try {
+      imageUrls = await Promise.all(images.map(async file => {
+        const blob = await compressImage(file)
+        const path = `listings/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`
+        const { error: uploadError } = await supabase.storage
+          .from('images')
+          .upload(path, blob, { contentType: 'image/webp' })
+        if (uploadError) throw uploadError
+        return supabase.storage.from('images').getPublicUrl(path).data.publicUrl
+      }))
+    } catch {
+      setError('圖片上傳失敗')
+      setLoading(false)
+      return
     }
 
     // 過濾掉沒填日期的場次，game_date 存最早場次供排序/篩選
@@ -79,9 +83,9 @@ export default function NewListingPage() {
           price: t.price ? parseInt(t.price) : null,
         }))
       : []
-    const earliestDate = validItems.length > 0
-      ? validItems.map(t => t.date).sort()[0]
-      : null
+    const sortedDates = validItems.map(t => t.date).sort()
+    const earliestDate = sortedDates[0] ?? null
+    const latestDate = sortedDates[sortedDates.length - 1] ?? null
 
     const { data, error: insertError } = await supabase
       .from('listings')
@@ -90,12 +94,11 @@ export default function NewListingPage() {
         title: form.title,
         description: form.description,
         type: form.type,
-        price: null,
-        is_negotiable: false,
         deal_methods: form.deal_methods,
         location: form.location || null,
         team: form.team || null,
         game_date: earliestDate,
+        last_game_date: latestDate,
         ticket_items: validItems,
         images: imageUrls,
       })

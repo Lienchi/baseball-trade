@@ -32,7 +32,7 @@ export default async function TicketsPage({
     .from('listings')
     .select(`
       *,
-      profile:profiles(id, username, avatar_url, rating, rating_count),
+      profile:profiles(id, username, avatar_url, rating_count),
       comment_count:comments(count)
     `, { count: 'exact' })
     .eq('status', 'active')
@@ -43,7 +43,9 @@ export default async function TicketsPage({
   if (searchParams.deal_method) {
     query = query.contains('deal_methods', [searchParams.deal_method])
   }
-  if (searchParams.date_from) query = query.gte('game_date', searchParams.date_from)
+  // 場次日期範圍 [game_date, last_game_date] 與篩選範圍重疊即符合，
+  // 避免多場次刊登因「最早場次在範圍外」被漏掉
+  if (searchParams.date_from) query = query.gte('last_game_date', searchParams.date_from)
   if (searchParams.date_to) query = query.lte('game_date', searchParams.date_to)
 
   // 排序
@@ -57,7 +59,20 @@ export default async function TicketsPage({
 
   query = query.range(from, to)
 
-  const { data: rawListings, count } = await query
+  const { data: rawListings, count, error } = await query
+
+  // 查詢失敗（如亂填的日期參數、超出範圍的頁碼）要跟「真的沒資料」區分開
+  if (error) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="mt-20 flex flex-col items-center text-center">
+          <p className="text-lg font-semibold text-scoreboard">載入失敗</p>
+          <p className="mt-1 text-sm text-dugout">請檢查篩選條件或稍後再試</p>
+          <Link href="/tickets" className="btn-primary mt-5 inline-flex">清除篩選重試</Link>
+        </div>
+      </div>
+    )
+  }
 
   const listings = (rawListings?.map(listing => ({
     ...listing,

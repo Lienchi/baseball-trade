@@ -29,7 +29,7 @@ export default async function MerchandisePage({
     .from('listings')
     .select(`
       *,
-      profile:profiles(id, username, avatar_url, rating, rating_count),
+      profile:profiles(id, username, avatar_url, rating_count),
       comment_count:comments(count)
     `, { count: 'exact' })
     .eq('status', 'active')
@@ -42,7 +42,20 @@ export default async function MerchandisePage({
 
   query = query.range(from, to)
 
-  const { data: rawListings, count } = await query
+  const { data: rawListings, count, error } = await query
+
+  // 查詢失敗（如超出範圍的頁碼）要跟「真的沒資料」區分開
+  if (error) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        <div className="mt-20 flex flex-col items-center text-center">
+          <p className="text-lg font-semibold text-scoreboard">載入失敗</p>
+          <p className="mt-1 text-sm text-dugout">請檢查篩選條件或稍後再試</p>
+          <Link href="/merchandise" className="btn-primary mt-5 inline-flex">清除篩選重試</Link>
+        </div>
+      </div>
+    )
+  }
 
   const listings = (rawListings?.map(listing => ({
     ...listing,

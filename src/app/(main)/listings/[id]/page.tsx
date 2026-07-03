@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatPrice } from '@/lib/utils'
 import { CommentSection } from '@/components/listings/CommentSection'
 import { ContactSellerButton } from '@/components/listings/ContactSellerButton'
 import { MarkSoldButton } from '@/components/listings/MarkSoldButton'
@@ -18,19 +18,22 @@ interface Props {
 export default async function ListingDetailPage({ params }: Props) {
   const supabase = createClient()
 
-  const { data: listing } = await supabase
-    .from('listings')
-    .select('*, profile:profiles(*)')
-    .eq('id', params.id)
-    .single()
+  // listing 與 auth 互不依賴，平行查詢減少 TTFB
+  const [{ data: listing }, { data: { user } }] = await Promise.all([
+    supabase
+      .from('listings')
+      .select('*, profile:profiles(username, rating_count)')
+      .eq('id', params.id)
+      .single(),
+    supabase.auth.getUser(),
+  ])
 
   if (!listing) notFound()
 
-  const { data: { user } } = await supabase.auth.getUser()
   const isOwner = user?.id === listing.user_id
 
   let isAdmin = false
-  if (user) {
+  if (user && !isOwner) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('is_admin')
@@ -41,7 +44,10 @@ export default async function ListingDetailPage({ params }: Props) {
 
   const canManage = isOwner || isAdmin
 
-  await supabase.rpc('increment_view_count', { listing_id: params.id })
+  // 瀏覽數：擁有者看自己不計，且不 await（不阻塞頁面回應）
+  if (!isOwner) {
+    void supabase.rpc('increment_view_count', { listing_id: params.id })
+  }
 
   const l = listing as Listing
 
@@ -105,7 +111,7 @@ export default async function ListingDetailPage({ params }: Props) {
                         {item.seat && <span className="text-dugout">{item.seat}</span>}
                         {item.price != null && (
                           <span className="ml-auto flex-shrink-0 font-bold text-field dark:text-blue-400">
-                            NT$ {item.price.toLocaleString('zh-TW')}
+                            {formatPrice(item.price)}
                           </span>
                         )}
                       </li>
