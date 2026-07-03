@@ -156,12 +156,9 @@ export default function ConversationPage({ params }: Props) {
     if (!me || !deal) return
     setConfirming(true)
 
-    const field = isSeller ? 'seller_confirmed_at' : 'buyer_confirmed_at'
+    // 透過 security definer RPC 確認：後端依 auth.uid() 決定角色欄位，且寫過不可覆蓋
     const now = new Date().toISOString()
-    const { error } = await supabase
-      .from('conversations')
-      .update({ [field]: now })
-      .eq('id', params.id)
+    const { error } = await supabase.rpc('confirm_deal', { p_conversation_id: params.id })
 
     if (!error) {
       const otherAlreadyConfirmed = isSeller ? deal.buyerConfirmedAt : deal.sellerConfirmedAt
