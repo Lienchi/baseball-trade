@@ -404,22 +404,6 @@ CREATE TABLE public.listings (
 
 
 --
--- Name: conversation_details; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.conversation_details AS
- SELECT c.id AS conversation_id,
-    c.listing_id,
-    c.buyer_confirmed_at,
-    c.seller_confirmed_at,
-    l.user_id AS seller_id,
-    cp.user_id AS participant_id
-   FROM ((public.conversations c
-     JOIN public.listings l ON ((l.id = c.listing_id)))
-     JOIN public.conversation_participants cp ON ((cp.conversation_id = c.id)));
-
-
---
 -- Name: messages; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1043,15 +1027,6 @@ GRANT ALL ON TABLE public.conversations TO service_role;
 GRANT ALL ON TABLE public.listings TO anon;
 GRANT ALL ON TABLE public.listings TO authenticated;
 GRANT ALL ON TABLE public.listings TO service_role;
-
-
---
--- Name: TABLE conversation_details; Type: ACL; Schema: public; Owner: -
---
-
-GRANT ALL ON TABLE public.conversation_details TO anon;
-GRANT ALL ON TABLE public.conversation_details TO authenticated;
-GRANT ALL ON TABLE public.conversation_details TO service_role;
 
 
 --
