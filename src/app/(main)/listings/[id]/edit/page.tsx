@@ -40,6 +40,7 @@ export default function EditListingPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [redactingIndex, setRedactingIndex] = useState<number | null>(null)
+  const [reviewQueue, setReviewQueue] = useState<number[]>([])
 
   useEffect(() => {
     const load = async () => {
@@ -91,14 +92,30 @@ export default function EditListingPage() {
 
   const handleNewImages = (files: FileList) => {
     const total = existingImages.length + newImages.length
+    const startIndex = newImages.length
     const added = Array.from(files).slice(0, 5 - total)
     setNewImages(prev => [...prev, ...added])
     setNewPreviews(prev => [...prev, ...added.map(f => URL.createObjectURL(f))])
+
+    // 新加入的照片先跳出裁切/遮蔽確認頁，讓使用者上傳後立刻檢查
+    const newIndices = added.map((_, i) => startIndex + i)
+    setReviewQueue(prev => [...prev, ...newIndices])
+    setRedactingIndex(prev => prev ?? newIndices[0] ?? null)
+  }
+
+  const advanceReview = (handledIndex: number) => {
+    setReviewQueue(prev => {
+      const rest = prev.filter(i => i !== handledIndex)
+      setRedactingIndex(rest[0] ?? null)
+      return rest
+    })
   }
 
   const removeNewImage = (i: number) => {
     setNewImages(prev => prev.filter((_, idx) => idx !== i))
     setNewPreviews(prev => prev.filter((_, idx) => idx !== i))
+    setReviewQueue(prev => prev.filter(idx => idx !== i).map(idx => idx > i ? idx - 1 : idx))
+    setRedactingIndex(prev => prev === null ? null : prev === i ? null : prev > i ? prev - 1 : prev)
   }
 
   const handleRedactConfirm = (blob: Blob) => {
@@ -110,7 +127,12 @@ export default function EditListingPage() {
       URL.revokeObjectURL(prev[i])
       return prev.map((url, idx) => idx === i ? URL.createObjectURL(newFile) : url)
     })
-    setRedactingIndex(null)
+    advanceReview(i)
+  }
+
+  const handleRedactCancel = () => {
+    if (redactingIndex === null) return
+    advanceReview(redactingIndex)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -413,7 +435,7 @@ export default function EditListingPage() {
       {redactingIndex !== null && (
         <RedactModal
           file={newImages[redactingIndex]}
-          onCancel={() => setRedactingIndex(null)}
+          onCancel={handleRedactCancel}
           onConfirm={handleRedactConfirm}
         />
       )}

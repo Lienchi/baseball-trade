@@ -35,17 +35,34 @@ export default function NewListingPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [redactingIndex, setRedactingIndex] = useState<number | null>(null)
+  const [reviewQueue, setReviewQueue] = useState<number[]>([])
 
   const handleImageAdd = async (files: FileList) => {
+    const startIndex = images.length
     const newFiles = Array.from(files).slice(0, 5 - images.length)
     setImages(prev => [...prev, ...newFiles])
     const urls = newFiles.map(f => URL.createObjectURL(f))
     setPreviews(prev => [...prev, ...urls])
+
+    // 新加入的照片先跳出裁切/遮蔽確認頁，讓使用者上傳後立刻檢查
+    const newIndices = newFiles.map((_, i) => startIndex + i)
+    setReviewQueue(prev => [...prev, ...newIndices])
+    setRedactingIndex(prev => prev ?? newIndices[0] ?? null)
+  }
+
+  const advanceReview = (handledIndex: number) => {
+    setReviewQueue(prev => {
+      const rest = prev.filter(i => i !== handledIndex)
+      setRedactingIndex(rest[0] ?? null)
+      return rest
+    })
   }
 
   const removeImage = (i: number) => {
     setImages(prev => prev.filter((_, idx) => idx !== i))
     setPreviews(prev => prev.filter((_, idx) => idx !== i))
+    setReviewQueue(prev => prev.filter(idx => idx !== i).map(idx => idx > i ? idx - 1 : idx))
+    setRedactingIndex(prev => prev === null ? null : prev === i ? null : prev > i ? prev - 1 : prev)
   }
 
   const handleRedactConfirm = (blob: Blob) => {
@@ -57,7 +74,12 @@ export default function NewListingPage() {
       URL.revokeObjectURL(prev[i])
       return prev.map((url, idx) => idx === i ? URL.createObjectURL(newFile) : url)
     })
-    setRedactingIndex(null)
+    advanceReview(i)
+  }
+
+  const handleRedactCancel = () => {
+    if (redactingIndex === null) return
+    advanceReview(redactingIndex)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -342,7 +364,7 @@ export default function NewListingPage() {
       {redactingIndex !== null && (
         <RedactModal
           file={images[redactingIndex]}
-          onCancel={() => setRedactingIndex(null)}
+          onCancel={handleRedactCancel}
           onConfirm={handleRedactConfirm}
         />
       )}
