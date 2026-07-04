@@ -8,6 +8,7 @@ import { MarkSoldButton } from '@/components/listings/MarkSoldButton'
 import { TicketItemsList } from '@/components/listings/TicketItemsList'
 import { DeleteListingButton } from '@/components/listings/DeleteListingButton'
 import Link from 'next/link'
+import Image from 'next/image'
 import { MapPin, Calendar, Package, Users, Clock, ShoppingBag } from 'lucide-react'
 import { DEAL_METHOD_LABELS } from '@/types'
 import type { Listing } from '@/types'
@@ -23,7 +24,7 @@ export default async function ListingDetailPage({ params }: Props) {
   const [{ data: listing }, { data: { user } }] = await Promise.all([
     supabase
       .from('listings')
-      .select('*, profile:profiles(username, rating_count)')
+      .select('*, profile:profiles(username, avatar_url, rating_count)')
       .eq('id', params.id)
       .single(),
     supabase.auth.getUser(),
@@ -114,9 +115,19 @@ export default async function ListingDetailPage({ params }: Props) {
 
             {l.profile && (
               <div className="mt-5 flex items-center gap-3 border-t border-scoreboard/10 pt-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-field text-sm font-bold text-white">
-                  {l.profile.username.slice(0, 2).toUpperCase()}
-                </div>
+                {l.profile.avatar_url ? (
+                  <Image
+                    src={l.profile.avatar_url}
+                    alt={l.profile.username}
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 flex-shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-field text-sm font-bold text-white">
+                    {l.profile.username.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
                 <div>
                   <p className="text-sm font-semibold text-scoreboard">{l.profile.username}</p>
                   <p className="flex items-center gap-1 text-xs text-dugout">
