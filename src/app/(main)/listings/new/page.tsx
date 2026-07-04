@@ -99,7 +99,7 @@ export default function NewListingPage() {
     setError('')
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/login'); return }
+    if (!user) { router.push('/login'); setLoading(false); return }
 
     // 同時上架數量限制（DB trigger 也會擋，這裡先給友善提示）
     const { count: activeCount } = await supabase
@@ -129,7 +129,8 @@ export default function NewListingPage() {
         if (uploadError) throw uploadError
         return supabase.storage.from('images').getPublicUrl(path).data.publicUrl
       }))
-    } catch {
+    } catch (err) {
+      console.error('圖片上傳失敗', err)
       setError('圖片上傳失敗')
       setLoading(false)
       return

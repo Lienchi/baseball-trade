@@ -164,7 +164,7 @@ export default function EditListingPage() {
     setError('')
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/login'); return }
+    if (!user) { router.push('/login'); setSaving(false); return }
 
     // 平行壓縮+上傳，總時間 = 最慢的一張（Promise.all 保留原本順序）
     let uploadedUrls: string[]
@@ -178,7 +178,8 @@ export default function EditListingPage() {
         if (uploadError) throw uploadError
         return supabase.storage.from('images').getPublicUrl(path).data.publicUrl
       }))
-    } catch {
+    } catch (err) {
+      console.error('圖片上傳失敗', err)
       setError('圖片上傳失敗')
       setSaving(false)
       return
