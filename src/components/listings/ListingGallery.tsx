@@ -19,8 +19,8 @@ export function ListingGallery({ images, title }: { images: string[]; title: str
   return (
     <div className="overflow-hidden rounded-lg">
       <div className="grid gap-1">
-        <div className="relative aspect-[4/3]">
-          <Image src={images[activeIndex]} alt={title} fill className="object-cover" priority />
+        <div className="relative aspect-[4/3] bg-dugout/10">
+          <Image src={images[activeIndex]} alt={title} fill className="object-contain" priority />
         </div>
         {images.length > 1 && (
           <div className="grid grid-cols-4 gap-1">
