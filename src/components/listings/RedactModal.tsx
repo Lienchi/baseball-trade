@@ -18,9 +18,9 @@ export function RedactModal({
 }) {
   const [step, setStep] = useState<'crop' | 'mark'>('crop')
 
-  // 裁切步驟（選填，預設不裁切，只有勾選方形裁切才會強制 1:1）
+  // 裁切步驟（選填，預設不裁切，選了比例才會套用裁切）
   const [cropUrl, setCropUrl] = useState<string | null>(null)
-  const [squareCrop, setSquareCrop] = useState(false)
+  const [cropAspect, setCropAspect] = useState<number | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
@@ -38,7 +38,7 @@ export function RedactModal({
 
   useEffect(() => {
     setStep('crop')
-    setSquareCrop(false)
+    setCropAspect(null)
     setCrop({ x: 0, y: 0 })
     setZoom(1)
     setCroppedAreaPixels(null)
@@ -64,7 +64,7 @@ export function RedactModal({
   }, [])
 
   const goToMark = async () => {
-    if (!squareCrop || !croppedAreaPixels) {
+    if (cropAspect === null || !croppedAreaPixels) {
       setWorkingFile(file)
       setStep('mark')
       return
@@ -142,22 +142,32 @@ export function RedactModal({
       <div className="card w-full max-w-md p-5">
         {step === 'crop' ? (
           <>
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-sm text-dugout">確認照片，需要裁成正方形嗎？</p>
-              <button
-                type="button"
-                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold transition ${
-                  squareCrop
-                    ? 'border-field bg-field/10 text-field'
-                    : 'border-scoreboard/20 text-dugout hover:border-scoreboard/40'
-                }`}
-                onClick={() => setSquareCrop(v => !v)}
-              >
-                <Crop size={12} /> 方形裁切
-              </button>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm text-dugout">確認照片，需要裁切嗎？</p>
+              <div className="flex items-center gap-1.5">
+                {([
+                  ['不裁切', null],
+                  ['1:1', 1],
+                  ['4:3', 4 / 3],
+                  ['3:4', 3 / 4],
+                ] as const).map(([label, aspect]) => (
+                  <button
+                    key={label}
+                    type="button"
+                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold transition ${
+                      cropAspect === aspect
+                        ? 'border-field bg-field/10 text-field'
+                        : 'border-scoreboard/20 text-dugout hover:border-scoreboard/40'
+                    }`}
+                    onClick={() => { setCropAspect(aspect); setCroppedAreaPixels(null) }}
+                  >
+                    {aspect !== null && <Crop size={12} />} {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {squareCrop ? (
+            {cropAspect !== null ? (
               <>
                 <div className="relative h-72 w-full overflow-hidden rounded-lg bg-scoreboard/5">
                   {cropUrl && (
@@ -165,7 +175,7 @@ export function RedactModal({
                       image={cropUrl}
                       crop={crop}
                       zoom={zoom}
-                      aspect={1}
+                      aspect={cropAspect}
                       showGrid={false}
                       onCropChange={setCrop}
                       onZoomChange={setZoom}
@@ -198,7 +208,7 @@ export function RedactModal({
                 type="button"
                 className="btn-primary flex-1"
                 onClick={goToMark}
-                disabled={applyingCrop || (squareCrop && !croppedAreaPixels)}
+                disabled={applyingCrop || (cropAspect !== null && !croppedAreaPixels)}
               >
                 {applyingCrop ? '處理中...' : '下一步'}
               </button>

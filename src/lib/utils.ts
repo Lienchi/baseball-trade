@@ -81,7 +81,7 @@ async function loadSafeCanvasSource(file: File | Blob): Promise<{
   return { source: img, width: img.naturalWidth, height: img.naturalHeight, scale: 1 }
 }
 
-// react-easy-crop 給的 pixel crop 範圍，直接畫到指定尺寸的正方形 canvas 上輸出
+// react-easy-crop 給的 pixel crop 範圍，依裁切框比例輸出（最長邊 = outputSizePx）
 export async function getCroppedImage(
   file: File,
   crop: { x: number; y: number; width: number; height: number },
@@ -91,13 +91,14 @@ export async function getCroppedImage(
   const { source, scale } = await loadSafeCanvasSource(file)
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas')
-    canvas.width = outputSizePx
-    canvas.height = outputSizePx
+    const cropRatio = crop.width / crop.height
+    canvas.width = cropRatio >= 1 ? outputSizePx : Math.round(outputSizePx * cropRatio)
+    canvas.height = cropRatio >= 1 ? Math.round(outputSizePx / cropRatio) : outputSizePx
     const ctx = canvas.getContext('2d')!
     ctx.drawImage(
       source,
       crop.x * scale, crop.y * scale, crop.width * scale, crop.height * scale,
-      0, 0, outputSizePx, outputSizePx
+      0, 0, canvas.width, canvas.height
     )
     // 部分手機瀏覽器（如較舊版 iOS Safari）canvas 不支援輸出 webp，toBlob 會回傳 null，
     // 這裡失敗時改用 jpeg 再試一次，避免手機上傳直接失敗
