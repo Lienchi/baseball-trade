@@ -204,7 +204,7 @@ export default function NewListingPage() {
                   <div key={i} className="flex items-center gap-2">
                     <input
                       type="date"
-                      className="input w-auto flex-shrink-0"
+                      className="input w-32 flex-shrink-0"
                       value={item.date}
                       required
                       onChange={e => setTicketItems(prev => prev.map((t, idx) => idx === i ? { ...t, date: e.target.value } : t))}
@@ -219,7 +219,7 @@ export default function NewListingPage() {
                     <input
                       type="number"
                       min={0}
-                      className="input w-24 flex-shrink-0"
+                      className="input w-20 flex-shrink-0"
                       placeholder="票價"
                       value={item.price}
                       required
