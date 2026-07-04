@@ -80,7 +80,7 @@ export default async function MerchandisePage({
             {count ?? 0} 件周邊商品刊登中
           </p>
         </div>
-        <Link href="/listings/new" className="btn-primary">
+        <Link href="/listings/new?type=merchandise" className="btn-primary">
           + 刊登商品
         </Link>
       </div>
@@ -102,7 +102,7 @@ export default async function MerchandisePage({
             <Shirt size={26} strokeWidth={2} />
           </span>
           <p className="mt-3 text-lg font-semibold text-scoreboard">目前沒有符合條件的商品</p>
-          <Link href="/listings/new" className="btn-primary mt-5 inline-flex">
+          <Link href="/listings/new?type=merchandise" className="btn-primary mt-5 inline-flex">
             成為第一個刊登者
           </Link>
         </div>

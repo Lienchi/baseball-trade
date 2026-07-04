@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { compressImage } from '@/lib/utils'
@@ -24,13 +24,23 @@ interface MerchandiseItemForm {
 }
 
 export default function NewListingPage() {
+  return (
+    <Suspense>
+      <NewListingForm />
+    </Suspense>
+  )
+}
+
+function NewListingForm() {
   const supabase = createClient()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const initialType = searchParams.get('type') === 'merchandise' ? 'merchandise' : 'ticket'
 
   const [form, setForm] = useState({
     title: '',
     description: '',
-    type: 'ticket' as 'ticket' | 'merchandise',
+    type: initialType as 'ticket' | 'merchandise',
     deal_methods: ['meetup'] as DealMethod[],
     location: '',
     team: '',
