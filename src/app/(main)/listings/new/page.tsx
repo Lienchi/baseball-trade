@@ -126,7 +126,7 @@ export default function NewListingPage() {
         const { error: uploadError } = await supabase.storage
           .from('images')
           .upload(path, blob, { contentType })
-        if (uploadError) throw uploadError
+        if (uploadError) throw new Error(`${uploadError.message}（${contentType}，${(blob.size / 1048576).toFixed(2)}MB）`)
         return supabase.storage.from('images').getPublicUrl(path).data.publicUrl
       }))
     } catch (err) {
