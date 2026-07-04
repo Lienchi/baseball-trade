@@ -131,7 +131,9 @@ export default function NewListingPage() {
       }))
     } catch (err) {
       console.error('圖片上傳失敗', err)
-      setError('圖片上傳失敗')
+      // 手機上開不了 devtools console，把實際錯誤附在畫面訊息裡才有辦法回報除錯
+      const detail = err instanceof Error ? err.message : JSON.stringify(err)
+      setError(`圖片上傳失敗：${detail}`)
       setLoading(false)
       return
     }

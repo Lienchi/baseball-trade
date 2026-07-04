@@ -40,7 +40,7 @@ function loadImageElement(file: File | Blob): Promise<HTMLImageElement> {
     const img = new Image()
     const url = URL.createObjectURL(file)
     img.onload = () => { resolve(img); URL.revokeObjectURL(url) }
-    img.onerror = reject
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('圖片載入失敗')) }
     img.src = url
   })
 }
