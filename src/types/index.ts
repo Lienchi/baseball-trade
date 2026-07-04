@@ -30,11 +30,13 @@ export const LISTING_LIMITS: Record<ListingType, number> = {
   merchandise: 3,
 }
 
-// 球票場次：一篇刊登可包含多筆「日期 + 座位資訊 + 票價」
+// 球票場次 / 周邊商品：一篇刊登可包含多筆品項。球票用 date+seat，周邊用 name，共用同一個 ticket_items 欄位
 export interface TicketItem {
-  date: string
-  seat: string
+  date?: string
+  seat?: string
+  name?: string
   price: number | null
+  sold?: boolean
 }
 
 export interface Listing {

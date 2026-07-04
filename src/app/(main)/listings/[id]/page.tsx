@@ -1,13 +1,14 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import { formatDate, formatPrice, formatRelativeTime } from '@/lib/utils'
+import { formatDate, formatRelativeTime } from '@/lib/utils'
 import { CommentSection } from '@/components/listings/CommentSection'
 import { ListingGallery } from '@/components/listings/ListingGallery'
 import { ContactSellerButton } from '@/components/listings/ContactSellerButton'
 import { MarkSoldButton } from '@/components/listings/MarkSoldButton'
+import { TicketItemsList } from '@/components/listings/TicketItemsList'
 import { DeleteListingButton } from '@/components/listings/DeleteListingButton'
 import Link from 'next/link'
-import { MapPin, Calendar, Package, Users, Clock } from 'lucide-react'
+import { MapPin, Calendar, Package, Users, Clock, ShoppingBag } from 'lucide-react'
 import { DEAL_METHOD_LABELS } from '@/types'
 import type { Listing } from '@/types'
 
@@ -80,22 +81,12 @@ export default async function ListingDetailPage({ params }: Props) {
               {(l.ticket_items?.length ?? 0) > 0 ? (
                 <li>
                   <div className="flex items-center gap-2">
-                    <Calendar size={14} className="text-dugout/50" />
-                    場次資訊
+                    {l.type === 'ticket'
+                      ? <Calendar size={14} className="text-dugout/50" />
+                      : <ShoppingBag size={14} className="text-dugout/50" />}
+                    {l.type === 'ticket' ? '場次資訊' : '商品列表'}
                   </div>
-                  <ul className="mt-1.5 space-y-1">
-                    {l.ticket_items.map((item, i) => (
-                      <li key={i} className="ml-6 flex items-baseline gap-2 rounded-md bg-scoreboard/5 px-2.5 py-1.5">
-                        <span className="flex-shrink-0 font-medium text-scoreboard">{formatDate(item.date)}</span>
-                        {item.seat && <span className="text-dugout">{item.seat}</span>}
-                        {item.price != null && (
-                          <span className="ml-auto flex-shrink-0 font-bold text-field dark:text-blue-400">
-                            {formatPrice(item.price)}
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                  <TicketItemsList listingId={l.id} items={l.ticket_items} canManage={canManage} type={l.type} />
                 </li>
               ) : l.game_date && (
                 <li className="flex items-center gap-2">

@@ -15,6 +15,14 @@ interface TicketItemForm {
   date: string
   seat: string
   price: string
+  sold: boolean
+}
+
+// 表單內的周邊商品列
+interface MerchandiseItemForm {
+  name: string
+  price: string
+  sold: boolean
 }
 
 export default function EditListingPage() {
@@ -31,7 +39,8 @@ export default function EditListingPage() {
     location: '',
     team: '',
   })
-  const [ticketItems, setTicketItems] = useState<TicketItemForm[]>([{ date: '', seat: '', price: '' }])
+  const [ticketItems, setTicketItems] = useState<TicketItemForm[]>([{ date: '', seat: '', price: '', sold: false }])
+  const [merchandiseItems, setMerchandiseItems] = useState<MerchandiseItemForm[]>([{ name: '', price: '', sold: false }])
   const [existingImages, setExistingImages] = useState<string[]>([])
   const [originalImages, setOriginalImages] = useState<string[]>([])  // 載入時的圖片清單，存檔時比對出被移除的檔案
   const [newImages, setNewImages] = useState<File[]>([])
@@ -73,12 +82,22 @@ export default function EditListingPage() {
         location: listing.location ?? '',
         team: listing.team ?? '',
       })
-      const items = ((listing.ticket_items ?? []) as TicketItem[]).map(t => ({
-        date: t.date,
-        seat: t.seat ?? '',
-        price: t.price != null ? String(t.price) : '',
-      }))
-      setTicketItems(items.length > 0 ? items : [{ date: '', seat: '', price: '' }])
+      if (listing.type === 'merchandise') {
+        const items = ((listing.ticket_items ?? []) as TicketItem[]).map(t => ({
+          name: t.name ?? '',
+          price: t.price != null ? String(t.price) : '',
+          sold: t.sold ?? false,
+        }))
+        setMerchandiseItems(items.length > 0 ? items : [{ name: '', price: '', sold: false }])
+      } else {
+        const items = ((listing.ticket_items ?? []) as TicketItem[]).map(t => ({
+          date: t.date ?? '',
+          seat: t.seat ?? '',
+          price: t.price != null ? String(t.price) : '',
+          sold: t.sold ?? false,
+        }))
+        setTicketItems(items.length > 0 ? items : [{ date: '', seat: '', price: '', sold: false }])
+      }
       setExistingImages(listing.images ?? [])
       setOriginalImages(listing.images ?? [])
       setLoading(false)
@@ -165,15 +184,22 @@ export default function EditListingPage() {
       return
     }
 
-    // 過濾掉沒填日期的場次，game_date 存最早場次供排序/篩選
+    // 球票：過濾掉沒填日期的場次，game_date 存最早場次供排序/篩選；周邊：過濾掉沒填名稱的商品
     const validItems = form.type === 'ticket'
       ? ticketItems.filter(t => t.date).map(t => ({
           date: t.date,
           seat: t.seat,
           price: t.price ? parseInt(t.price) : null,
+          sold: t.sold,
         }))
+      : merchandiseItems.filter(m => m.name).map(m => ({
+          name: m.name,
+          price: m.price ? parseInt(m.price) : null,
+          sold: m.sold,
+        }))
+    const sortedDates = form.type === 'ticket'
+      ? (validItems as { date: string }[]).map(t => t.date).sort()
       : []
-    const sortedDates = validItems.map(t => t.date).sort()
     const earliestDate = sortedDates[0] ?? null
     const latestDate = sortedDates[sortedDates.length - 1] ?? null
 
@@ -329,12 +355,56 @@ export default function EditListingPage() {
               <button
                 type="button"
                 className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-field hover:underline dark:text-blue-400"
-                onClick={() => setTicketItems(prev => [...prev, { date: '', seat: '', price: '' }])}
+                onClick={() => setTicketItems(prev => [...prev, { date: '', seat: '', price: '', sold: false }])}
               >
                 <Plus size={14} /> 新增場次
               </button>
             </div>
           </>
+        )}
+
+        {form.type === 'merchandise' && (
+          <div>
+            <label className="mb-1 block text-sm font-medium text-scoreboard">商品與價格 *</label>
+            <div className="space-y-2">
+              {merchandiseItems.map((item, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    className="input flex-1"
+                    placeholder="商品名稱，e.g. 主場復刻球衣 M 號"
+                    value={item.name}
+                    required
+                    onChange={e => setMerchandiseItems(prev => prev.map((m, idx) => idx === i ? { ...m, name: e.target.value } : m))}
+                  />
+                  <input
+                    type="number"
+                    min={0}
+                    className="input w-24 flex-shrink-0"
+                    placeholder="價格"
+                    value={item.price}
+                    required
+                    onChange={e => setMerchandiseItems(prev => prev.map((m, idx) => idx === i ? { ...m, price: e.target.value } : m))}
+                  />
+                  {merchandiseItems.length > 1 && (
+                    <button
+                      type="button"
+                      className="flex-shrink-0 p-2 text-dugout/50 hover:text-clay"
+                      onClick={() => setMerchandiseItems(prev => prev.filter((_, idx) => idx !== i))}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-field hover:underline dark:text-blue-400"
+              onClick={() => setMerchandiseItems(prev => [...prev, { name: '', price: '', sold: false }])}
+            >
+              <Plus size={14} /> 新增商品
+            </button>
+          </div>
         )}
 
         <div>
