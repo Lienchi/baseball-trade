@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { MessageCircle, MapPin, Tag, Star } from 'lucide-react'
+import { MessageCircle, Tag, Star } from 'lucide-react'
 import { formatRelativeTime, cn } from '@/lib/utils'
 import { getTeamColor, DEAL_METHOD_LABELS } from '@/types'
 import type { Listing } from '@/types'
@@ -67,30 +67,22 @@ export function ListingCard({ listing }: Props) {
 
         {/* 底部資訊 */}
         <div className="mt-auto pt-2.5 text-xs text-dugout">
-          {listing.profile && (
-            <div className="mb-2 flex items-center gap-1.5">
-              {listing.profile.avatar_url ? (
-                <Image src={listing.profile.avatar_url} alt={listing.profile.username} width={16} height={16} className="rounded-full object-cover flex-shrink-0" />
-              ) : (
-                <span className="h-4 w-4 flex-shrink-0 rounded-full bg-dugout/20 flex items-center justify-center text-[9px] font-bold text-dugout">
-                  {listing.profile.username[0]?.toUpperCase()}
-                </span>
-              )}
-              <span className="truncate">{listing.profile.username}</span>
-              <Star size={10} className="text-gold fill-gold flex-shrink-0 ml-auto" />
-              <span className="font-medium text-gold flex-shrink-0">{listing.profile.rating_count ?? 0}</span>
-            </div>
-          )}
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1">
-              {listing.location && (
-                <>
-                  <MapPin size={11} />
-                  {listing.location}
-                </>
-              )}
-            </span>
-            <span className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5">
+            {listing.profile && (
+              <>
+                {listing.profile.avatar_url ? (
+                  <Image src={listing.profile.avatar_url} alt={listing.profile.username} width={16} height={16} className="rounded-full object-cover flex-shrink-0" />
+                ) : (
+                  <span className="h-4 w-4 flex-shrink-0 rounded-full bg-dugout/20 flex items-center justify-center text-[9px] font-bold text-dugout">
+                    {listing.profile.username[0]?.toUpperCase()}
+                  </span>
+                )}
+                <span className="truncate">{listing.profile.username}</span>
+                <Star size={10} className="text-gold fill-gold flex-shrink-0" />
+                <span className="font-medium text-gold flex-shrink-0">{listing.profile.rating_count ?? 0}</span>
+              </>
+            )}
+            <span className="ml-auto flex items-center gap-2.5 flex-shrink-0">
               <span className="flex items-center gap-0.5">
                 <MessageCircle size={11} />
                 {listing.comment_count ?? 0}
