@@ -41,6 +41,18 @@ export default function RegisterPage() {
       return
     }
 
+    const { data: reserved } = await supabase
+      .from('reserved_usernames')
+      .select('username')
+      .eq('username', username)
+      .maybeSingle()
+
+    if (reserved) {
+      setError('這個使用者名稱已被保留，無法使用')
+      setLoading(false)
+      return
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
