@@ -77,8 +77,12 @@ export function ListingCard({ listing }: Props) {
                 </span>
               )}
               <span className="truncate">{listing.profile.username}</span>
-              <Star size={10} className="text-gold fill-gold flex-shrink-0 ml-auto" />
+              <Star size={10} className="text-gold fill-gold flex-shrink-0" />
               <span className="font-medium text-gold flex-shrink-0">{listing.profile.rating_count ?? 0}</span>
+              <span className="ml-auto flex items-center gap-0.5 flex-shrink-0">
+                <MessageCircle size={11} />
+                {listing.comment_count ?? 0}
+              </span>
             </div>
           )}
           <div className="flex items-center justify-between">
@@ -90,13 +94,7 @@ export function ListingCard({ listing }: Props) {
                 </>
               )}
             </span>
-            <span className="flex items-center gap-2.5">
-              <span className="flex items-center gap-0.5">
-                <MessageCircle size={11} />
-                {listing.comment_count ?? 0}
-              </span>
-              <span>{formatRelativeTime(listing.created_at)}</span>
-            </span>
+            <span>{formatRelativeTime(listing.created_at)}</span>
           </div>
         </div>
       </div>
