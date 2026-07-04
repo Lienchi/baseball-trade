@@ -65,7 +65,14 @@ async function loadSafeCanvasSource(file: File | Blob): Promise<{
   const height = Math.round(img.naturalHeight * scale)
   if (typeof createImageBitmap === 'function') {
     try {
-      const bitmap = await createImageBitmap(file, { resizeWidth: width, resizeHeight: height, resizeQuality: 'high' })
+      // imageOrientation 一定要跟 <img>（一律套用 EXIF 方向）一致，否則直向手機照片
+      // raw sensor 是橫的、跟這裡指定的 resize 目標長寬比對不上，createImageBitmap 會噴錯
+      const bitmap = await createImageBitmap(file, {
+        resizeWidth: width,
+        resizeHeight: height,
+        resizeQuality: 'high',
+        imageOrientation: 'from-image',
+      })
       return { source: bitmap, width, height, scale }
     } catch {
       // 不支援就退回原圖硬畫，至少還有機會成功
