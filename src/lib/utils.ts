@@ -35,6 +35,38 @@ export function storagePathFromUrl(url: string): string | null {
   return url.slice(idx + marker.length).split('?')[0]
 }
 
+// react-easy-crop 給的 pixel crop 範圍，直接畫到指定尺寸的正方形 canvas 上輸出
+export async function getCroppedImage(
+  file: File,
+  crop: { x: number; y: number; width: number; height: number },
+  outputSizePx = 400,
+  quality = 0.85
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = outputSizePx
+      canvas.height = outputSizePx
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(
+        img,
+        crop.x, crop.y, crop.width, crop.height,
+        0, 0, outputSizePx, outputSizePx
+      )
+      canvas.toBlob(
+        blob => blob ? resolve(blob) : reject(new Error('裁切失敗')),
+        'image/webp',
+        quality
+      )
+      URL.revokeObjectURL(url)
+    }
+    img.onerror = reject
+    img.src = url
+  })
+}
+
 export async function compressImage(
   file: File,
   maxWidthPx = 1200,

@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import Cropper, { type Area } from 'react-easy-crop'
 import { createClient } from '@/lib/supabase/client'
 import { ListingCard } from '@/components/listings/ListingCard'
-import { compressImage, formatDate } from '@/lib/utils'
+import { getCroppedImage, formatDate } from '@/lib/utils'
 import { Camera } from 'lucide-react'
 import type { Profile, Listing } from '@/types'
 
@@ -23,6 +24,11 @@ export default function ProfilePage() {
   const [bio, setBio] = useState('')
   const [saving, setSaving] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [cropFile, setCropFile] = useState<File | null>(null)
+  const [cropImageUrl, setCropImageUrl] = useState<string | null>(null)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -69,13 +75,33 @@ export default function ProfilePage() {
     setSaving(false)
   }
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !profile) return
+    e.target.value = ''
+    if (!file) return
+    setCropFile(file)
+    setCropImageUrl(URL.createObjectURL(file))
+    setCrop({ x: 0, y: 0 })
+    setZoom(1)
+    setCroppedAreaPixels(null)
+  }
+
+  const closeCropModal = () => {
+    if (cropImageUrl) URL.revokeObjectURL(cropImageUrl)
+    setCropFile(null)
+    setCropImageUrl(null)
+  }
+
+  const onCropComplete = useCallback((_: Area, areaPixels: Area) => {
+    setCroppedAreaPixels(areaPixels)
+  }, [])
+
+  const handleCropConfirm = async () => {
+    if (!cropFile || !profile || !croppedAreaPixels) return
     setUploadingAvatar(true)
 
     try {
-      const blob = await compressImage(file, 400, 0.85)
+      const blob = await getCroppedImage(cropFile, croppedAreaPixels, 400, 0.85)
       const path = `avatars/${profile.id}.webp`
       const { error } = await supabase.storage
         .from('images')
@@ -88,9 +114,10 @@ export default function ProfilePage() {
         setProfile({ ...profile, avatar_url: avatarUrl })
       }
     } catch {
-      // 壓縮失敗（損毀檔、不支援格式）：不讓按鈕卡在上傳中
+      // 裁切/上傳失敗（損毀檔、不支援格式）：不讓按鈕卡在上傳中
     } finally {
       setUploadingAvatar(false)
+      closeCropModal()
     }
   }
 
@@ -106,6 +133,52 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
+      {/* 頭像裁切彈窗 */}
+      {cropImageUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-scoreboard/60 px-4">
+          <div className="card w-full max-w-sm p-5">
+            <div className="relative h-72 w-full overflow-hidden rounded-lg bg-scoreboard/5">
+              <Cropper
+                image={cropImageUrl}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.01}
+              value={zoom}
+              onChange={e => setZoom(Number(e.target.value))}
+              className="mt-4 w-full"
+            />
+            <div className="mt-4 flex gap-2">
+              <button
+                className="btn-secondary flex-1"
+                onClick={closeCropModal}
+                disabled={uploadingAvatar}
+              >
+                取消
+              </button>
+              <button
+                className="btn-primary flex-1"
+                onClick={handleCropConfirm}
+                disabled={uploadingAvatar || !croppedAreaPixels}
+              >
+                {uploadingAvatar ? '上傳中...' : '確認上傳'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 個人資訊卡 */}
       <div className="card flex items-start gap-4 p-5">
         {/* 頭像 */}
