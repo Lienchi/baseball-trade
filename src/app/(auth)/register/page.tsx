@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -25,6 +26,12 @@ export default function RegisterPage() {
 
     if (password.length < 6) {
       setError('密碼至少需要 6 個字元')
+      setLoading(false)
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError('兩次輸入的密碼不一致')
       setLoading(false)
       return
     }
@@ -48,7 +55,7 @@ export default function RegisterPage() {
       .maybeSingle()
 
     if (reserved) {
-      setError('這個使用者名稱已被保留，無法使用')
+      setError('這個使用者名稱已經有人使用了')
       setLoading(false)
       return
     }
@@ -67,6 +74,13 @@ export default function RegisterPage() {
       } else {
         setError('註冊失敗：' + error.message)
       }
+      setLoading(false)
+      return
+    }
+
+    // Supabase 對已註冊的 email 不會回傳 error，而是回傳 identities 為空陣列的假成功（防止 email 枚舉）
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      setError('這個 Email 已經被註冊過了')
       setLoading(false)
       return
     }
@@ -167,6 +181,17 @@ export default function RegisterPage() {
               minLength={6}
             />
             <p className="mt-1 text-xs text-gray-400">至少 6 個字元</p>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">確認密碼</label>
+            <input
+              type="password"
+              className="input"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              required
+              minLength={6}
+            />
           </div>
           <button type="submit" className="btn-primary w-full" disabled={loading}>
             {loading ? '註冊中...' : '建立帳號'}
