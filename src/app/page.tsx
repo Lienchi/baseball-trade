@@ -78,8 +78,7 @@ export default async function HomePage() {
 
       {isEmpty ? (
         <div className="mt-16 flex flex-col items-center text-center">
-          <span className="text-4xl">⚾</span>
-          <p className="mt-3 text-lg font-semibold text-scoreboard">目前還沒有任何刊登</p>
+          <p className="text-lg font-semibold text-scoreboard">目前還沒有任何刊登</p>
           <p className="mt-1 text-sm text-dugout">第一棒由你來開打</p>
           <Link href="/listings/new" className="btn-primary mt-5 inline-flex">
             + 刊登商品
