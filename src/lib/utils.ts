@@ -26,6 +26,15 @@ export function formatDate(date: string): string {
   return format(new Date(date), 'yyyy/MM/dd', { locale: zhTW })
 }
 
+// 從 Supabase Storage 的 public URL 反推出 bucket 內的檔案路徑（供刪除檔案用）
+export function storagePathFromUrl(url: string): string | null {
+  const marker = '/object/public/images/'
+  const idx = url.indexOf(marker)
+  if (idx === -1) return null
+  // 去掉查詢字串（頭像 URL 帶 ?t= 快取參數）
+  return url.slice(idx + marker.length).split('?')[0]
+}
+
 export async function compressImage(
   file: File,
   maxWidthPx = 1200,

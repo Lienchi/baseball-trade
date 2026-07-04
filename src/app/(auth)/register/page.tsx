@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [agreed, setAgreed] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -78,7 +79,7 @@ export default function RegisterPage() {
       <div className="card w-full max-w-sm p-8">
         <div className="mb-6 text-center">
           <span className="text-4xl">⚾</span>
-          <h1 className="mt-2 text-xl font-bold">註冊球票市集</h1>
+          <h1 className="mt-2 text-xl font-bold">註冊本質球迷交易所</h1>
         </div>
 
         {error && (
@@ -121,7 +122,24 @@ export default function RegisterPage() {
             />
             <p className="mt-1 text-xs text-gray-400">至少 6 個字元</p>
           </div>
-          <button type="submit" className="btn-primary w-full" disabled={loading}>
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={agreed}
+              onChange={e => setAgreed(e.target.checked)}
+              required
+            />
+            <span>
+              我已閱讀並同意
+              <Link href="/terms" target="_blank" className="font-medium text-red-600 hover:underline">
+                網站規定與免責聲明
+              </Link>
+              ，並瞭解球票僅限原價以下轉讓
+            </span>
+          </label>
+
+          <button type="submit" className="btn-primary w-full" disabled={loading || !agreed}>
             {loading ? '註冊中...' : '建立帳號'}
           </button>
         </form>

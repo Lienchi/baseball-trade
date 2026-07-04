@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
+import { Footer } from '@/components/layout/Footer'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default function RootLayout({
           <main className="min-h-screen bg-chalk pt-16">
             {children}
           </main>
+          <Footer />
         </Providers>
       </body>
     </html>

@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { compressImage } from '@/lib/utils'
-import { CPBL_TEAMS, DEAL_METHOD_LABELS, DEAL_METHOD_OPTIONS } from '@/types'
+import { CPBL_TEAMS, DEAL_METHOD_LABELS, DEAL_METHOD_OPTIONS, LISTING_LIMITS } from '@/types'
 import type { DealMethod } from '@/types'
 import { Upload, X, Ticket, Shirt, Plus, Trash2 } from 'lucide-react'
 
@@ -56,6 +57,22 @@ export default function NewListingPage() {
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
+
+    // 同時上架數量限制（DB trigger 也會擋，這裡先給友善提示）
+    const { count: activeCount } = await supabase
+      .from('listings')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('type', form.type)
+      .eq('status', 'active')
+    if ((activeCount ?? 0) >= LISTING_LIMITS[form.type]) {
+      setError(
+        `${form.type === 'ticket' ? '球票' : '周邊商品'}同時上架以 ${LISTING_LIMITS[form.type]} 篇為限，` +
+        '請先將已完成的刊登標記售出或刪除'
+      )
+      setLoading(false)
+      return
+    }
 
     // 平行壓縮+上傳，總時間 = 最慢的一張（Promise.all 保留原本順序）
     let imageUrls: string[]
@@ -286,6 +303,14 @@ export default function NewListingPage() {
             )}
           </div>
         </div>
+
+        <p className="text-xs text-dugout">
+          刊登即表示你同意遵守
+          <Link href="/terms" target="_blank" className="font-medium text-field hover:underline dark:text-blue-400">
+            網站規定
+          </Link>
+          ；球票僅限原價（含）以下轉讓
+        </p>
 
         <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
           {loading ? '刊登中...' : '發布商品'}

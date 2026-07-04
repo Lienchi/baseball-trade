@@ -24,6 +24,12 @@ export const DEAL_METHOD_OPTIONS: Record<ListingType, DealMethod[]> = {
   merchandise: ['meetup', 'mail'],
 }
 
+// 同時上架（active）數量上限，防黃牛/洗版；DB 端另有 trigger 強制
+export const LISTING_LIMITS: Record<ListingType, number> = {
+  ticket: 3,
+  merchandise: 3,
+}
+
 // 球票場次：一篇刊登可包含多筆「日期 + 座位資訊 + 票價」
 export interface TicketItem {
   date: string

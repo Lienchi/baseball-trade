@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { compressImage } from '@/lib/utils'
+import { compressImage, storagePathFromUrl } from '@/lib/utils'
 import { CPBL_TEAMS, DEAL_METHOD_LABELS, DEAL_METHOD_OPTIONS } from '@/types'
 import type { DealMethod, TicketItem } from '@/types'
 import { Upload, X, Ticket, Shirt, Plus, Trash2 } from 'lucide-react'
@@ -31,6 +32,7 @@ export default function EditListingPage() {
   })
   const [ticketItems, setTicketItems] = useState<TicketItemForm[]>([{ date: '', seat: '', price: '' }])
   const [existingImages, setExistingImages] = useState<string[]>([])
+  const [originalImages, setOriginalImages] = useState<string[]>([])  // 載入時的圖片清單，存檔時比對出被移除的檔案
   const [newImages, setNewImages] = useState<File[]>([])
   const [newPreviews, setNewPreviews] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
@@ -75,6 +77,7 @@ export default function EditListingPage() {
       }))
       setTicketItems(items.length > 0 ? items : [{ date: '', seat: '', price: '' }])
       setExistingImages(listing.images ?? [])
+      setOriginalImages(listing.images ?? [])
       setLoading(false)
     }
     load()
@@ -158,6 +161,15 @@ export default function EditListingPage() {
       setError('更新失敗，請稍後再試')
       setSaving(false)
       return
+    }
+
+    // 把使用者移除的圖片從 Storage 清掉（失敗不擋流程，最多留下孤兒檔案）
+    const removedPaths = originalImages
+      .filter(url => !existingImages.includes(url))
+      .map(storagePathFromUrl)
+      .filter((p): p is string => p !== null)
+    if (removedPaths.length > 0) {
+      await supabase.storage.from('images').remove(removedPaths)
     }
 
     router.push(`/listings/${id}`)
@@ -357,6 +369,14 @@ export default function EditListingPage() {
             )}
           </div>
         </div>
+
+        <p className="text-xs text-dugout">
+          刊登即表示你同意遵守
+          <Link href="/terms" target="_blank" className="font-medium text-field hover:underline dark:text-blue-400">
+            網站規定
+          </Link>
+          ；球票僅限原價（含）以下轉讓
+        </p>
 
         <div className="flex gap-3">
           <button type="submit" className="btn-primary flex-1 py-3" disabled={saving}>
