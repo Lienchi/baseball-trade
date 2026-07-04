@@ -78,7 +78,7 @@ export function Navbar() {
           </svg>
           <div className="flex flex-col leading-none">
             <span className="font-display text-base tracking-tight text-white sm:text-lg">本質球迷交易所</span>
-            <span className="mt-0.5 bg-transparent font-mono text-[8px] font-bold tracking-[0.15em] text-gold sm:text-[9px]">BEN2 FAN EXCHANGE</span>
+            <span className="mt-0.5 bg-transparent font-mono text-[8px] font-bold tracking-[0.15em] text-gold sm:text-[9px]">BENJI FAN EXCHANGE</span>
           </div>
         </Link>
 
