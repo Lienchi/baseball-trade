@@ -71,8 +71,8 @@ export function RedactModal({
     }
     setApplyingCrop(true)
     try {
-      const blob = await getCroppedImage(file, croppedAreaPixels, 1000, 0.9)
-      setWorkingFile(new File([blob], `cropped-${Date.now()}.webp`, { type: 'image/webp' }))
+      const { blob, ext, contentType } = await getCroppedImage(file, croppedAreaPixels, 1000, 0.9)
+      setWorkingFile(new File([blob], `cropped-${Date.now()}.${ext}`, { type: contentType }))
     } catch {
       setWorkingFile(file)
     } finally {

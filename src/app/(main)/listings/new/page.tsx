@@ -121,11 +121,11 @@ export default function NewListingPage() {
     let imageUrls: string[]
     try {
       imageUrls = await Promise.all(images.map(async file => {
-        const blob = await compressImage(file)
-        const path = `listings/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`
+        const { blob, ext, contentType } = await compressImage(file)
+        const path = `listings/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
         const { error: uploadError } = await supabase.storage
           .from('images')
-          .upload(path, blob, { contentType: 'image/webp' })
+          .upload(path, blob, { contentType })
         if (uploadError) throw uploadError
         return supabase.storage.from('images').getPublicUrl(path).data.publicUrl
       }))

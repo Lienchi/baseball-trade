@@ -139,9 +139,9 @@ export default function ConversationPage({ params }: Props) {
   const sendImage = async (file: File) => {
     if (!me) return
     try {
-      const blob = await compressImage(file)
-      const path = `messages/${params.id}/${Date.now()}.webp`
-      const { error } = await supabase.storage.from('images').upload(path, blob)
+      const { blob, ext, contentType } = await compressImage(file)
+      const path = `messages/${params.id}/${Date.now()}.${ext}`
+      const { error } = await supabase.storage.from('images').upload(path, blob, { contentType })
       if (error) return
       const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
       await supabase.from('messages').insert({

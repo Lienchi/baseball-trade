@@ -41,7 +41,7 @@ export async function getCroppedImage(
   crop: { x: number; y: number; width: number; height: number },
   outputSizePx = 400,
   quality = 0.85
-): Promise<Blob> {
+): Promise<{ blob: Blob; ext: string; contentType: string }> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)
@@ -55,8 +55,22 @@ export async function getCroppedImage(
         crop.x, crop.y, crop.width, crop.height,
         0, 0, outputSizePx, outputSizePx
       )
+      // 部分手機瀏覽器（如較舊版 iOS Safari）canvas 不支援輸出 webp，toBlob 會回傳 null，
+      // 這裡失敗時改用 jpeg 再試一次，避免手機上傳直接失敗
       canvas.toBlob(
-        blob => blob ? resolve(blob) : reject(new Error('裁切失敗')),
+        blob => {
+          if (blob) {
+            resolve({ blob, ext: 'webp', contentType: 'image/webp' })
+            return
+          }
+          canvas.toBlob(
+            fallbackBlob => fallbackBlob
+              ? resolve({ blob: fallbackBlob, ext: 'jpg', contentType: 'image/jpeg' })
+              : reject(new Error('裁切失敗')),
+            'image/jpeg',
+            quality
+          )
+        },
         'image/webp',
         quality
       )
@@ -104,7 +118,7 @@ export async function compressImage(
   file: File,
   maxWidthPx = 1200,
   quality = 0.8
-): Promise<Blob> {
+): Promise<{ blob: Blob; ext: string; contentType: string }> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)
@@ -115,8 +129,22 @@ export async function compressImage(
       canvas.height = img.height * ratio
       const ctx = canvas.getContext('2d')!
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      // 部分手機瀏覽器（如較舊版 iOS Safari）canvas 不支援輸出 webp，toBlob 會回傳 null，
+      // 這裡失敗時改用 jpeg 再試一次，避免手機上傳直接失敗
       canvas.toBlob(
-        blob => blob ? resolve(blob) : reject(new Error('壓縮失敗')),
+        blob => {
+          if (blob) {
+            resolve({ blob, ext: 'webp', contentType: 'image/webp' })
+            return
+          }
+          canvas.toBlob(
+            fallbackBlob => fallbackBlob
+              ? resolve({ blob: fallbackBlob, ext: 'jpg', contentType: 'image/jpeg' })
+              : reject(new Error('壓縮失敗')),
+            'image/jpeg',
+            quality
+          )
+        },
         'image/webp',
         quality
       )

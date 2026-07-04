@@ -101,11 +101,11 @@ export default function ProfilePage() {
     setUploadingAvatar(true)
 
     try {
-      const blob = await getCroppedImage(cropFile, croppedAreaPixels, 400, 0.85)
-      const path = `avatars/${profile.id}.webp`
+      const { blob, ext, contentType } = await getCroppedImage(cropFile, croppedAreaPixels, 400, 0.85)
+      const path = `avatars/${profile.id}.${ext}`
       const { error } = await supabase.storage
         .from('images')
-        .upload(path, blob, { contentType: 'image/webp', upsert: true })
+        .upload(path, blob, { contentType, upsert: true })
 
       if (!error) {
         const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
