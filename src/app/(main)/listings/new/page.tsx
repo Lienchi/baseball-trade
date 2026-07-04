@@ -248,16 +248,16 @@ function NewListingForm() {
         </div>
 
 
+        <div>
+          <label className="mb-1 block text-sm font-medium text-scoreboard">球隊</label>
+          <select className="input" value={form.team} onChange={e => set('team', e.target.value)}>
+            <option value="">選擇球隊</option>
+            {CPBL_TEAMS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+
         {form.type === 'ticket' && (
           <>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-scoreboard">球隊</label>
-              <select className="input" value={form.team} onChange={e => set('team', e.target.value)}>
-                <option value="">選擇球隊</option>
-                {CPBL_TEAMS.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-
             <div>
               <label className="mb-1 block text-sm font-medium text-scoreboard">場次與座位 *</label>
               <div className="space-y-2">
