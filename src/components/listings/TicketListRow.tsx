@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, MessageCircle, Star } from 'lucide-react'
-import { formatDate, formatPrice, cn } from '@/lib/utils'
+import { formatDate, formatPrice, formatRelativeTime, cn } from '@/lib/utils'
 import { getTeamColor } from '@/types'
 import type { Listing } from '@/types'
 
@@ -81,6 +81,7 @@ export function TicketListRow({ listing }: Props) {
             <MessageCircle size={12} />
             {listing.comment_count ?? 0}
           </span>
+          <span className="flex-shrink-0 text-dugout/60">{formatRelativeTime(listing.created_at)}</span>
         </div>
       </div>
     </Link>

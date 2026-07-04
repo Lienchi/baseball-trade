@@ -1,13 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { formatDate, formatPrice } from '@/lib/utils'
+import { formatDate, formatPrice, formatRelativeTime } from '@/lib/utils'
 import { CommentSection } from '@/components/listings/CommentSection'
 import { ContactSellerButton } from '@/components/listings/ContactSellerButton'
 import { MarkSoldButton } from '@/components/listings/MarkSoldButton'
 import { DeleteListingButton } from '@/components/listings/DeleteListingButton'
 import Link from 'next/link'
-import { MapPin, Calendar, Package, Users } from 'lucide-react'
+import { MapPin, Calendar, Package, Users, Clock } from 'lucide-react'
 import { DEAL_METHOD_LABELS } from '@/types'
 import type { Listing } from '@/types'
 
@@ -136,6 +136,10 @@ export default async function ListingDetailPage({ params }: Props) {
                   {l.deal_methods.map(m => DEAL_METHOD_LABELS[m]).join('、')}
                 </li>
               )}
+              <li className="flex items-center gap-2 text-dugout/70">
+                <Clock size={14} className="text-dugout/50" />
+                {formatRelativeTime(l.created_at)}刊登
+              </li>
             </ul>
 
             {l.profile && (

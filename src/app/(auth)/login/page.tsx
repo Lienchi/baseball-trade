@@ -34,10 +34,6 @@ function LoginForm() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-chalk px-4">
       <div className="card w-full max-w-sm p-8">
-        <div className="mb-6 text-center">
-          <span className="text-4xl">⚾</span>
-          <h1 className="mt-2 font-display text-xl text-scoreboard">登入球票市集</h1>
-        </div>
 
         {error && (
           <div className="mb-4 rounded-md bg-clay/10 px-4 py-3 text-sm text-clay-dark">

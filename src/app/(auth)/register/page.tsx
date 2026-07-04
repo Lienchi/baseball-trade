@@ -77,10 +77,6 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="card w-full max-w-sm p-8">
-        <div className="mb-6 text-center">
-          <span className="text-4xl">⚾</span>
-          <h1 className="mt-2 text-xl font-bold">註冊本質球迷交易所</h1>
-        </div>
 
         {error && (
           <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
