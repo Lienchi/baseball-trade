@@ -7,7 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { compressImage, storagePathFromUrl } from '@/lib/utils'
 import { CPBL_TEAMS, DEAL_METHOD_LABELS, DEAL_METHOD_OPTIONS } from '@/types'
 import type { DealMethod, TicketItem } from '@/types'
-import { Upload, X, Ticket, Shirt, Plus, Trash2 } from 'lucide-react'
+import { Upload, X, Ticket, Shirt, Plus, Trash2, EyeOff } from 'lucide-react'
+import { RedactModal } from '@/components/listings/RedactModal'
 
 // 表單內的場次列（票價以字串暫存，送出時轉數字）
 interface TicketItemForm {
@@ -38,6 +39,7 @@ export default function EditListingPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [redactingIndex, setRedactingIndex] = useState<number | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -97,6 +99,18 @@ export default function EditListingPage() {
   const removeNewImage = (i: number) => {
     setNewImages(prev => prev.filter((_, idx) => idx !== i))
     setNewPreviews(prev => prev.filter((_, idx) => idx !== i))
+  }
+
+  const handleRedactConfirm = (blob: Blob) => {
+    if (redactingIndex === null) return
+    const i = redactingIndex
+    const newFile = new File([blob], `redacted-${Date.now()}.png`, { type: 'image/png' })
+    setNewImages(prev => prev.map((f, idx) => idx === i ? newFile : f))
+    setNewPreviews(prev => {
+      URL.revokeObjectURL(prev[i])
+      return prev.map((url, idx) => idx === i ? URL.createObjectURL(newFile) : url)
+    })
+    setRedactingIndex(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -348,6 +362,14 @@ export default function EditListingPage() {
                 <img src={url} alt="" className="h-full w-full rounded-md object-cover" />
                 <button
                   type="button"
+                  className="absolute -left-1 -top-1 rounded-full bg-scoreboard p-0.5 text-white"
+                  onClick={() => setRedactingIndex(i)}
+                  title="遮蔽個人資訊"
+                >
+                  <EyeOff size={12} />
+                </button>
+                <button
+                  type="button"
                   className="absolute -right-1 -top-1 rounded-full bg-clay p-0.5 text-white"
                   onClick={() => removeNewImage(i)}
                 >
@@ -387,6 +409,14 @@ export default function EditListingPage() {
           </button>
         </div>
       </form>
+
+      {redactingIndex !== null && (
+        <RedactModal
+          file={newImages[redactingIndex]}
+          onCancel={() => setRedactingIndex(null)}
+          onConfirm={handleRedactConfirm}
+        />
+      )}
     </div>
   )
 }

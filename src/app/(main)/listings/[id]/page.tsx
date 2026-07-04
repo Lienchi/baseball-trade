@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import { formatDate, formatPrice, formatRelativeTime } from '@/lib/utils'
 import { CommentSection } from '@/components/listings/CommentSection'
+import { ListingGallery } from '@/components/listings/ListingGallery'
 import { ContactSellerButton } from '@/components/listings/ContactSellerButton'
 import { MarkSoldButton } from '@/components/listings/MarkSoldButton'
 import { DeleteListingButton } from '@/components/listings/DeleteListingButton'
@@ -56,28 +56,7 @@ export default async function ListingDetailPage({ params }: Props) {
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="grid gap-8 lg:grid-cols-5">
         <div className="lg:col-span-3">
-          <div className="overflow-hidden rounded-lg">
-            {l.images.length > 0 ? (
-              <div className="grid gap-1">
-                <div className="relative aspect-[4/3]">
-                  <Image src={l.images[0]} alt={l.title} fill className="object-cover" priority />
-                </div>
-                {l.images.length > 1 && (
-                  <div className="grid grid-cols-4 gap-1">
-                    {l.images.slice(1, 5).map((img, i) => (
-                      <div key={i} className="relative aspect-square">
-                        <Image src={img} alt="" fill className="object-cover" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex aspect-[4/3] items-center justify-center bg-dugout/10 text-dugout/30">
-                <Package size={64} />
-              </div>
-            )}
-          </div>
+          <ListingGallery images={l.images} title={l.title} />
 
           <div className="mt-6">
             <h1 className="font-display text-xl text-scoreboard">{l.title}</h1>

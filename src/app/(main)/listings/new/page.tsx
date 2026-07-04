@@ -7,7 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { compressImage } from '@/lib/utils'
 import { CPBL_TEAMS, DEAL_METHOD_LABELS, DEAL_METHOD_OPTIONS, LISTING_LIMITS } from '@/types'
 import type { DealMethod } from '@/types'
-import { Upload, X, Ticket, Shirt, Plus, Trash2 } from 'lucide-react'
+import { Upload, X, Ticket, Shirt, Plus, Trash2, EyeOff } from 'lucide-react'
+import { RedactModal } from '@/components/listings/RedactModal'
 
 // 表單內的場次列（票價以字串暫存，送出時轉數字）
 interface TicketItemForm {
@@ -33,6 +34,7 @@ export default function NewListingPage() {
   const [previews, setPreviews] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [redactingIndex, setRedactingIndex] = useState<number | null>(null)
 
   const handleImageAdd = async (files: FileList) => {
     const newFiles = Array.from(files).slice(0, 5 - images.length)
@@ -44,6 +46,18 @@ export default function NewListingPage() {
   const removeImage = (i: number) => {
     setImages(prev => prev.filter((_, idx) => idx !== i))
     setPreviews(prev => prev.filter((_, idx) => idx !== i))
+  }
+
+  const handleRedactConfirm = (blob: Blob) => {
+    if (redactingIndex === null) return
+    const i = redactingIndex
+    const newFile = new File([blob], `redacted-${Date.now()}.png`, { type: 'image/png' })
+    setImages(prev => prev.map((f, idx) => idx === i ? newFile : f))
+    setPreviews(prev => {
+      URL.revokeObjectURL(prev[i])
+      return prev.map((url, idx) => idx === i ? URL.createObjectURL(newFile) : url)
+    })
+    setRedactingIndex(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -282,6 +296,14 @@ export default function NewListingPage() {
                 <img src={url} alt="" className="h-full w-full rounded-md object-cover" />
                 <button
                   type="button"
+                  className="absolute -left-1 -top-1 rounded-full bg-scoreboard p-0.5 text-white"
+                  onClick={() => setRedactingIndex(i)}
+                  title="遮蔽個人資訊"
+                >
+                  <EyeOff size={12} />
+                </button>
+                <button
+                  type="button"
                   className="absolute -right-1 -top-1 rounded-full bg-clay p-0.5 text-white"
                   onClick={() => removeImage(i)}
                 >
@@ -316,6 +338,14 @@ export default function NewListingPage() {
           {loading ? '刊登中...' : '發布商品'}
         </button>
       </form>
+
+      {redactingIndex !== null && (
+        <RedactModal
+          file={images[redactingIndex]}
+          onCancel={() => setRedactingIndex(null)}
+          onConfirm={handleRedactConfirm}
+        />
+      )}
     </div>
   )
 }

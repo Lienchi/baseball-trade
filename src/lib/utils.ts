@@ -67,6 +67,39 @@ export async function getCroppedImage(
   })
 }
 
+export interface RedactRect {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+// 把使用者畫的黑框（原始像素座標）燒進圖片，回傳遮蔽後的圖片
+export async function redactImage(file: File | Blob, rects: RedactRect[]): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0)
+      ctx.fillStyle = '#000'
+      for (const r of rects) {
+        ctx.fillRect(r.x, r.y, r.width, r.height)
+      }
+      canvas.toBlob(
+        blob => blob ? resolve(blob) : reject(new Error('遮蔽失敗')),
+        'image/png'
+      )
+      URL.revokeObjectURL(url)
+    }
+    img.onerror = reject
+    img.src = url
+  })
+}
+
 export async function compressImage(
   file: File,
   maxWidthPx = 1200,
