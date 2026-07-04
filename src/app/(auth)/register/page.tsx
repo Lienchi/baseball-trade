@@ -132,6 +132,7 @@ export default function RegisterPage() {
               minLength={2}
               maxLength={20}
             />
+            <p className="mt-1 text-xs text-gray-400">註冊後無法更改，請謹慎選擇</p>
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>

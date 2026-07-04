@@ -24,6 +24,12 @@ export default function ProfilePage() {
   const [bio, setBio] = useState('')
   const [saving, setSaving] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [changingPassword, setChangingPassword] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [cropFile, setCropFile] = useState<File | null>(null)
   const [cropImageUrl, setCropImageUrl] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
@@ -73,6 +79,34 @@ export default function ProfilePage() {
     setProfile({ ...profile, bio })
     setEditing(false)
     setSaving(false)
+  }
+
+  const handleChangePassword = async () => {
+    setPasswordError('')
+
+    if (newPassword.length < 6) {
+      setPasswordError('密碼至少需要 6 個字元')
+      return
+    }
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError('兩次輸入的密碼不一致')
+      return
+    }
+
+    setPasswordSaving(true)
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    setPasswordSaving(false)
+
+    if (error) {
+      setPasswordError('修改失敗：' + error.message)
+      return
+    }
+
+    setNewPassword('')
+    setConfirmNewPassword('')
+    setChangingPassword(false)
+    setPasswordSuccess(true)
+    setTimeout(() => setPasswordSuccess(false), 3000)
   }
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -253,6 +287,74 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* 帳號安全 */}
+      <div className="card mt-4 p-5">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-base text-scoreboard">帳號安全</h2>
+          {!changingPassword && (
+            <button
+              className="btn-secondary px-3 py-1.5 text-xs"
+              onClick={() => {
+                setChangingPassword(true)
+                setPasswordError('')
+              }}
+            >
+              修改密碼
+            </button>
+          )}
+        </div>
+
+        {passwordSuccess && !changingPassword && (
+          <p className="mt-3 text-sm text-field">密碼已修改成功</p>
+        )}
+
+        {changingPassword && (
+          <div className="mt-3 space-y-3">
+            {passwordError && (
+              <div className="rounded-md bg-clay/10 px-4 py-3 text-sm text-clay-dark">
+                {passwordError}
+              </div>
+            )}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-scoreboard">新密碼</label>
+              <input
+                type="password"
+                className="input"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                minLength={6}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-scoreboard">確認新密碼</label>
+              <input
+                type="password"
+                className="input"
+                value={confirmNewPassword}
+                onChange={e => setConfirmNewPassword(e.target.value)}
+                minLength={6}
+              />
+            </div>
+            <div className="flex gap-2">
+              <button className="btn-primary px-3 py-1.5 text-xs" onClick={handleChangePassword} disabled={passwordSaving}>
+                {passwordSaving ? '儲存中...' : '儲存'}
+              </button>
+              <button
+                className="btn-secondary px-3 py-1.5 text-xs"
+                onClick={() => {
+                  setChangingPassword(false)
+                  setNewPassword('')
+                  setConfirmNewPassword('')
+                  setPasswordError('')
+                }}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 刊登中 */}

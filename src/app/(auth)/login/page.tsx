@@ -53,7 +53,12 @@ function LoginForm() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-scoreboard">密碼</label>
+            <div className="flex items-center justify-between">
+              <label className="mb-1 block text-sm font-medium text-scoreboard">密碼</label>
+              <Link href="/forgot-password" className="mb-1 text-xs font-medium text-clay hover:underline">
+                忘記密碼？
+              </Link>
+            </div>
             <input
               type="password"
               className="input"
