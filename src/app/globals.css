@@ -57,7 +57,7 @@
 
   /* ===== 輸入框 ===== */
   .input {
-    @apply block w-full rounded-md border-2 border-scoreboard/10 bg-surface px-3 py-2.5 text-sm
+    @apply block h-11 w-full rounded-md border-2 border-scoreboard/10 bg-surface px-3 py-2.5 text-sm
            text-scoreboard placeholder-dugout/50 transition-colors
            focus:border-clay focus:ring-0;
   }
