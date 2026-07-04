@@ -35,6 +35,45 @@ export function storagePathFromUrl(url: string): string | null {
   return url.slice(idx + marker.length).split('?')[0]
 }
 
+function loadImageElement(file: File | Blob): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => { resolve(img); URL.revokeObjectURL(url) }
+    img.onerror = reject
+    img.src = url
+  })
+}
+
+// 手機上（尤其較舊 iOS Safari）超高解析度照片（如新款 iPhone 主鏡頭拍出的 4000x5000+）
+// 直接 drawImage 到 canvas 常因 GPU 貼圖尺寸上限而靜默失敗，導致上傳一直失敗。
+// 超過安全尺寸時改用 createImageBitmap 的 resize 選項在解碼階段就縮小，避開這個限制。
+const MAX_SAFE_CANVAS_DIM = 4000
+
+async function loadSafeCanvasSource(file: File | Blob): Promise<{
+  source: CanvasImageSource
+  width: number
+  height: number
+  scale: number
+}> {
+  const img = await loadImageElement(file)
+  if (img.naturalWidth <= MAX_SAFE_CANVAS_DIM && img.naturalHeight <= MAX_SAFE_CANVAS_DIM) {
+    return { source: img, width: img.naturalWidth, height: img.naturalHeight, scale: 1 }
+  }
+  const scale = Math.min(MAX_SAFE_CANVAS_DIM / img.naturalWidth, MAX_SAFE_CANVAS_DIM / img.naturalHeight)
+  const width = Math.round(img.naturalWidth * scale)
+  const height = Math.round(img.naturalHeight * scale)
+  if (typeof createImageBitmap === 'function') {
+    try {
+      const bitmap = await createImageBitmap(file, { resizeWidth: width, resizeHeight: height, resizeQuality: 'high' })
+      return { source: bitmap, width, height, scale }
+    } catch {
+      // 不支援就退回原圖硬畫，至少還有機會成功
+    }
+  }
+  return { source: img, width: img.naturalWidth, height: img.naturalHeight, scale: 1 }
+}
+
 // react-easy-crop 給的 pixel crop 範圍，直接畫到指定尺寸的正方形 canvas 上輸出
 export async function getCroppedImage(
   file: File,
@@ -42,42 +81,36 @@ export async function getCroppedImage(
   outputSizePx = 400,
   quality = 0.85
 ): Promise<{ blob: Blob; ext: string; contentType: string }> {
+  const { source, scale } = await loadSafeCanvasSource(file)
   return new Promise((resolve, reject) => {
-    const img = new Image()
-    const url = URL.createObjectURL(file)
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = outputSizePx
-      canvas.height = outputSizePx
-      const ctx = canvas.getContext('2d')!
-      ctx.drawImage(
-        img,
-        crop.x, crop.y, crop.width, crop.height,
-        0, 0, outputSizePx, outputSizePx
-      )
-      // 部分手機瀏覽器（如較舊版 iOS Safari）canvas 不支援輸出 webp，toBlob 會回傳 null，
-      // 這裡失敗時改用 jpeg 再試一次，避免手機上傳直接失敗
-      canvas.toBlob(
-        blob => {
-          if (blob) {
-            resolve({ blob, ext: 'webp', contentType: 'image/webp' })
-            return
-          }
-          canvas.toBlob(
-            fallbackBlob => fallbackBlob
-              ? resolve({ blob: fallbackBlob, ext: 'jpg', contentType: 'image/jpeg' })
-              : reject(new Error('裁切失敗')),
-            'image/jpeg',
-            quality
-          )
-        },
-        'image/webp',
-        quality
-      )
-      URL.revokeObjectURL(url)
-    }
-    img.onerror = reject
-    img.src = url
+    const canvas = document.createElement('canvas')
+    canvas.width = outputSizePx
+    canvas.height = outputSizePx
+    const ctx = canvas.getContext('2d')!
+    ctx.drawImage(
+      source,
+      crop.x * scale, crop.y * scale, crop.width * scale, crop.height * scale,
+      0, 0, outputSizePx, outputSizePx
+    )
+    // 部分手機瀏覽器（如較舊版 iOS Safari）canvas 不支援輸出 webp，toBlob 會回傳 null，
+    // 這裡失敗時改用 jpeg 再試一次，避免手機上傳直接失敗
+    canvas.toBlob(
+      blob => {
+        if (blob) {
+          resolve({ blob, ext: 'webp', contentType: 'image/webp' })
+          return
+        }
+        canvas.toBlob(
+          fallbackBlob => fallbackBlob
+            ? resolve({ blob: fallbackBlob, ext: 'jpg', contentType: 'image/jpeg' })
+            : reject(new Error('裁切失敗')),
+          'image/jpeg',
+          quality
+        )
+      },
+      'image/webp',
+      quality
+    )
   })
 }
 
@@ -90,27 +123,21 @@ export interface RedactRect {
 
 // 把使用者畫的黑框（原始像素座標）燒進圖片，回傳遮蔽後的圖片
 export async function redactImage(file: File | Blob, rects: RedactRect[]): Promise<Blob> {
+  const { source, width, height, scale } = await loadSafeCanvasSource(file)
   return new Promise((resolve, reject) => {
-    const img = new Image()
-    const url = URL.createObjectURL(file)
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = img.width
-      canvas.height = img.height
-      const ctx = canvas.getContext('2d')!
-      ctx.drawImage(img, 0, 0)
-      ctx.fillStyle = '#000'
-      for (const r of rects) {
-        ctx.fillRect(r.x, r.y, r.width, r.height)
-      }
-      canvas.toBlob(
-        blob => blob ? resolve(blob) : reject(new Error('遮蔽失敗')),
-        'image/png'
-      )
-      URL.revokeObjectURL(url)
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')!
+    ctx.drawImage(source, 0, 0, width, height)
+    ctx.fillStyle = '#000'
+    for (const r of rects) {
+      ctx.fillRect(r.x * scale, r.y * scale, r.width * scale, r.height * scale)
     }
-    img.onerror = reject
-    img.src = url
+    canvas.toBlob(
+      blob => blob ? resolve(blob) : reject(new Error('遮蔽失敗')),
+      'image/png'
+    )
   })
 }
 
@@ -119,38 +146,32 @@ export async function compressImage(
   maxWidthPx = 1200,
   quality = 0.8
 ): Promise<{ blob: Blob; ext: string; contentType: string }> {
+  const { source, width, height } = await loadSafeCanvasSource(file)
   return new Promise((resolve, reject) => {
-    const img = new Image()
-    const url = URL.createObjectURL(file)
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      const ratio = Math.min(maxWidthPx / img.width, 1)
-      canvas.width = img.width * ratio
-      canvas.height = img.height * ratio
-      const ctx = canvas.getContext('2d')!
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-      // 部分手機瀏覽器（如較舊版 iOS Safari）canvas 不支援輸出 webp，toBlob 會回傳 null，
-      // 這裡失敗時改用 jpeg 再試一次，避免手機上傳直接失敗
-      canvas.toBlob(
-        blob => {
-          if (blob) {
-            resolve({ blob, ext: 'webp', contentType: 'image/webp' })
-            return
-          }
-          canvas.toBlob(
-            fallbackBlob => fallbackBlob
-              ? resolve({ blob: fallbackBlob, ext: 'jpg', contentType: 'image/jpeg' })
-              : reject(new Error('壓縮失敗')),
-            'image/jpeg',
-            quality
-          )
-        },
-        'image/webp',
-        quality
-      )
-      URL.revokeObjectURL(url)
-    }
-    img.onerror = reject
-    img.src = url
+    const canvas = document.createElement('canvas')
+    const ratio = Math.min(maxWidthPx / width, 1)
+    canvas.width = width * ratio
+    canvas.height = height * ratio
+    const ctx = canvas.getContext('2d')!
+    ctx.drawImage(source, 0, 0, canvas.width, canvas.height)
+    // 部分手機瀏覽器（如較舊版 iOS Safari）canvas 不支援輸出 webp，toBlob 會回傳 null，
+    // 這裡失敗時改用 jpeg 再試一次，避免手機上傳直接失敗
+    canvas.toBlob(
+      blob => {
+        if (blob) {
+          resolve({ blob, ext: 'webp', contentType: 'image/webp' })
+          return
+        }
+        canvas.toBlob(
+          fallbackBlob => fallbackBlob
+            ? resolve({ blob: fallbackBlob, ext: 'jpg', contentType: 'image/jpeg' })
+            : reject(new Error('壓縮失敗')),
+          'image/jpeg',
+          quality
+        )
+      },
+      'image/webp',
+      quality
+    )
   })
 }
