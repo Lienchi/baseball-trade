@@ -4,15 +4,16 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import TermsContent from '@/components/TermsContent'
 
 export default function RegisterPage() {
   const supabase = createClient()
   const router = useRouter()
 
+  const [step, setStep] = useState<'terms' | 'form'>('terms')
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [agreed, setAgreed] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -24,6 +25,18 @@ export default function RegisterPage() {
 
     if (password.length < 6) {
       setError('密碼至少需要 6 個字元')
+      setLoading(false)
+      return
+    }
+
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', username)
+      .maybeSingle()
+
+    if (existing) {
+      setError('這個使用者名稱已經有人使用了')
       setLoading(false)
       return
     }
@@ -74,6 +87,30 @@ export default function RegisterPage() {
     )
   }
 
+  if (step === 'terms') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
+        <div className="card w-full max-w-2xl p-8">
+          <div className="max-h-[60vh] overflow-y-auto pr-2">
+            <TermsContent />
+          </div>
+          <div className="mt-6 flex gap-3">
+            <Link href="/login" className="btn-secondary flex-1 text-center">
+              不同意
+            </Link>
+            <button
+              type="button"
+              className="btn-primary flex-1"
+              onClick={() => setStep('form')}
+            >
+              我已閱讀並同意，繼續註冊
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="card w-full max-w-sm p-8">
@@ -118,27 +155,17 @@ export default function RegisterPage() {
             />
             <p className="mt-1 text-xs text-gray-400">至少 6 個字元</p>
           </div>
-          <label className="flex items-start gap-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
-              className="mt-0.5"
-              checked={agreed}
-              onChange={e => setAgreed(e.target.checked)}
-              required
-            />
-            <span>
-              我已閱讀並同意
-              <Link href="/terms" target="_blank" className="font-medium text-red-600 hover:underline">
-                網站規定與免責聲明
-              </Link>
-              ，並瞭解球票僅限原價以下轉讓
-            </span>
-          </label>
-
-          <button type="submit" className="btn-primary w-full" disabled={loading || !agreed}>
+          <button type="submit" className="btn-primary w-full" disabled={loading}>
             {loading ? '註冊中...' : '建立帳號'}
           </button>
         </form>
+
+        <p className="mt-4 text-center text-xs text-gray-400">
+          註冊即代表你同意
+          <Link href="/terms" target="_blank" className="font-medium text-red-600 hover:underline">
+            網站規定與免責聲明
+          </Link>
+        </p>
 
         <p className="mt-6 text-center text-sm text-gray-500">
           已經有帳號了？{' '}

@@ -55,7 +55,6 @@ export default async function HomePage() {
             </span>
             <div>
               <h2 className="font-display text-lg text-scoreboard">球票交易</h2>
-              <p className="mt-1 text-sm text-dugout">瀏覽所有球票刊登，依日期、球隊篩選</p>
             </div>
           </div>
           <ArrowRight size={20} className="hidden text-dugout/40 transition group-hover:translate-x-1 group-hover:text-field sm:block" />
@@ -71,7 +70,6 @@ export default async function HomePage() {
             </span>
             <div>
               <h2 className="font-display text-lg text-scoreboard">周邊商品</h2>
-              <p className="mt-1 text-sm text-dugout">球衣、簽名球、應援小物盡在這裡</p>
             </div>
           </div>
           <ArrowRight size={20} className="hidden text-dugout/40 transition group-hover:translate-x-1 group-hover:text-clay sm:block" />
