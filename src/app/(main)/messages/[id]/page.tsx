@@ -279,7 +279,10 @@ export default function ConversationPage({ params }: Props) {
               </div>
               <div className={`max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
                 {msg.image_url ? (
-                  <img src={msg.image_url} alt="圖片" className="rounded-md max-w-full" />
+                  // 縮圖顯示，點開新分頁看原圖
+                  <a href={msg.image_url} target="_blank" rel="noreferrer">
+                    <img src={msg.image_url} alt="圖片" className="max-h-48 max-w-full rounded-md" />
+                  </a>
                 ) : (
                   <div className={`rounded-2xl px-3 py-2 text-sm ${
                     isMe
