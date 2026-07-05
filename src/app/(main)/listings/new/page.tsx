@@ -41,7 +41,8 @@ function NewListingForm() {
     title: '',
     description: '',
     type: initialType as 'ticket' | 'merchandise',
-    deal_methods: ['meetup'] as DealMethod[],
+    // 球票預設 APP轉票；周邊不支援轉票則預設面交
+    deal_methods: [initialType === 'ticket' ? 'app_transfer' : 'meetup'] as DealMethod[],
     location: '',
     team: '',
   })
