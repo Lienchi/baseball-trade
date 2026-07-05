@@ -50,12 +50,12 @@ export default async function UserProfilePage({ params }: Props) {
           <Image
             src={p.avatar_url}
             alt={p.username}
-            width={64}
-            height={64}
-            className="h-16 w-16 flex-shrink-0 rounded-full object-cover"
+            width={96}
+            height={96}
+            className="h-24 w-24 flex-shrink-0 rounded-full object-cover"
           />
         ) : (
-          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-field text-xl font-bold text-white">
+          <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-full bg-field text-2xl font-bold text-white">
             {p.username.slice(0, 2).toUpperCase()}
           </div>
         )}
