@@ -137,7 +137,10 @@ export default async function ListingDetailPage({ params }: Props) {
             </ul>
 
             {l.profile && (
-              <div className="mt-5 flex items-center gap-3 border-t border-scoreboard/10 pt-4">
+              <Link
+                href={`/users/${l.user_id}`}
+                className="mt-5 flex items-center gap-3 border-t border-scoreboard/10 pt-4 transition hover:opacity-80"
+              >
                 {l.profile.avatar_url ? (
                   <Image
                     src={l.profile.avatar_url}
@@ -159,7 +162,7 @@ export default async function ListingDetailPage({ params }: Props) {
                     顆星
                   </p>
                 </div>
-              </div>
+              </Link>
             )}
 
             {canManage ? (
