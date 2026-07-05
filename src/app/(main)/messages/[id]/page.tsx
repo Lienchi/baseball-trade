@@ -169,7 +169,8 @@ export default function ConversationPage({ params }: Props) {
     setUploadingImage(true)
     setImageError('')
     try {
-      const { blob, ext, contentType } = await compressImage(file)
+      // 對話照片長邊壓到 600px 就夠看，載入也快
+      const { blob, ext, contentType } = await compressImage(file, 600)
       // storage policy 以路徑中的 user id 判斷權限，路徑必須放 me.id（不能只放 conversation id）
       const path = `messages/${me.id}/${params.id}-${Date.now()}.${ext}`
       const { error } = await supabase.storage.from('images').upload(path, blob, { contentType })
@@ -223,7 +224,7 @@ export default function ConversationPage({ params }: Props) {
     <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-2xl flex-col">
       {deal && (
         <div className="sticky top-16 z-10 border-b border-scoreboard/10 bg-chalk px-4 py-2.5">
-          <Link href={`/listings/${deal.listingId}`} className="text-xs font-medium text-clay hover:underline">
+          <Link href={`/listings/${deal.listingId}`} className="text-xs font-medium text-clay hover:underline dark:text-clay-light">
             關於：{deal.listingTitle}
           </Link>
           <div className="mt-1.5 flex items-center justify-between">
@@ -253,7 +254,7 @@ export default function ConversationPage({ params }: Props) {
               </span>
             ) : !myConfirmedAt ? (
               <button
-                className="rounded-md border-2 border-field px-3 py-1 text-xs font-bold text-field hover:bg-field/10"
+                className="rounded-md border-2 border-field px-3 py-1 text-xs font-bold text-field hover:bg-field/10 dark:border-clay-light dark:text-clay-light dark:hover:bg-clay-light/10"
                 onClick={() => setShowConfirmModal(true)}
                 disabled={confirming}
               >
