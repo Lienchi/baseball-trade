@@ -78,7 +78,9 @@ export default function MessagesListPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <h1 className="flex items-center gap-2 font-display text-xl text-scoreboard">
-        <MessageCircle size={22} />
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-clay/10 text-clay">
+          <MessageCircle size={18} strokeWidth={2} />
+        </span>
         我的私訊
       </h1>
 
