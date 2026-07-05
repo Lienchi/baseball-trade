@@ -75,6 +75,7 @@ export function TicketSortFilterBar({ showGameDateSort = false }: Props) {
             className="input w-auto text-xs"
             value={currentDateFrom}
             onChange={e => update('date_from', e.target.value)}
+            onBlur={e => { if (e.target.value !== currentDateFrom) update('date_from', e.target.value) }}
           />
           <span className="text-xs text-dugout">～</span>
           <input
@@ -82,6 +83,7 @@ export function TicketSortFilterBar({ showGameDateSort = false }: Props) {
             className="input w-auto text-xs"
             value={currentDateTo}
             onChange={e => update('date_to', e.target.value)}
+            onBlur={e => { if (e.target.value !== currentDateTo) update('date_to', e.target.value) }}
           />
         </div>
 
