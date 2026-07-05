@@ -271,6 +271,7 @@ function NewListingForm() {
                       value={item.date}
                       required
                       onChange={e => setTicketItems(prev => prev.map((t, idx) => idx === i ? { ...t, date: e.target.value } : t))}
+                      onBlur={e => { const v = e.target.value; if (v !== item.date) setTicketItems(prev => prev.map((t, idx) => idx === i ? { ...t, date: v } : t)) }}
                     />
                     <input
                       className="input flex-1"
