@@ -20,7 +20,7 @@ export const DEAL_METHOD_LABELS: Record<DealMethod, string> = {
 
 // 各刊登類型可選的交易方式（電子票券/APP轉票 僅適用於球票）
 export const DEAL_METHOD_OPTIONS: Record<ListingType, DealMethod[]> = {
-  ticket: ['meetup', 'mail', 'eticket', 'app_transfer'],
+  ticket: ['app_transfer', 'meetup', 'mail', 'eticket'],
   merchandise: ['meetup', 'mail'],
 }
 
