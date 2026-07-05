@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { MessageCircle, PlusCircle, User, Heart, LogOut, LogIn, Menu, X, ShieldCheck, Moon, Sun } from 'lucide-react'
+import { MessageCircle, PlusCircle, User, Heart, LogOut, LogIn, Menu, X, Moon, Sun } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export function Navbar() {
@@ -181,10 +181,6 @@ export function Navbar() {
                       {unread > 9 ? '9+' : unread}
                     </span>
                   )}
-                </Link>
-                <Link href="/profile#security" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
-                  <ShieldCheck size={18} />
-                  帳號安全
                 </Link>
               </>
             ) : null}

@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import Link from 'next/link'
 import Cropper, { type Area } from 'react-easy-crop'
 import { createClient } from '@/lib/supabase/client'
 import { ListingCard } from '@/components/listings/ListingCard'
 import { getCroppedImage, formatDate } from '@/lib/utils'
-import { Camera, ChevronRight, MessageCircle, Moon, Sun } from 'lucide-react'
+import { Camera } from 'lucide-react'
 import type { Profile, Listing } from '@/types'
 
 export default function ProfilePage() {
@@ -35,20 +34,6 @@ export default function ProfilePage() {
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
-  const [dark, setDark] = useState(false)
-  const [unread, setUnread] = useState(0)
-
-  useEffect(() => {
-    setDark(document.documentElement.classList.contains('dark'))
-  }, [])
-
-  const toggleDark = () => {
-    const next = !dark
-    setDark(next)
-    document.documentElement.classList.toggle('dark', next)
-    localStorage.setItem('theme', next ? 'dark' : 'light')
-  }
-
   useEffect(() => {
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -79,14 +64,6 @@ export default function ProfilePage() {
         setActiveListings(normalized.filter(l => l.status === 'active'))
         setSoldListings(normalized.filter(l => l.status === 'sold'))
       }
-
-      // 未讀私訊數：navbar 手機版已無私訊入口，改在這裡的私訊列顯示
-      const { count } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_read', false)
-        .neq('sender_id', user.id)
-      setUnread(count ?? 0)
 
       setLoading(false)
     }
@@ -310,20 +287,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* 私訊入口（手機版 navbar 已移除訊息 icon） */}
-      <Link href="/messages" className="card mt-4 flex items-center justify-between p-5 transition hover:shadow-md">
-        <h2 className="flex items-center gap-2 font-display text-base text-scoreboard">
-          <MessageCircle size={16} className="text-dugout/60" />
-          我的私訊
-          {unread > 0 && (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1.5 text-xs font-bold text-field-dark">
-              {unread > 9 ? '9+' : unread}
-            </span>
-          )}
-        </h2>
-        <ChevronRight size={18} className="text-dugout/40" />
-      </Link>
-
       {/* 帳號安全 */}
       <div id="security" className="card mt-4 scroll-mt-20 p-5">
         <div className="flex items-center justify-between">
@@ -392,31 +355,15 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* 外觀 */}
-      <div className="card mt-4 flex items-center justify-between p-5">
-        <h2 className="font-display text-base text-scoreboard">外觀</h2>
-        <button
-          className="btn-secondary inline-flex items-center gap-1.5 px-3 py-1.5 text-xs"
-          onClick={toggleDark}
-        >
-          {dark ? <Sun size={14} /> : <Moon size={14} />}
-          {dark ? '切換為淺色模式' : '切換為深色模式'}
-        </button>
-      </div>
-
       {/* 刊登中 */}
       <div className="mt-8">
-        <div className="flex items-center justify-between border-b-2 border-scoreboard/10 pb-3">
+        <div className="border-b-2 border-scoreboard/10 pb-3">
           <h2 className="font-display text-base text-scoreboard">刊登中（{activeListings.length}）</h2>
-          <Link href="/listings/new" className="btn-primary px-3 py-1.5 text-xs">
-            + 刊登
-          </Link>
         </div>
 
         {activeListings.length === 0 ? (
           <div className="mt-10 flex flex-col items-center text-center">
-            <span className="text-3xl">⚾</span>
-            <p className="mt-2 text-sm text-dugout">還沒有刊登過商品</p>
+            <p className="text-sm text-dugout">還沒有刊登過商品</p>
           </div>
         ) : (
           <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3">
