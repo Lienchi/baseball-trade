@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { formatRelativeTime, compressImage } from '@/lib/utils'
 import { Send, Image as ImageIcon, CheckCircle2, Circle, Star } from 'lucide-react'
+import { RedactModal } from '@/components/listings/RedactModal'
 import type { Message, Profile } from '@/types'
 
 interface Props {
@@ -33,6 +34,8 @@ export default function ConversationPage({ params }: Props) {
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [imageError, setImageError] = useState('')
+  // 選好檔案後先開裁切/遮蔽視窗（與刊登相同流程），確認後才上傳
+  const [pendingImage, setPendingImage] = useState<File | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const imageCount = messages.filter(m => m.image_url).length
@@ -163,12 +166,13 @@ export default function ConversationPage({ params }: Props) {
         return
       }
       const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
-      await supabase.from('messages').insert({
+      const { error: insertError } = await supabase.from('messages').insert({
         conversation_id: params.id,
         sender_id: me.id,
         content: '[圖片]',
         image_url: publicUrl,
       })
+      if (insertError) setImageError(`訊息寫入失敗：${insertError.message}`)
     } catch (err) {
       const detail = err instanceof Error ? err.message : '不支援的圖片格式'
       setImageError(`圖片處理失敗：${detail}`)
@@ -312,7 +316,8 @@ export default function ConversationPage({ params }: Props) {
               disabled={uploadingImage || imageCount >= MAX_CONVERSATION_IMAGES}
               onChange={e => {
                 const file = e.target.files?.[0]
-                if (file) sendImage(file)
+                // 先開裁切/遮蔽視窗，確認後才上傳
+                if (file) setPendingImage(file)
                 // 清空 value，才能連續選同一張檔案重試
                 e.target.value = ''
               }}
@@ -341,6 +346,17 @@ export default function ConversationPage({ params }: Props) {
           </button>
         </div>
       </div>
+
+      {pendingImage && (
+        <RedactModal
+          file={pendingImage}
+          onCancel={() => setPendingImage(null)}
+          onConfirm={blob => {
+            setPendingImage(null)
+            sendImage(new File([blob], `message-${Date.now()}.png`, { type: blob.type || 'image/png' }))
+          }}
+        />
+      )}
 
       {showConfirmModal && (
         <div
