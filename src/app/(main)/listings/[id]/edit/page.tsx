@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { compressImage, formatWeekday, storagePathFromUrl } from '@/lib/utils'
+import { compressImage, storagePathFromUrl } from '@/lib/utils'
 import { CPBL_TEAMS, DEAL_METHOD_LABELS, DEAL_METHOD_OPTIONS, MAX_ITEMS_PER_LISTING } from '@/types'
 import type { DealMethod, TicketItem } from '@/types'
 import { Upload, X, Ticket, Shirt, Plus, Trash2, EyeOff } from 'lucide-react'
@@ -333,9 +333,6 @@ export default function EditListingPage() {
                       required
                       onChange={e => setTicketItems(prev => prev.map((t, idx) => idx === i ? { ...t, date: e.target.value } : t))}
                     />
-                    {item.date && (
-                      <span className="flex-shrink-0 text-xs text-dugout">({formatWeekday(item.date)})</span>
-                    )}
                     <input
                       className="input flex-1"
                       placeholder="座位，e.g. 內野 A13 區 3 排"
