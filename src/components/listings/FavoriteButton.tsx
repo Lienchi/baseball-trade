@@ -25,11 +25,13 @@ export function FavoriteButton({ listingId, userId, initialFavorited }: Props) {
     }
     setLoading(true)
     if (favorited) {
+      // 只刪整篇關注（item_id null），別把同篇底下的場次關注一起刪掉
       const { error } = await supabase
         .from('favorites')
         .delete()
         .eq('user_id', userId)
         .eq('listing_id', listingId)
+        .is('item_id', null)
       if (!error) setFavorited(false)
     } else {
       const { error } = await supabase
