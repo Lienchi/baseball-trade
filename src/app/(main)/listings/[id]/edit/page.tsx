@@ -307,7 +307,7 @@ export default function EditListingPage() {
 
         <div>
           <label className="mb-1 block text-sm font-medium text-scoreboard">詳細說明 *</label>
-          <textarea className="input h-auto" rows={8} value={form.description} onChange={e => set('description', e.target.value)} required />
+          <textarea className="input h-auto" rows={4} value={form.description} onChange={e => set('description', e.target.value)} required />
         </div>
 
 
