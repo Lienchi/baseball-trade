@@ -273,7 +273,7 @@ function NewListingForm() {
                       onChange={e => setTicketItems(prev => prev.map((t, idx) => idx === i ? { ...t, date: e.target.value } : t))}
                     />
                     {item.date && (
-                      <span className="flex-shrink-0 text-xs text-dugout">（{formatWeekday(item.date)}）</span>
+                      <span className="flex-shrink-0 text-xs text-dugout">({formatWeekday(item.date)})</span>
                     )}
                     <input
                       className="input flex-1"
