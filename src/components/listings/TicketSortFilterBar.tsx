@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useCallback } from 'react'
-import { Search } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { CPBL_TEAMS } from '@/types'
 
 interface Props {
@@ -70,19 +70,43 @@ export function TicketSortFilterBar({ showGameDateSort = false }: Props) {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
           <span className="text-xs text-dugout">比賽日期</span>
-          <input
-            type="date"
-            className="input w-auto text-xs"
-            value={currentDateFrom}
-            onChange={e => update('date_from', e.target.value)}
-          />
+          <div className="relative">
+            <input
+              type="date"
+              className={`input w-[6.5rem] min-w-0 px-2 text-xs ${currentDateFrom ? 'pr-6' : ''}`}
+              value={currentDateFrom}
+              onChange={e => update('date_from', e.target.value)}
+            />
+            {currentDateFrom && (
+              <button
+                type="button"
+                aria-label="清除開始日期"
+                className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-dugout/50 hover:text-clay"
+                onClick={() => update('date_from', '')}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
           <span className="text-xs text-dugout">～</span>
-          <input
-            type="date"
-            className="input w-auto text-xs"
-            value={currentDateTo}
-            onChange={e => update('date_to', e.target.value)}
-          />
+          <div className="relative">
+            <input
+              type="date"
+              className={`input w-[6.5rem] min-w-0 px-2 text-xs ${currentDateTo ? 'pr-6' : ''}`}
+              value={currentDateTo}
+              onChange={e => update('date_to', e.target.value)}
+            />
+            {currentDateTo && (
+              <button
+                type="button"
+                aria-label="清除結束日期"
+                className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-dugout/50 hover:text-clay"
+                onClick={() => update('date_to', '')}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
         </div>
 
         <select
