@@ -261,7 +261,7 @@ function NewListingForm() {
         {form.type === 'ticket' && (
           <>
             <div>
-              <label className="mb-1 block text-sm font-medium text-scoreboard">場次與座位 *</label>
+              <label className="mb-1 block text-sm font-medium text-scoreboard">日期與座位 *</label>
               <div className="space-y-2">
                 {ticketItems.map((item, i) => (
                   <div key={i} className="flex items-center gap-2">
