@@ -77,7 +77,7 @@ export default function MessagesListPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="font-display text-xl text-scoreboard">私訊</h1>
+      <h1 className="font-display text-xl text-scoreboard">我的私訊</h1>
 
       {conversations.length === 0 ? (
         <div className="mt-16 flex flex-col items-center text-center">
@@ -108,7 +108,7 @@ export default function MessagesListPage() {
                   )}
                 </div>
                 {conv.listing_title && (
-                  <p className="truncate text-xs text-clay">關於：{conv.listing_title}</p>
+                  <p className="truncate text-xs text-clay dark:text-clay-light">關於：{conv.listing_title}</p>
                 )}
                 <p className="truncate text-xs text-dugout">
                   {conv.last_message ?? '尚無訊息'}
