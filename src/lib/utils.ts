@@ -36,7 +36,8 @@ export function formatWeekday(date: string): string {
 }
 
 export function formatDateWithWeekday(date: string): string {
-  return `${formatDate(date)}（${formatWeekday(date)}）`
+  // 用半形括號、不留空格，日期與星期顯示更緊湊
+  return `${formatDate(date)}(${formatWeekday(date)})`
 }
 
 // 從 Supabase Storage 的 public URL 反推出 bucket 內的檔案路徑（供刪除檔案用）

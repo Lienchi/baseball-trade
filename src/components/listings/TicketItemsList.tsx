@@ -64,7 +64,7 @@ export function TicketItemsList({
       {items.map((item, i) => (
         <li
           key={item.id ?? i}
-          className={`ml-6 flex items-baseline gap-2 rounded-md bg-scoreboard/5 px-2.5 py-1.5 ${item.sold ? 'opacity-50' : ''}`}
+          className={`flex items-baseline gap-2 rounded-md bg-scoreboard/5 px-2.5 py-1.5 ${item.sold ? 'opacity-50' : ''}`}
         >
           {type === 'ticket' ? (
             <>
@@ -81,7 +81,7 @@ export function TicketItemsList({
             </span>
           )}
           {item.price != null && (
-            <span className={`ml-auto flex-shrink-0 font-bold text-field dark:text-blue-400 ${item.sold ? 'line-through' : ''}`}>
+            <span className={`flex-shrink-0 font-bold text-field dark:text-blue-400 ${item.sold ? 'line-through' : ''}`}>
               {formatPrice(item.price)}
             </span>
           )}
@@ -90,7 +90,7 @@ export function TicketItemsList({
               type="button"
               onClick={() => toggleSold(i)}
               disabled={loadingIdx === i}
-              className={`flex-shrink-0 rounded-full border px-2 py-0.5 text-xs font-bold transition disabled:opacity-40 ${
+              className={`ml-auto flex-shrink-0 rounded-full border px-2 py-0.5 text-xs font-bold transition disabled:opacity-40 ${
                 item.sold
                   ? 'border-clay text-clay'
                   : 'border-scoreboard/20 text-dugout hover:border-field hover:text-field'
@@ -101,7 +101,7 @@ export function TicketItemsList({
           ) : (
             <>
               {item.sold && (
-                <span className="flex-shrink-0 rounded-full bg-clay/10 px-2 py-0.5 text-xs font-bold text-clay">
+                <span className="ml-auto flex-shrink-0 rounded-full bg-clay/10 px-2 py-0.5 text-xs font-bold text-clay">
                   已售出
                 </span>
               )}
@@ -111,7 +111,7 @@ export function TicketItemsList({
                   onClick={() => toggleItemFavorite(item.id!)}
                   disabled={favLoadingId === item.id}
                   title={favIds.has(item.id) ? '取消關注此場次' : '關注此場次'}
-                  className="flex-shrink-0 self-center p-0.5 transition disabled:opacity-40"
+                  className="ml-auto flex-shrink-0 self-center p-0.5 transition disabled:opacity-40"
                 >
                   <Heart
                     size={14}
