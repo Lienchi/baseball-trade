@@ -8,7 +8,7 @@ import Cropper, { type Area } from 'react-easy-crop'
 import { createClient } from '@/lib/supabase/client'
 import { ListingCard } from '@/components/listings/ListingCard'
 import { getCroppedImage, formatDate } from '@/lib/utils'
-import { Camera } from 'lucide-react'
+import { Camera, Moon, Sun } from 'lucide-react'
 import type { Profile, Listing } from '@/types'
 
 export default function ProfilePage() {
@@ -35,6 +35,18 @@ export default function ProfilePage() {
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+  const [dark, setDark] = useState(false)
+
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains('dark'))
+  }, [])
+
+  const toggleDark = () => {
+    const next = !dark
+    setDark(next)
+    document.documentElement.classList.toggle('dark', next)
+    localStorage.setItem('theme', next ? 'dark' : 'light')
+  }
 
   useEffect(() => {
     const load = async () => {
@@ -355,6 +367,18 @@ export default function ProfilePage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* 外觀 */}
+      <div className="card mt-4 flex items-center justify-between p-5">
+        <h2 className="font-display text-base text-scoreboard">外觀</h2>
+        <button
+          className="btn-secondary inline-flex items-center gap-1.5 px-3 py-1.5 text-xs"
+          onClick={toggleDark}
+        >
+          {dark ? <Sun size={14} /> : <Moon size={14} />}
+          {dark ? '切換為淺色模式' : '切換為深色模式'}
+        </button>
       </div>
 
       {/* 刊登中 */}

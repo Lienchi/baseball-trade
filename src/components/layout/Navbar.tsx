@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { MessageCircle, PlusCircle, User, Sun, Moon, Heart } from 'lucide-react'
+import { MessageCircle, PlusCircle, User, Heart, LogOut } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export function Navbar() {
@@ -12,11 +12,6 @@ export function Navbar() {
   const pathname = usePathname()
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [unread, setUnread] = useState(0)
-  const [dark, setDark] = useState(false)
-
-  useEffect(() => {
-    setDark(document.documentElement.classList.contains('dark'))
-  }, [])
 
   useEffect(() => {
     const getUser = async () => {
@@ -54,13 +49,6 @@ export function Navbar() {
     return () => { supabase.removeChannel(channel) }
   }, [supabase, user, pathname])
 
-  const toggleDark = () => {
-    const next = !dark
-    setDark(next)
-    document.documentElement.classList.toggle('dark', next)
-    localStorage.setItem('theme', next ? 'dark' : 'light')
-  }
-
   const handleLogout = async () => {
     await supabase.auth.signOut()
     window.location.href = '/'
@@ -84,9 +72,6 @@ export function Navbar() {
 
         {/* 右側按鈕 */}
         <div className="flex items-center gap-2">
-          <button onClick={toggleDark} className="p-2 text-white/70 hover:text-white">
-            {dark ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
           <Link href="/listings/new" className="btn-primary hidden sm:inline-flex">
             <PlusCircle size={16} />
             刊登
@@ -108,9 +93,13 @@ export function Navbar() {
               <Link href="/profile" className="p-2 text-white/70 hover:text-white">
                 <User size={20} />
               </Link>
+              {/* 手機空間有限：登出縮成 icon，sm 以上維持文字按鈕 */}
+              <button onClick={handleLogout} className="p-2 text-white/70 hover:text-white sm:hidden" title="登出">
+                <LogOut size={20} />
+              </button>
               <button
                 onClick={handleLogout}
-                className="rounded-md border-2 border-white/25 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/10"
+                className="hidden rounded-md border-2 border-white/25 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/10 sm:block"
               >
                 登出
               </button>
