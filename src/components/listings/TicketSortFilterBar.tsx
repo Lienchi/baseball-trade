@@ -4,7 +4,6 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useCallback } from 'react'
 import { Search } from 'lucide-react'
 import { CPBL_TEAMS } from '@/types'
-import { DateInput } from '@/components/ui/DateInput'
 
 interface Props {
   showGameDateSort?: boolean
@@ -71,16 +70,18 @@ export function TicketSortFilterBar({ showGameDateSort = false }: Props) {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
           <span className="text-xs text-dugout">比賽日期</span>
-          <DateInput
+          <input
+            type="date"
             className="input w-auto text-xs"
             value={currentDateFrom}
-            onValueChange={v => update('date_from', v)}
+            onChange={e => update('date_from', e.target.value)}
           />
           <span className="text-xs text-dugout">～</span>
-          <DateInput
+          <input
+            type="date"
             className="input w-auto text-xs"
             value={currentDateTo}
-            onValueChange={v => update('date_to', v)}
+            onChange={e => update('date_to', e.target.value)}
           />
         </div>
 
