@@ -18,6 +18,34 @@ interface Props {
   params: { id: string }
 }
 
+export async function generateMetadata({ params }: Props) {
+  const supabase = createClient()
+  const { data: listing } = await supabase
+    .from('listings')
+    .select('title, description, price, location, team, status, images')
+    .eq('id', params.id)
+    .single()
+
+  if (!listing) return { title: '找不到刊登' }
+
+  const parts = [
+    listing.status === 'sold' ? '已售出' : listing.price != null ? `NT$ ${listing.price.toLocaleString()}` : null,
+    listing.team,
+    listing.location,
+  ].filter(Boolean)
+  const description = parts.length > 0 ? parts.join('・') : listing.description?.slice(0, 100)
+
+  return {
+    title: listing.title,
+    description,
+    openGraph: {
+      title: listing.title,
+      description,
+      ...(listing.images?.[0] ? { images: [listing.images[0]] } : {}),
+    },
+  }
+}
+
 export default async function ListingDetailPage({ params }: Props) {
   const supabase = createClient()
 

@@ -6,6 +6,11 @@ import Link from 'next/link'
 import { Ticket } from 'lucide-react'
 import type { Listing } from '@/types'
 
+export const metadata = {
+  title: '球票專區',
+  description: '中華職棒球票讓票、換票資訊，依球隊、場次快速找票',
+}
+
 const PAGE_SIZE = 20
 
 interface SearchParams {

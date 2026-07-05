@@ -6,6 +6,11 @@ import Link from 'next/link'
 import { Shirt } from 'lucide-react'
 import type { Listing } from '@/types'
 
+export const metadata = {
+  title: '周邊專區',
+  description: '中華職棒周邊商品交易：球衣、應援毛巾、球員卡等球迷收藏',
+}
+
 const PAGE_SIZE = 20
 
 interface SearchParams {

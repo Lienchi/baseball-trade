@@ -10,6 +10,21 @@ interface Props {
   params: { id: string }
 }
 
+export async function generateMetadata({ params }: Props) {
+  const supabase = createClient()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('id', params.id)
+    .single()
+
+  if (!profile) return { title: '找不到用戶' }
+  return {
+    title: `${profile.username} 的刊登`,
+    description: `查看 ${profile.username} 在本質球迷交易所的球票與周邊刊登`,
+  }
+}
+
 export default async function UserProfilePage({ params }: Props) {
   const supabase = createClient()
 
