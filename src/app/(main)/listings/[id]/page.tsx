@@ -25,7 +25,7 @@ export default async function ListingDetailPage({ params }: Props) {
   const [{ data: listing }, { data: { user } }] = await Promise.all([
     supabase
       .from('listings')
-      .select('*, profile:profiles(username, avatar_url, rating_count)')
+      .select('*, profile:profiles!listings_user_id_fkey(username, avatar_url, rating_count)')
       .eq('id', params.id)
       .single(),
     supabase.auth.getUser(),

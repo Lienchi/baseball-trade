@@ -54,7 +54,7 @@ export default function ProfilePage() {
 
       const { data: listingsData } = await supabase
         .from('listings')
-        .select('*, profile:profiles(id, username, avatar_url, rating_count), comment_count:comments(count)')
+        .select('*, profile:profiles!listings_user_id_fkey(id, username, avatar_url, rating_count), comment_count:comments(count)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
