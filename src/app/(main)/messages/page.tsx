@@ -77,7 +77,10 @@ export default function MessagesListPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="font-display text-xl text-scoreboard">我的私訊</h1>
+      <h1 className="flex items-center gap-2 font-display text-xl text-scoreboard">
+        <MessageCircle size={22} />
+        我的私訊
+      </h1>
 
       {conversations.length === 0 ? (
         <div className="mt-16 flex flex-col items-center text-center">

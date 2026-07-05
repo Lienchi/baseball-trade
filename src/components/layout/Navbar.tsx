@@ -171,7 +171,7 @@ export function Navbar() {
                 </Link>
                 <Link href="/favorites" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
                   <Heart size={18} />
-                  關注頁面
+                  我的關注
                 </Link>
                 <Link href="/messages" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
                   <MessageCircle size={18} />
