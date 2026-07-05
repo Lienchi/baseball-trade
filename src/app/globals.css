@@ -67,6 +67,8 @@
     -webkit-appearance: none;
     appearance: none;
     line-height: 1.5rem;
+    /* 空值時 iOS 沒有內容撐寬，給固定最小寬度以免縮成一小塊 */
+    min-width: 8rem;
   }
   input[type='date'].input::-webkit-date-and-time-value {
     height: 1.5rem;
