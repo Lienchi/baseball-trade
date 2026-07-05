@@ -15,6 +15,12 @@ export function Footer() {
           <Link href="/terms" className="font-medium text-dugout hover:text-scoreboard hover:underline">
             免責聲明
           </Link>
+          <a
+            href="mailto:contact@benjifan.com"
+            className="font-medium text-dugout hover:text-scoreboard hover:underline"
+          >
+            聯絡我們
+          </a>
         </nav>
       </div>
     </footer>
