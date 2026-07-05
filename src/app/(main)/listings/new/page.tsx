@@ -9,6 +9,7 @@ import { CPBL_TEAMS, DEAL_METHOD_LABELS, DEAL_METHOD_OPTIONS, LISTING_LIMITS } f
 import type { DealMethod } from '@/types'
 import { Upload, X, Ticket, Shirt, Plus, Trash2, EyeOff } from 'lucide-react'
 import { RedactModal } from '@/components/listings/RedactModal'
+import { DateInput } from '@/components/ui/DateInput'
 
 // 表單內的場次列（票價以字串暫存，送出時轉數字）
 interface TicketItemForm {
@@ -265,13 +266,11 @@ function NewListingForm() {
               <div className="space-y-2">
                 {ticketItems.map((item, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <input
-                      type="date"
+                    <DateInput
                       className="input w-32 flex-shrink-0"
                       value={item.date}
                       required
-                      onChange={e => setTicketItems(prev => prev.map((t, idx) => idx === i ? { ...t, date: e.target.value } : t))}
-                      onBlur={e => { const v = e.target.value; if (v !== item.date) setTicketItems(prev => prev.map((t, idx) => idx === i ? { ...t, date: v } : t)) }}
+                      onValueChange={v => setTicketItems(prev => prev.map((t, idx) => idx === i ? { ...t, date: v } : t))}
                     />
                     <input
                       className="input flex-1"
