@@ -27,6 +27,7 @@ export default function ConversationPage({ params }: Props) {
   const [sending, setSending] = useState(false)
   const [deal, setDeal] = useState<DealState | null>(null)
   const [confirming, setConfirming] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -167,6 +168,8 @@ export default function ConversationPage({ params }: Props) {
     const now = new Date().toISOString()
     const { error } = await supabase.rpc('confirm_deal', { p_conversation_id: params.id })
 
+    setShowConfirmModal(false)
+
     if (!error) {
       const otherAlreadyConfirmed = isSeller ? deal.buyerConfirmedAt : deal.sellerConfirmedAt
       setDeal(prev => prev ? {
@@ -190,7 +193,7 @@ export default function ConversationPage({ params }: Props) {
   return (
     <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-2xl flex-col">
       {deal && (
-        <div className="border-b border-scoreboard/10 bg-chalk px-4 py-2.5">
+        <div className="sticky top-16 z-10 border-b border-scoreboard/10 bg-chalk px-4 py-2.5">
           <Link href={`/listings/${deal.listingId}`} className="text-xs font-medium text-clay hover:underline">
             關於：{deal.listingTitle}
           </Link>
@@ -222,7 +225,7 @@ export default function ConversationPage({ params }: Props) {
             ) : !myConfirmedAt ? (
               <button
                 className="rounded-md border-2 border-field px-3 py-1 text-xs font-bold text-field hover:bg-field/10"
-                onClick={handleConfirmDeal}
+                onClick={() => setShowConfirmModal(true)}
                 disabled={confirming}
               >
                 {confirming ? '處理中...' : '確認交易完成'}
@@ -298,6 +301,39 @@ export default function ConversationPage({ params }: Props) {
           </button>
         </div>
       </div>
+
+      {showConfirmModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-scoreboard/50 p-4"
+          onClick={() => !confirming && setShowConfirmModal(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-lg bg-white p-5 shadow-lg"
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 className="text-base font-bold text-scoreboard">確認交易完成？</h2>
+            <p className="mt-2 text-sm text-dugout">
+              確認後無法取消。雙方都確認後，交易即完成並各獲得一顆星。
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                className="rounded-md px-4 py-1.5 text-sm text-dugout hover:bg-dugout/10"
+                onClick={() => setShowConfirmModal(false)}
+                disabled={confirming}
+              >
+                取消
+              </button>
+              <button
+                className="rounded-md bg-field px-4 py-1.5 text-sm font-bold text-white hover:bg-field/90 disabled:opacity-60"
+                onClick={handleConfirmDeal}
+                disabled={confirming}
+              >
+                {confirming ? '處理中...' : '確認'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
