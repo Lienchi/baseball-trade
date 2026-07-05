@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { MessageCircle, PlusCircle, User, Sun, Moon } from 'lucide-react'
+import { MessageCircle, PlusCircle, User, Sun, Moon, Heart } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export function Navbar() {
@@ -101,6 +101,9 @@ export function Navbar() {
                     {unread > 9 ? '9+' : unread}
                   </span>
                 )}
+              </Link>
+              <Link href="/favorites" className="p-2 text-white/70 hover:text-white">
+                <Heart size={20} />
               </Link>
               <Link href="/profile" className="p-2 text-white/70 hover:text-white">
                 <User size={20} />

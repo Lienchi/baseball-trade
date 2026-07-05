@@ -7,6 +7,7 @@ import { ContactSellerButton } from '@/components/listings/ContactSellerButton'
 import { MarkSoldButton } from '@/components/listings/MarkSoldButton'
 import { TicketItemsList } from '@/components/listings/TicketItemsList'
 import { DeleteListingButton } from '@/components/listings/DeleteListingButton'
+import { FavoriteButton } from '@/components/listings/FavoriteButton'
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, Calendar, Package, Users, Clock, ShoppingBag } from 'lucide-react'
@@ -45,6 +46,18 @@ export default async function ListingDetailPage({ params }: Props) {
   }
 
   const canManage = isOwner || isAdmin
+
+  // 是否已關注（僅球票、非擁有者才需要）
+  let isFavorited = false
+  if (user && !isOwner && listing.type === 'ticket') {
+    const { data: fav } = await supabase
+      .from('favorites')
+      .select('listing_id')
+      .eq('user_id', user.id)
+      .eq('listing_id', params.id)
+      .maybeSingle()
+    isFavorited = !!fav
+  }
 
   // 瀏覽數：擁有者看自己不計，且不 await（不阻塞頁面回應）
   if (!isOwner) {
@@ -151,7 +164,16 @@ export default async function ListingDetailPage({ params }: Props) {
                 <DeleteListingButton listingId={l.id} />
               </div>
             ) : (
-              <ContactSellerButton listingId={l.id} sellerId={l.user_id} />
+              <>
+                <ContactSellerButton listingId={l.id} sellerId={l.user_id} />
+                {l.type === 'ticket' && (
+                  <FavoriteButton
+                    listingId={l.id}
+                    userId={user?.id ?? null}
+                    initialFavorited={isFavorited}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>
