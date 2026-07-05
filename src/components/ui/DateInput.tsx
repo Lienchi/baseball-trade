@@ -35,14 +35,31 @@ export function DateInput({ value, onValueChange, className, required }: Props) 
     }
   }, [value])
 
+  // iOS 的重置鈕清空值時不發任何事件（WebKit bug），只能在選擇器開啟（focus）期間
+  // 輪詢 DOM 值，偵測到變化就同步；同時保留原生 change 監聽當一般路徑
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const handler = () => {
+    const sync = () => {
       if (el.value !== lastEmitted.current) emitRef.current(el.value)
     }
-    el.addEventListener('change', handler)
-    return () => el.removeEventListener('change', handler)
+    let timer: ReturnType<typeof setInterval> | undefined
+    const start = () => {
+      if (!timer) timer = setInterval(sync, 200)
+    }
+    const stop = () => {
+      if (timer) { clearInterval(timer); timer = undefined }
+      sync()
+    }
+    el.addEventListener('change', sync)
+    el.addEventListener('focus', start)
+    el.addEventListener('blur', stop)
+    return () => {
+      if (timer) clearInterval(timer)
+      el.removeEventListener('change', sync)
+      el.removeEventListener('focus', start)
+      el.removeEventListener('blur', stop)
+    }
   }, [])
 
   return (
