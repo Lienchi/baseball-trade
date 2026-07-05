@@ -40,6 +40,23 @@ export default function ConversationPage({ params }: Props) {
 
   const imageCount = messages.filter(m => m.image_url).length
 
+  // 自己送出的訊息直接塞進畫面（不等 realtime），realtime 再收到同一筆時靠 id 去重
+  const appendMessage = (msg: Message) => {
+    setMessages(prev => prev.some(m => m.id === msg.id) ? prev : [...prev, msg])
+  }
+
+  // 送出並立刻顯示；select 帶回 sender 讓新訊息的頭像/名稱正常
+  const insertMessage = async (fields: { content: string; image_url?: string }) => {
+    if (!me) return { error: new Error('尚未登入') }
+    const { data, error } = await supabase
+      .from('messages')
+      .insert({ conversation_id: params.id, sender_id: me.id, ...fields })
+      .select('*, sender:profiles(id, username, avatar_url)')
+      .single()
+    if (data) appendMessage(data as Message)
+    return { error }
+  }
+
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -101,7 +118,7 @@ export default function ConversationPage({ params }: Props) {
           .select('*, sender:profiles(id, username, avatar_url)')
           .eq('id', payload.new.id)
           .single()
-        if (data) setMessages(prev => [...prev, data as Message])
+        if (data) appendMessage(data as Message)
       })
       .subscribe()
 
@@ -136,11 +153,7 @@ export default function ConversationPage({ params }: Props) {
     if (!content.trim() || !me || sending) return
     setSending(true)
     try {
-      const { error } = await supabase.from('messages').insert({
-        conversation_id: params.id,
-        sender_id: me.id,
-        content: content.trim(),
-      })
+      const { error } = await insertMessage({ content: content.trim() })
       if (!error) setContent('')
     } finally {
       setSending(false)
@@ -166,12 +179,7 @@ export default function ConversationPage({ params }: Props) {
         return
       }
       const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
-      const { error: insertError } = await supabase.from('messages').insert({
-        conversation_id: params.id,
-        sender_id: me.id,
-        content: '[圖片]',
-        image_url: publicUrl,
-      })
+      const { error: insertError } = await insertMessage({ content: '[圖片]', image_url: publicUrl })
       if (insertError) setImageError(`訊息寫入失敗：${insertError.message}`)
     } catch (err) {
       const detail = err instanceof Error ? err.message : '不支援的圖片格式'
@@ -206,11 +214,7 @@ export default function ConversationPage({ params }: Props) {
         ? `🌟 雙方都已確認，交易完成！雙方各獲得一顆星`
         : `✅ ${me.username} 已標記這筆交易完成，等待對方確認`
 
-      await supabase.from('messages').insert({
-        conversation_id: params.id,
-        sender_id: me.id,
-        content: systemMsg,
-      })
+      await insertMessage({ content: systemMsg })
     }
     setConfirming(false)
   }
