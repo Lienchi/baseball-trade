@@ -325,7 +325,7 @@ export default function ProfilePage() {
       </Link>
 
       {/* 帳號安全 */}
-      <div className="card mt-4 p-5">
+      <div id="security" className="card mt-4 scroll-mt-20 p-5">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-base text-scoreboard">帳號安全</h2>
           {!changingPassword && (

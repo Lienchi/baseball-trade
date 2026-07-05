@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { MessageCircle, PlusCircle, User, Heart, LogOut } from 'lucide-react'
+import { MessageCircle, PlusCircle, User, Heart, LogOut, LogIn, Menu, X, ShieldCheck, Moon, Sun } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export function Navbar() {
@@ -12,6 +12,22 @@ export function Navbar() {
   const pathname = usePathname()
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [unread, setUnread] = useState(0)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [dark, setDark] = useState(false)
+
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains('dark'))
+  }, [])
+
+  // 換頁時自動收起選單
+  useEffect(() => { setMenuOpen(false) }, [pathname])
+
+  const toggleDark = () => {
+    const next = !dark
+    setDark(next)
+    document.documentElement.classList.toggle('dark', next)
+    localStorage.setItem('theme', next ? 'dark' : 'light')
+  }
 
   useEffect(() => {
     const getUser = async () => {
@@ -91,16 +107,12 @@ export function Navbar() {
                   </span>
                 )}
               </Link>
-              <Link href="/favorites" className="p-2 text-white/70 hover:text-white">
+              <Link href="/favorites" className="hidden p-2 text-white/70 hover:text-white sm:block">
                 <Heart size={20} />
               </Link>
-              <Link href="/profile" className="p-2 text-white/70 hover:text-white">
+              <Link href="/profile" className="hidden p-2 text-white/70 hover:text-white sm:block">
                 <User size={20} />
               </Link>
-              {/* 手機空間有限：登出縮成 icon，sm 以上維持文字按鈕 */}
-              <button onClick={handleLogout} className="p-2 text-white/70 hover:text-white sm:hidden" title="登出">
-                <LogOut size={20} />
-              </button>
               <button
                 onClick={handleLogout}
                 className="hidden rounded-md border-2 border-white/25 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/10 sm:block"
@@ -110,12 +122,98 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/login" className="rounded-md border-2 border-white/25 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/10">
+              <Link href="/login" className="hidden rounded-md border-2 border-white/25 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/10 sm:block">
                 登入
               </Link>
               <Link href="/register" className="btn-primary hidden sm:inline-flex">註冊</Link>
             </>
           )}
+
+          {/* 手機版：漢堡選單 */}
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="relative p-2 text-white/70 hover:text-white sm:hidden"
+            title="選單"
+            aria-label="開啟選單"
+          >
+            <Menu size={22} />
+            {user && unread > 0 && (
+              <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-gold" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* 手機版滑出選單 */}
+      <div className={`fixed inset-0 z-50 sm:hidden ${menuOpen ? '' : 'pointer-events-none'}`}>
+        {/* 遮罩 */}
+        <div
+          className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${menuOpen ? 'opacity-100' : 'opacity-0'}`}
+          onClick={() => setMenuOpen(false)}
+        />
+        {/* 側欄：從右側向左滑出 */}
+        <div
+          className={`absolute inset-y-0 right-0 flex w-64 flex-col bg-banner shadow-xl transition-transform duration-300 ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        >
+          <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
+            <span className="font-display text-base text-white">選單</span>
+            <button onClick={() => setMenuOpen(false)} className="p-2 text-white/70 hover:text-white" aria-label="關閉選單">
+              <X size={22} />
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-1 p-3">
+            {user ? (
+              <>
+                <Link href="/profile" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
+                  <User size={18} />
+                  個人頁面
+                </Link>
+                <Link href="/favorites" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
+                  <Heart size={18} />
+                  關注頁面
+                </Link>
+                <Link href="/messages" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
+                  <MessageCircle size={18} />
+                  我的私訊
+                  {unread > 0 && (
+                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1.5 text-[11px] font-bold text-field-dark">
+                      {unread > 9 ? '9+' : unread}
+                    </span>
+                  )}
+                </Link>
+                <Link href="/profile#security" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
+                  <ShieldCheck size={18} />
+                  帳號安全
+                </Link>
+              </>
+            ) : null}
+
+            <button
+              onClick={toggleDark}
+              className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white"
+            >
+              {dark ? <Sun size={18} /> : <Moon size={18} />}
+              {dark ? '切換為淺色模式' : '切換為深色模式'}
+            </button>
+
+            <div className="my-2 border-t border-white/10" />
+
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white"
+              >
+                <LogOut size={18} />
+                登出
+              </button>
+            ) : (
+              <Link href="/login" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
+                <LogIn size={18} />
+                登入
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </nav>
