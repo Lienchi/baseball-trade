@@ -1,9 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Heart } from 'lucide-react'
+import { Calendar, Heart } from 'lucide-react'
 import { TicketListRow } from '@/components/listings/TicketListRow'
-import type { Listing } from '@/types'
+import { cn, formatDate, formatPrice } from '@/lib/utils'
+import { getTeamColor } from '@/types'
+import type { Listing, TicketItem } from '@/types'
+
+interface FavoriteRow {
+  item_id: string | null
+  created_at: string
+  listing: (Listing & { comment_count: unknown }) | null
+}
 
 export default async function FavoritesPage() {
   const supabase = createClient()
@@ -15,6 +23,7 @@ export default async function FavoritesPage() {
   const { data: favorites } = await supabase
     .from('favorites')
     .select(`
+      item_id,
       created_at,
       listing:listings(
         *,
@@ -25,15 +34,17 @@ export default async function FavoritesPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
-  const listings = (favorites ?? [])
-    .map(f => f.listing as unknown as (Listing & { comment_count: unknown }) | null)
-    .filter((l): l is Listing & { comment_count: unknown } => l !== null)
-    .map(l => ({
-      ...l,
-      comment_count: Array.isArray(l.comment_count)
-        ? ((l.comment_count[0] as { count?: number })?.count ?? 0)
-        : 0,
-    })) as Listing[]
+  const rows = ((favorites ?? []) as unknown as FavoriteRow[])
+    .filter(f => f.listing !== null)
+    .map(f => ({
+      ...f,
+      listing: {
+        ...f.listing!,
+        comment_count: Array.isArray(f.listing!.comment_count)
+          ? ((f.listing!.comment_count[0] as { count?: number })?.count ?? 0)
+          : 0,
+      } as Listing,
+    }))
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -44,14 +55,22 @@ export default async function FavoritesPage() {
           </span>
           我的關注
         </h1>
-        <p className="mt-1 text-sm text-dugout">{listings.length} 筆關注中的球票</p>
+        <p className="mt-1 text-sm text-dugout">{rows.length} 筆關注</p>
       </div>
 
-      {listings.length > 0 ? (
+      {rows.length > 0 ? (
         <div className="space-y-2">
-          {listings.map(listing => (
-            <TicketListRow key={listing.id} listing={listing} />
-          ))}
+          {rows.map(({ item_id, listing }) =>
+            item_id === null ? (
+              <TicketListRow key={listing.id} listing={listing} />
+            ) : (
+              <FavoriteItemRow
+                key={`${listing.id}-${item_id}`}
+                listing={listing}
+                item={listing.ticket_items?.find(t => t.id === item_id)}
+              />
+            )
+          )}
         </div>
       ) : (
         <div className="mt-20 flex flex-col items-center text-center">
@@ -66,5 +85,54 @@ export default async function FavoritesPage() {
         </div>
       )}
     </div>
+  )
+}
+
+// 場次級關注：只顯示該場次的日期/座位/價格，場次被賣家移除時提示
+function FavoriteItemRow({ listing, item }: { listing: Listing; item: TicketItem | undefined }) {
+  const team = getTeamColor(listing.team)
+
+  return (
+    <Link
+      href={`/listings/${listing.id}`}
+      className={cn(
+        'card group flex items-center gap-4 border-l-4 p-4 transition-all hover:shadow-md',
+        team.border
+      )}
+    >
+      <div className={cn(
+        'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md text-sm font-bold leading-none',
+        team.bg,
+        team.textOnBg
+      )}>
+        {listing.team ? listing.team.slice(0, 2) : '⚾'}
+      </div>
+
+      <div className="flex-1 overflow-hidden">
+        <p className="flex items-center gap-2 text-xs text-dugout">
+          <span className="badge bg-clay/10 text-clay-dark">關注場次</span>
+          <span className="truncate">{listing.title}</span>
+        </p>
+        {item ? (
+          <div className="mt-1.5 flex items-center gap-2 text-sm">
+            <span className="flex flex-shrink-0 items-center gap-1 font-semibold text-scoreboard">
+              <Calendar size={13} className="text-dugout/50" />
+              {formatDate(item.date!)}
+            </span>
+            {item.seat && <span className="truncate text-dugout">{item.seat}</span>}
+            {item.price != null && (
+              <span className="flex-shrink-0 font-bold text-field dark:text-blue-400">
+                {formatPrice(item.price)}
+              </span>
+            )}
+            {item.sold && (
+              <span className="badge flex-shrink-0 bg-clay/10 text-clay-dark">已售出</span>
+            )}
+          </div>
+        ) : (
+          <p className="mt-1.5 text-sm text-dugout/60">此場次已被賣家移除</p>
+        )}
+      </div>
+    </Link>
   )
 }

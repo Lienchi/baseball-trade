@@ -12,6 +12,7 @@ import { RedactModal } from '@/components/listings/RedactModal'
 
 // 表單內的場次列（票價以字串暫存，送出時轉數字）
 interface TicketItemForm {
+  id?: string   // 既有場次保留原 id（維持場次級關注的連結），新增列送出時才生成
   date: string
   seat: string
   price: string
@@ -20,6 +21,7 @@ interface TicketItemForm {
 
 // 表單內的周邊商品列
 interface MerchandiseItemForm {
+  id?: string
   name: string
   price: string
   sold: boolean
@@ -84,6 +86,7 @@ export default function EditListingPage() {
       })
       if (listing.type === 'merchandise') {
         const items = ((listing.ticket_items ?? []) as TicketItem[]).map(t => ({
+          id: t.id,
           name: t.name ?? '',
           price: t.price != null ? String(t.price) : '',
           sold: t.sold ?? false,
@@ -91,6 +94,7 @@ export default function EditListingPage() {
         setMerchandiseItems(items.length > 0 ? items : [{ name: '', price: '', sold: false }])
       } else {
         const items = ((listing.ticket_items ?? []) as TicketItem[]).map(t => ({
+          id: t.id,
           date: t.date ?? '',
           seat: t.seat ?? '',
           price: t.price != null ? String(t.price) : '',
@@ -190,12 +194,14 @@ export default function EditListingPage() {
     // 球票：過濾掉沒填日期的場次，game_date 存最早場次供排序/篩選；周邊：過濾掉沒填名稱的商品
     const validItems = form.type === 'ticket'
       ? ticketItems.filter(t => t.date).map(t => ({
+          id: t.id ?? crypto.randomUUID(),
           date: t.date,
           seat: t.seat,
           price: t.price ? parseInt(t.price) : null,
           sold: t.sold,
         }))
       : merchandiseItems.filter(m => m.name).map(m => ({
+          id: m.id ?? crypto.randomUUID(),
           name: m.name,
           price: m.price ? parseInt(m.price) : null,
           sold: m.sold,

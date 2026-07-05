@@ -151,11 +151,13 @@ function NewListingForm() {
     // 球票：過濾掉沒填日期的場次，game_date 存最早場次供排序/篩選；周邊：過濾掉沒填名稱的商品
     const validItems = form.type === 'ticket'
       ? ticketItems.filter(t => t.date).map(t => ({
+          id: crypto.randomUUID(),
           date: t.date,
           seat: t.seat,
           price: t.price ? parseInt(t.price) : null,
         }))
       : merchandiseItems.filter(m => m.name).map(m => ({
+          id: crypto.randomUUID(),
           name: m.name,
           price: m.price ? parseInt(m.price) : null,
         }))

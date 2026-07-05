@@ -47,16 +47,19 @@ export default async function ListingDetailPage({ params }: Props) {
 
   const canManage = isOwner || isAdmin
 
-  // 是否已關注（僅球票、非擁有者才需要）
+  // 關注狀態（僅球票、非擁有者才需要）：item_id null = 關注整篇，有值 = 關注特定場次
   let isFavorited = false
+  let favoritedItemIds: string[] = []
   if (user && !isOwner && listing.type === 'ticket') {
-    const { data: fav } = await supabase
+    const { data: favs } = await supabase
       .from('favorites')
-      .select('listing_id')
+      .select('item_id')
       .eq('user_id', user.id)
       .eq('listing_id', params.id)
-      .maybeSingle()
-    isFavorited = !!fav
+    isFavorited = (favs ?? []).some(f => f.item_id === null)
+    favoritedItemIds = (favs ?? [])
+      .map(f => f.item_id as string | null)
+      .filter((x): x is string => x !== null)
   }
 
   // 瀏覽數：擁有者看自己不計，且不 await（不阻塞頁面回應）
@@ -100,7 +103,14 @@ export default async function ListingDetailPage({ params }: Props) {
                       : <ShoppingBag size={14} className="text-dugout/50" />}
                     {l.type === 'ticket' ? '場次資訊' : '商品列表'}
                   </div>
-                  <TicketItemsList listingId={l.id} items={l.ticket_items} canManage={canManage} type={l.type} />
+                  <TicketItemsList
+                    listingId={l.id}
+                    items={l.ticket_items}
+                    canManage={canManage}
+                    type={l.type}
+                    userId={user?.id ?? null}
+                    favoritedItemIds={favoritedItemIds}
+                  />
                 </li>
               ) : l.game_date && (
                 <li className="flex items-center gap-2">

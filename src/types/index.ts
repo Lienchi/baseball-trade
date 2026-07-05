@@ -32,6 +32,7 @@ export const LISTING_LIMITS: Record<ListingType, number> = {
 
 // 球票場次 / 周邊商品：一篇刊登可包含多筆品項。球票用 date+seat，周邊用 name，共用同一個 ticket_items 欄位
 export interface TicketItem {
+  id?: string   // 穩定識別碼（場次級關注用）；舊資料可能沒有，由 migration 補齊、表單送出時生成
   date?: string
   seat?: string
   name?: string
