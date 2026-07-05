@@ -62,6 +62,18 @@
            focus:border-clay focus:ring-0;
   }
 
+  /* iOS Safari 的 date input 陰影元件會撐高輸入框，強制與其他 .input 同高 */
+  input[type='date'].input {
+    -webkit-appearance: none;
+    appearance: none;
+    line-height: 1.5rem;
+  }
+  input[type='date'].input::-webkit-date-and-time-value {
+    height: 1.5rem;
+    line-height: 1.5rem;
+    text-align: left;
+  }
+
   /* ===== 卡片 ===== */
   .card {
     @apply rounded-lg border border-scoreboard/10 bg-surface;
