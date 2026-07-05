@@ -11,6 +11,9 @@ interface Props {
   params: { id: string }
 }
 
+// 一個對話最多可傳的照片數
+const MAX_CONVERSATION_IMAGES = 5
+
 interface DealState {
   listingId: string
   listingTitle: string
@@ -28,7 +31,11 @@ export default function ConversationPage({ params }: Props) {
   const [deal, setDeal] = useState<DealState | null>(null)
   const [confirming, setConfirming] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [imageError, setImageError] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  const imageCount = messages.filter(m => m.image_url).length
 
   useEffect(() => {
     const init = async () => {
@@ -138,12 +145,23 @@ export default function ConversationPage({ params }: Props) {
   }
 
   const sendImage = async (file: File) => {
-    if (!me) return
+    if (!me || uploadingImage) return
+    if (imageCount >= MAX_CONVERSATION_IMAGES) {
+      setImageError(`一個對話最多 ${MAX_CONVERSATION_IMAGES} 張照片`)
+      return
+    }
+    setUploadingImage(true)
+    setImageError('')
     try {
       const { blob, ext, contentType } = await compressImage(file)
-      const path = `messages/${params.id}/${Date.now()}.${ext}`
+      // storage policy 以路徑中的 user id 判斷權限，路徑必須放 me.id（不能只放 conversation id）
+      const path = `messages/${me.id}/${params.id}-${Date.now()}.${ext}`
       const { error } = await supabase.storage.from('images').upload(path, blob, { contentType })
-      if (error) return
+      if (error) {
+        // 手機上開不了 devtools console，把實際錯誤附在畫面訊息裡才有辦法回報除錯
+        setImageError(`圖片上傳失敗：${error.message}`)
+        return
+      }
       const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
       await supabase.from('messages').insert({
         conversation_id: params.id,
@@ -151,8 +169,11 @@ export default function ConversationPage({ params }: Props) {
         content: '[圖片]',
         image_url: publicUrl,
       })
-    } catch {
-      // 壓縮失敗（損毀檔、不支援格式）時靜默略過，不讓 unhandled rejection 中斷頁面
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : '不支援的圖片格式'
+      setImageError(`圖片處理失敗：${detail}`)
+    } finally {
+      setUploadingImage(false)
     }
   }
 
@@ -237,7 +258,9 @@ export default function ConversationPage({ params }: Props) {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4">
+        {/* justify-end：訊息少時貼齊底部（靠近輸入框），像一般聊天室由下往上長 */}
+        <div className="flex min-h-full flex-col justify-end space-y-3">
         {messages.map(msg => {
           const isMe = msg.sender_id === me?.id
           return (
@@ -265,17 +288,34 @@ export default function ConversationPage({ params }: Props) {
           )
         })}
         <div ref={bottomRef} />
+        </div>
       </div>
 
-      <div className="border-t border-scoreboard/10 bg-white p-3">
+      <div className="border-t border-scoreboard/10 bg-surface p-3">
+        {imageError && (
+          <p className="mb-2 text-xs text-wei">{imageError}</p>
+        )}
         <div className="flex items-center gap-2">
-          <label className="cursor-pointer text-dugout/50 hover:text-clay">
+          <label
+            className={
+              uploadingImage || imageCount >= MAX_CONVERSATION_IMAGES
+                ? 'cursor-not-allowed text-dugout/25'
+                : 'cursor-pointer text-dugout/50 hover:text-clay'
+            }
+            title={imageCount >= MAX_CONVERSATION_IMAGES ? `一個對話最多 ${MAX_CONVERSATION_IMAGES} 張照片` : '傳送照片'}
+          >
             <ImageIcon size={20} />
             <input
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={e => e.target.files?.[0] && sendImage(e.target.files[0])}
+              disabled={uploadingImage || imageCount >= MAX_CONVERSATION_IMAGES}
+              onChange={e => {
+                const file = e.target.files?.[0]
+                if (file) sendImage(file)
+                // 清空 value，才能連續選同一張檔案重試
+                e.target.value = ''
+              }}
             />
           </label>
 

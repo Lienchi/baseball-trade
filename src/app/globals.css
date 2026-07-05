@@ -59,7 +59,7 @@
   .input {
     @apply block h-11 w-full rounded-md border-2 border-scoreboard/10 bg-surface px-3 py-2.5 text-sm
            text-scoreboard placeholder-dugout/50 transition-colors
-           focus:border-clay focus:ring-0;
+           focus:border-clay focus:ring-0 dark:border-clay/60;
   }
 
   /* iOS Safari 的 date input 陰影元件會撐高輸入框，強制與其他 .input 同高 */
