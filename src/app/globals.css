@@ -76,6 +76,17 @@
     text-align: left;
   }
 
+  /* 數字輸入框不顯示上下調整按鈕（桌機瀏覽器才會出現） */
+  input[type='number'].input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  input[type='number'].input::-webkit-outer-spin-button,
+  input[type='number'].input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
   /* ===== 卡片 ===== */
   .card {
     @apply rounded-lg border border-scoreboard/10 bg-surface;

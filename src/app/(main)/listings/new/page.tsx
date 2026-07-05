@@ -282,7 +282,7 @@ function NewListingForm() {
                     <input
                       type="number"
                       min={0}
-                      className="input w-16 flex-shrink-0"
+                      className="input w-16 flex-shrink-0 sm:w-24"
                       placeholder="票價"
                       value={item.price}
                       required
