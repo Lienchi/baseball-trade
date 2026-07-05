@@ -8,7 +8,7 @@ import Cropper, { type Area } from 'react-easy-crop'
 import { createClient } from '@/lib/supabase/client'
 import { ListingCard } from '@/components/listings/ListingCard'
 import { getCroppedImage, formatDate } from '@/lib/utils'
-import { Camera, Moon, Sun } from 'lucide-react'
+import { Camera, ChevronRight, MessageCircle, Moon, Sun } from 'lucide-react'
 import type { Profile, Listing } from '@/types'
 
 export default function ProfilePage() {
@@ -36,6 +36,7 @@ export default function ProfilePage() {
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
   const [dark, setDark] = useState(false)
+  const [unread, setUnread] = useState(0)
 
   useEffect(() => {
     setDark(document.documentElement.classList.contains('dark'))
@@ -78,6 +79,14 @@ export default function ProfilePage() {
         setActiveListings(normalized.filter(l => l.status === 'active'))
         setSoldListings(normalized.filter(l => l.status === 'sold'))
       }
+
+      // 未讀私訊數：navbar 手機版已無私訊入口，改在這裡的私訊列顯示
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_read', false)
+        .neq('sender_id', user.id)
+      setUnread(count ?? 0)
 
       setLoading(false)
     }
@@ -300,6 +309,20 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+
+      {/* 私訊入口（手機版 navbar 已移除訊息 icon） */}
+      <Link href="/messages" className="card mt-4 flex items-center justify-between p-5 transition hover:shadow-md">
+        <h2 className="flex items-center gap-2 font-display text-base text-scoreboard">
+          <MessageCircle size={16} className="text-dugout/60" />
+          我的私訊
+          {unread > 0 && (
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1.5 text-xs font-bold text-field-dark">
+              {unread > 9 ? '9+' : unread}
+            </span>
+          )}
+        </h2>
+        <ChevronRight size={18} className="text-dugout/40" />
+      </Link>
 
       {/* 帳號安全 */}
       <div className="card mt-4 p-5">

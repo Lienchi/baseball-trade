@@ -76,10 +76,14 @@ export function Navbar() {
             <PlusCircle size={16} />
             刊登
           </Link>
+          {/* 手機版：刊登縮成 icon（訊息入口移到個人頁） */}
+          <Link href="/listings/new" className="p-2 text-white/70 hover:text-white sm:hidden" title="刊登">
+            <PlusCircle size={20} />
+          </Link>
 
           {user ? (
             <>
-              <Link href="/messages" className="relative p-2 text-white/70 hover:text-white">
+              <Link href="/messages" className="relative hidden p-2 text-white/70 hover:text-white sm:block">
                 <MessageCircle size={20} />
                 {unread > 0 && (
                   <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-field-dark">
