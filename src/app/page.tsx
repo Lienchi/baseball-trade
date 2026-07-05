@@ -47,9 +47,9 @@ export default async function HomePage() {
       <div className="grid grid-cols-2 gap-4">
         <Link
           href="/tickets"
-          className="card group flex flex-col items-center justify-between gap-3 p-6 text-center transition hover:shadow-md sm:flex-row sm:gap-0 sm:text-left"
+          className="card group flex items-center justify-between p-4 text-left transition hover:shadow-md sm:p-6"
         >
-          <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-field/10 text-field dark:bg-blue-400/15 dark:text-blue-400">
               <Ticket size={20} strokeWidth={2} />
             </span>
@@ -62,9 +62,9 @@ export default async function HomePage() {
 
         <Link
           href="/merchandise"
-          className="card group flex flex-col items-center justify-between gap-3 p-6 text-center transition hover:shadow-md sm:flex-row sm:gap-0 sm:text-left"
+          className="card group flex items-center justify-between p-4 text-left transition hover:shadow-md sm:p-6"
         >
-          <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-clay/10 text-clay dark:bg-blue-300/15 dark:text-blue-300">
               <Shirt size={20} strokeWidth={2} />
             </span>
