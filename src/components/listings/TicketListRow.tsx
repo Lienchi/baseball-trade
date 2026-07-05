@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, MessageCircle, Star } from 'lucide-react'
-import { formatDate, formatPrice, formatRelativeTime, cn } from '@/lib/utils'
+import { formatDateWithWeekday, formatPrice, formatRelativeTime, cn } from '@/lib/utils'
 import { getTeamColor } from '@/types'
 import type { Listing } from '@/types'
 
@@ -46,7 +46,7 @@ export function TicketListRow({ listing }: Props) {
               <li key={i} className="flex items-center gap-2 text-xs text-dugout">
                 <span className="flex flex-shrink-0 items-center gap-1 font-medium text-scoreboard">
                   <Calendar size={11} className="text-dugout/50" />
-                  {formatDate(item.date!)}
+                  {formatDateWithWeekday(item.date!)}
                 </span>
                 {item.seat && <span className="truncate">{item.seat}</span>}
                 {item.price != null && (

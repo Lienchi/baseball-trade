@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, Heart } from 'lucide-react'
 import { TicketListRow } from '@/components/listings/TicketListRow'
-import { cn, formatDate, formatPrice } from '@/lib/utils'
+import { cn, formatDateWithWeekday, formatPrice } from '@/lib/utils'
 import { getTeamColor } from '@/types'
 import type { Listing, TicketItem } from '@/types'
 
@@ -117,7 +117,7 @@ function FavoriteItemRow({ listing, item }: { listing: Listing; item: TicketItem
           <div className="mt-1.5 flex items-center gap-2 text-sm">
             <span className="flex flex-shrink-0 items-center gap-1 font-semibold text-scoreboard">
               <Calendar size={13} className="text-dugout/50" />
-              {formatDate(item.date!)}
+              {formatDateWithWeekday(item.date!)}
             </span>
             {item.seat && <span className="truncate text-dugout">{item.seat}</span>}
             {item.price != null && (

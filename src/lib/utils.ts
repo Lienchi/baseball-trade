@@ -26,6 +26,19 @@ export function formatDate(date: string): string {
   return format(new Date(date), 'yyyy/MM/dd', { locale: zhTW })
 }
 
+const WEEKDAY_LABELS = ['日', '一', '二', '三', '四', '五', '六']
+
+// 純日期字串同樣不能丟給 new Date()（會被當 UTC 午夜），用本地時間建構
+export function formatWeekday(date: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(date)
+  const d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(date)
+  return WEEKDAY_LABELS[d.getDay()]
+}
+
+export function formatDateWithWeekday(date: string): string {
+  return `${formatDate(date)}（${formatWeekday(date)}）`
+}
+
 // 從 Supabase Storage 的 public URL 反推出 bucket 內的檔案路徑（供刪除檔案用）
 export function storagePathFromUrl(url: string): string | null {
   const marker = '/object/public/images/'

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import { formatDate, formatRelativeTime } from '@/lib/utils'
+import { formatDateWithWeekday, formatRelativeTime } from '@/lib/utils'
 import { CommentSection } from '@/components/listings/CommentSection'
 import { ListingGallery } from '@/components/listings/ListingGallery'
 import { ContactSellerButton } from '@/components/listings/ContactSellerButton'
@@ -115,7 +115,7 @@ export default async function ListingDetailPage({ params }: Props) {
               ) : l.game_date && (
                 <li className="flex items-center gap-2">
                   <Calendar size={14} className="text-dugout/50" />
-                  {formatDate(l.game_date)}
+                  {formatDateWithWeekday(l.game_date)}
                 </li>
               )}
               {l.location && (

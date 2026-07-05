@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { formatDate, formatPrice } from '@/lib/utils'
+import { formatDateWithWeekday, formatPrice } from '@/lib/utils'
 import { Heart } from 'lucide-react'
 import type { ListingType, TicketItem } from '@/types'
 
@@ -69,7 +69,7 @@ export function TicketItemsList({
           {type === 'ticket' ? (
             <>
               <span className={`flex-shrink-0 font-medium text-scoreboard ${item.sold ? 'line-through' : ''}`}>
-                {formatDate(item.date!)}
+                {formatDateWithWeekday(item.date!)}
               </span>
               {item.seat && (
                 <span className={`text-dugout ${item.sold ? 'line-through' : ''}`}>{item.seat}</span>

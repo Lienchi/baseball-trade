@@ -4,8 +4,8 @@ import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { compressImage } from '@/lib/utils'
-import { CPBL_TEAMS, DEAL_METHOD_LABELS, DEAL_METHOD_OPTIONS, LISTING_LIMITS } from '@/types'
+import { compressImage, formatWeekday } from '@/lib/utils'
+import { CPBL_TEAMS, DEAL_METHOD_LABELS, DEAL_METHOD_OPTIONS, LISTING_LIMITS, MAX_ITEMS_PER_LISTING } from '@/types'
 import type { DealMethod } from '@/types'
 import { Upload, X, Ticket, Shirt, Plus, Trash2, EyeOff } from 'lucide-react'
 import { RedactModal } from '@/components/listings/RedactModal'
@@ -272,6 +272,9 @@ function NewListingForm() {
                       required
                       onChange={e => setTicketItems(prev => prev.map((t, idx) => idx === i ? { ...t, date: e.target.value } : t))}
                     />
+                    {item.date && (
+                      <span className="flex-shrink-0 text-xs text-dugout">（{formatWeekday(item.date)}）</span>
+                    )}
                     <input
                       className="input flex-1"
                       placeholder="座位，e.g. 內野 A13 區 3 排"
@@ -282,7 +285,7 @@ function NewListingForm() {
                     <input
                       type="number"
                       min={0}
-                      className="input w-20 flex-shrink-0"
+                      className="input w-16 flex-shrink-0"
                       placeholder="票價"
                       value={item.price}
                       required
@@ -300,13 +303,15 @@ function NewListingForm() {
                   </div>
                 ))}
               </div>
-              <button
-                type="button"
-                className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-field hover:underline dark:text-blue-400"
-                onClick={() => setTicketItems(prev => [...prev, { date: '', seat: '', price: '' }])}
-              >
-                <Plus size={14} /> 新增場次
-              </button>
+              {ticketItems.length < MAX_ITEMS_PER_LISTING && (
+                <button
+                  type="button"
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-field hover:underline dark:text-blue-400"
+                  onClick={() => setTicketItems(prev => [...prev, { date: '', seat: '', price: '' }])}
+                >
+                  <Plus size={14} /> 新增場次
+                </button>
+              )}
             </div>
           </>
         )}
@@ -345,13 +350,15 @@ function NewListingForm() {
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-field hover:underline dark:text-blue-400"
-              onClick={() => setMerchandiseItems(prev => [...prev, { name: '', price: '' }])}
-            >
-              <Plus size={14} /> 新增商品
-            </button>
+            {merchandiseItems.length < MAX_ITEMS_PER_LISTING && (
+              <button
+                type="button"
+                className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-field hover:underline dark:text-blue-400"
+                onClick={() => setMerchandiseItems(prev => [...prev, { name: '', price: '' }])}
+              >
+                <Plus size={14} /> 新增商品
+              </button>
+            )}
           </div>
         )}
 
