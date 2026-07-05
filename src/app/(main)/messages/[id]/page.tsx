@@ -3,17 +3,13 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { formatRelativeTime, compressImage } from '@/lib/utils'
-import { Send, Image as ImageIcon, CheckCircle2, Circle, Star } from 'lucide-react'
-import { RedactModal } from '@/components/listings/RedactModal'
+import { formatRelativeTime } from '@/lib/utils'
+import { Send, CheckCircle2, Circle, Star } from 'lucide-react'
 import type { Message, Profile } from '@/types'
 
 interface Props {
   params: { id: string }
 }
-
-// 一個對話最多可傳的照片數
-const MAX_CONVERSATION_IMAGES = 5
 
 interface DealState {
   listingId: string
@@ -32,13 +28,7 @@ export default function ConversationPage({ params }: Props) {
   const [deal, setDeal] = useState<DealState | null>(null)
   const [confirming, setConfirming] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
-  const [uploadingImage, setUploadingImage] = useState(false)
-  const [imageError, setImageError] = useState('')
-  // 選好檔案後先開裁切/遮蔽視窗（與刊登相同流程），確認後才上傳
-  const [pendingImage, setPendingImage] = useState<File | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
-
-  const imageCount = messages.filter(m => m.image_url).length
 
   // 自己送出的訊息直接塞進畫面（不等 realtime），realtime 再收到同一筆時靠 id 去重
   const appendMessage = (msg: Message) => {
@@ -46,11 +36,11 @@ export default function ConversationPage({ params }: Props) {
   }
 
   // 送出並立刻顯示；select 帶回 sender 讓新訊息的頭像/名稱正常
-  const insertMessage = async (fields: { content: string; image_url?: string }) => {
+  const insertMessage = async (content: string) => {
     if (!me) return { error: new Error('尚未登入') }
     const { data, error } = await supabase
       .from('messages')
-      .insert({ conversation_id: params.id, sender_id: me.id, ...fields })
+      .insert({ conversation_id: params.id, sender_id: me.id, content })
       .select('*, sender:profiles(id, username, avatar_url)')
       .single()
     if (data) appendMessage(data as Message)
@@ -153,40 +143,10 @@ export default function ConversationPage({ params }: Props) {
     if (!content.trim() || !me || sending) return
     setSending(true)
     try {
-      const { error } = await insertMessage({ content: content.trim() })
+      const { error } = await insertMessage(content.trim())
       if (!error) setContent('')
     } finally {
       setSending(false)
-    }
-  }
-
-  const sendImage = async (file: File) => {
-    if (!me || uploadingImage) return
-    if (imageCount >= MAX_CONVERSATION_IMAGES) {
-      setImageError(`一個對話最多 ${MAX_CONVERSATION_IMAGES} 張照片`)
-      return
-    }
-    setUploadingImage(true)
-    setImageError('')
-    try {
-      // 對話照片長邊壓到 600px 就夠看，載入也快
-      const { blob, ext, contentType } = await compressImage(file, 600)
-      // storage policy 以路徑中的 user id 判斷權限，路徑必須放 me.id（不能只放 conversation id）
-      const path = `messages/${me.id}/${params.id}-${Date.now()}.${ext}`
-      const { error } = await supabase.storage.from('images').upload(path, blob, { contentType })
-      if (error) {
-        // 手機上開不了 devtools console，把實際錯誤附在畫面訊息裡才有辦法回報除錯
-        setImageError(`圖片上傳失敗：${error.message}`)
-        return
-      }
-      const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
-      const { error: insertError } = await insertMessage({ content: '[圖片]', image_url: publicUrl })
-      if (insertError) setImageError(`訊息寫入失敗：${insertError.message}`)
-    } catch (err) {
-      const detail = err instanceof Error ? err.message : '不支援的圖片格式'
-      setImageError(`圖片處理失敗：${detail}`)
-    } finally {
-      setUploadingImage(false)
     }
   }
 
@@ -215,7 +175,7 @@ export default function ConversationPage({ params }: Props) {
         ? `🌟 雙方都已確認，交易完成！雙方各獲得一顆星`
         : `✅ ${me.username} 已標記這筆交易完成，等待對方確認`
 
-      await insertMessage({ content: systemMsg })
+      await insertMessage(systemMsg)
     }
     setConfirming(false)
   }
@@ -304,34 +264,7 @@ export default function ConversationPage({ params }: Props) {
       </div>
 
       <div className="border-t border-scoreboard/10 bg-surface p-3">
-        {imageError && (
-          <p className="mb-2 text-xs text-wei">{imageError}</p>
-        )}
         <div className="flex items-center gap-2">
-          <label
-            className={
-              uploadingImage || imageCount >= MAX_CONVERSATION_IMAGES
-                ? 'cursor-not-allowed text-dugout/25'
-                : 'cursor-pointer text-dugout/50 hover:text-clay'
-            }
-            title={imageCount >= MAX_CONVERSATION_IMAGES ? `一個對話最多 ${MAX_CONVERSATION_IMAGES} 張照片` : '傳送照片'}
-          >
-            <ImageIcon size={20} />
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              disabled={uploadingImage || imageCount >= MAX_CONVERSATION_IMAGES}
-              onChange={e => {
-                const file = e.target.files?.[0]
-                // 先開裁切/遮蔽視窗，確認後才上傳
-                if (file) setPendingImage(file)
-                // 清空 value，才能連續選同一張檔案重試
-                e.target.value = ''
-              }}
-            />
-          </label>
-
           <input
             className="input flex-1"
             placeholder="輸入訊息..."
@@ -354,17 +287,6 @@ export default function ConversationPage({ params }: Props) {
           </button>
         </div>
       </div>
-
-      {pendingImage && (
-        <RedactModal
-          file={pendingImage}
-          onCancel={() => setPendingImage(null)}
-          onConfirm={blob => {
-            setPendingImage(null)
-            sendImage(new File([blob], `message-${Date.now()}.png`, { type: blob.type || 'image/png' }))
-          }}
-        />
-      )}
 
       {showConfirmModal && (
         <div
