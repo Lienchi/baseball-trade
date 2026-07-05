@@ -174,7 +174,7 @@ export default function EditListingPage() {
     let uploadedUrls: string[]
     try {
       uploadedUrls = await Promise.all(newImages.map(async file => {
-        const { blob, ext, contentType } = await compressImage(file)
+        const { blob, ext, contentType } = await compressImage(file, 1000)
         const path = `listings/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
         const { error: uploadError } = await supabase.storage
           .from('images')
