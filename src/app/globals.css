@@ -102,3 +102,13 @@
     @apply relative h-px bg-scoreboard/10;
   }
 }
+
+@layer utilities {
+  /* 隱藏橫向滑動列的捲軸 */
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}

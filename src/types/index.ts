@@ -127,6 +127,22 @@ export const CPBL_TEAMS = [
 
 export type CpblTeam = typeof CPBL_TEAMS[number]
 
+// 過濾器按鈕的顯示順序（僅影響 tickets / merchandise 頁的隊伍篩選列）
+export const TEAM_FILTER_ORDER: CpblTeam[] = [
+  '富邦悍將',
+  '味全龍',
+  '樂天桃猿',
+  '中信兄弟',
+  '統一7-ELEVEn獅',
+  '台鋼雄鷹',
+  '其他',
+]
+
+// 過濾器按鈕用的兩字簡稱（中信、統一…）；「其他」本身兩字不受影響
+export function getTeamShortName(team: string) {
+  return team.slice(0, 2)
+}
+
 // 球隊代表色對照表（對應 tailwind.config.ts 裡定義的顏色；動態組出的 class 需列在 safelist）
 // textOnBg: 球隊色底色上要配的文字顏色（黃色系需要深色文字才有足夠對比度）
 export const TEAM_COLORS: Record<string, { bg: string; border: string; textOnBg: string }> = {

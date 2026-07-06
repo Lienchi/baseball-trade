@@ -17,7 +17,6 @@ interface SearchParams {
   page?: string
   team?: string
   q?: string
-  deal_method?: string
   sort?: string
   date_from?: string
   date_to?: string
@@ -45,9 +44,6 @@ export default async function TicketsPage({
 
   if (searchParams.team) query = query.eq('team', searchParams.team)
   if (searchParams.q) query = query.ilike('title', `%${searchParams.q}%`)
-  if (searchParams.deal_method) {
-    query = query.contains('deal_methods', [searchParams.deal_method])
-  }
   // 場次日期範圍 [game_date, last_game_date] 與篩選範圍重疊即符合，
   // 避免多場次刊登因「最早場次在範圍外」被漏掉
   if (searchParams.date_from) query = query.gte('last_game_date', searchParams.date_from)
@@ -105,7 +101,7 @@ export default async function TicketsPage({
         </div>
       </div>
 
-      <TicketSortFilterBar showGameDateSort />
+      <TicketSortFilterBar />
 
       {listings.length > 0 ? (
         <>

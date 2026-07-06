@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useCallback } from 'react'
 import { Search } from 'lucide-react'
-import { CPBL_TEAMS } from '@/types'
+import { TEAM_FILTER_ORDER, getTeamShortName } from '@/types'
 
 export function MerchandiseSortFilterBar() {
   const router = useRouter()
@@ -34,9 +34,10 @@ export function MerchandiseSortFilterBar() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      {/* 球隊按鈕：固定一列，窄螢幕可橫向滑動 */}
+      <div className="scrollbar-none flex gap-2 overflow-x-auto">
         <button
-          className={`rounded-full border px-3 py-1 text-xs font-bold transition ${
+          className={`flex-shrink-0 rounded-full border px-3 py-1 text-xs font-bold transition ${
             currentTeam === ''
               ? 'border-scoreboard bg-scoreboard text-chalk'
               : 'border-scoreboard/20 text-dugout hover:border-scoreboard/40'
@@ -45,17 +46,17 @@ export function MerchandiseSortFilterBar() {
         >
           全部
         </button>
-        {CPBL_TEAMS.map(team => (
+        {TEAM_FILTER_ORDER.map(team => (
           <button
             key={team}
-            className={`rounded-full border px-3 py-1 text-xs font-bold transition ${
+            className={`flex-shrink-0 rounded-full border px-3 py-1 text-xs font-bold transition ${
               currentTeam === team
                 ? 'border-scoreboard bg-scoreboard text-chalk'
                 : 'border-scoreboard/20 text-dugout hover:border-scoreboard/40'
             }`}
             onClick={() => update('team', currentTeam === team ? '' : team)}
           >
-            {team}
+            {getTeamShortName(team)}
           </button>
         ))}
       </div>

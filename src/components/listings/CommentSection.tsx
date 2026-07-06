@@ -26,7 +26,7 @@ export function CommentSection({ listingId }: Props) {
         .select('*, profile:profiles(id, username, avatar_url, is_admin)')
         .eq('listing_id', listingId)
         .is('parent_id', null)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: true })
       if (data) setComments(data as Comment[])
     }
     fetchComments()

@@ -2,14 +2,10 @@
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useCallback } from 'react'
-import { Search, X } from 'lucide-react'
-import { CPBL_TEAMS } from '@/types'
+import { ArrowUpDown, Search, X } from 'lucide-react'
+import { TEAM_FILTER_ORDER, getTeamShortName } from '@/types'
 
-interface Props {
-  showGameDateSort?: boolean
-}
-
-export function TicketSortFilterBar({ showGameDateSort = false }: Props) {
+export function TicketSortFilterBar() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -25,6 +21,7 @@ export function TicketSortFilterBar({ showGameDateSort = false }: Props) {
   const currentTeam = searchParams.get('team') ?? ''
   const currentDateFrom = searchParams.get('date_from') ?? ''
   const currentDateTo = searchParams.get('date_to') ?? ''
+  const currentSort = searchParams.get('sort') ?? 'created_desc'
 
   return (
     <div className="space-y-3">
@@ -39,10 +36,10 @@ export function TicketSortFilterBar({ showGameDateSort = false }: Props) {
         />
       </div>
 
-      {/* 球隊按鈕 */}
-      <div className="flex flex-wrap gap-2">
+      {/* 球隊按鈕：固定一列，窄螢幕可橫向滑動 */}
+      <div className="scrollbar-none flex gap-2 overflow-x-auto">
         <button
-          className={`rounded-full border px-3 py-1 text-xs font-bold transition ${
+          className={`flex-shrink-0 rounded-full border px-3 py-1 text-xs font-bold transition ${
             currentTeam === ''
               ? 'border-scoreboard bg-scoreboard text-chalk'
               : 'border-scoreboard/20 text-dugout hover:border-scoreboard/40'
@@ -51,22 +48,22 @@ export function TicketSortFilterBar({ showGameDateSort = false }: Props) {
         >
           全部
         </button>
-        {CPBL_TEAMS.map(team => (
+        {TEAM_FILTER_ORDER.map(team => (
           <button
             key={team}
-            className={`rounded-full border px-3 py-1 text-xs font-bold transition ${
+            className={`flex-shrink-0 rounded-full border px-3 py-1 text-xs font-bold transition ${
               currentTeam === team
                 ? 'border-scoreboard bg-scoreboard text-chalk'
                 : 'border-scoreboard/20 text-dugout hover:border-scoreboard/40'
             }`}
             onClick={() => update('team', currentTeam === team ? '' : team)}
           >
-            {team}
+            {getTeamShortName(team)}
           </button>
         ))}
       </div>
 
-      {/* 日期範圍 + 交易方式 + 排序 */}
+      {/* 日期範圍（左）＋ 排序 toggle（右） */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
           <span className="text-xs text-dugout">比賽日期</span>
@@ -109,28 +106,14 @@ export function TicketSortFilterBar({ showGameDateSort = false }: Props) {
           </div>
         </div>
 
-        <select
-          className="input w-auto"
-          value={searchParams.get('deal_method') ?? ''}
-          onChange={e => update('deal_method', e.target.value)}
+        {/* 點一下在「新到舊（上架時間）／近到遠（比賽日期）」之間切換 */}
+        <button
+          className="ml-auto flex flex-shrink-0 items-center gap-1.5 rounded-full border border-scoreboard/20 px-3 py-1 text-xs font-bold text-dugout transition hover:border-scoreboard/40"
+          onClick={() => update('sort', currentSort === 'game_date_asc' ? '' : 'game_date_asc')}
         >
-          <option value="">不限交易方式</option>
-          <option value="meetup">面交</option>
-          <option value="mail">郵寄</option>
-          <option value="eticket">電子票券</option>
-          <option value="app_transfer">APP轉票</option>
-        </select>
-
-        <select
-          className="input w-auto"
-          value={searchParams.get('sort') ?? 'created_desc'}
-          onChange={e => update('sort', e.target.value)}
-        >
-          {showGameDateSort && (
-            <option value="game_date_asc">比賽日期（近到遠）</option>
-          )}
-          <option value="created_desc">最新上架</option>
-        </select>
+          <ArrowUpDown size={12} />
+          {currentSort === 'game_date_asc' ? '近到遠' : '新到舊'}
+        </button>
       </div>
     </div>
   )
