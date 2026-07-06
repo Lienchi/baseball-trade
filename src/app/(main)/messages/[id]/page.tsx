@@ -12,7 +12,7 @@ interface Props {
 }
 
 interface DealState {
-  listingId: string
+  listingId: string | null   // 刊登可能已被賣家刪除，此時用快照欄位
   listingTitle: string
   sellerId: string
   buyerConfirmedAt: string | null
@@ -28,6 +28,12 @@ export default function ConversationPage({ params }: Props) {
   const [deal, setDeal] = useState<DealState | null>(null)
   const [confirming, setConfirming] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
+  // null = 尚未查詢；false = 還沒評價；true = 已評價
+  const [hasReviewed, setHasReviewed] = useState<boolean | null>(null)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [reviewRating, setReviewRating] = useState(0)
+  const [reviewComment, setReviewComment] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   // realtime callback 是在 effect 建立時綁定的，用 ref 拿到最新的自己 id
   const myIdRef = useRef<string | null>(null)
@@ -79,21 +85,38 @@ export default function ConversationPage({ params }: Props) {
       const { data: conv } = await supabase
         .from('conversations')
         .select(`
-          id, listing_id, buyer_confirmed_at, seller_confirmed_at,
+          id, listing_id, buyer_confirmed_at, seller_confirmed_at, seller_id, listing_title,
           listing:listings(id, title, user_id)
         `)
         .eq('id', params.id)
         .single()
 
-      if (conv && conv.listing) {
+      // 刊登被刪除後改用快照欄位（seller_id / listing_title 在雙方確認時寫入）
+      if (conv) {
         const listing = conv.listing as any
-        setDeal({
-          listingId: listing.id,
-          listingTitle: listing.title,
-          sellerId: listing.user_id,
-          buyerConfirmedAt: conv.buyer_confirmed_at,
-          sellerConfirmedAt: conv.seller_confirmed_at,
-        })
+        const sellerId = listing?.user_id ?? conv.seller_id
+        if (sellerId) {
+          setDeal({
+            listingId: listing?.id ?? null,
+            listingTitle: listing?.title ?? conv.listing_title ?? '（刊登已刪除）',
+            sellerId,
+            buyerConfirmedAt: conv.buyer_confirmed_at,
+            sellerConfirmedAt: conv.seller_confirmed_at,
+          })
+        }
+
+        // 雙方已確認的交易才需要知道自己評過了沒
+        if (conv.buyer_confirmed_at && conv.seller_confirmed_at) {
+          const { data: myReview } = await supabase
+            .from('reviews')
+            .select('id')
+            .eq('conversation_id', params.id)
+            .eq('reviewer_id', user.id)
+            .maybeSingle()
+          setHasReviewed(!!myReview)
+        } else {
+          setHasReviewed(false)
+        }
       }
     }
     init()
@@ -197,7 +220,7 @@ export default function ConversationPage({ params }: Props) {
       } : prev)
 
       const systemMsg = otherAlreadyConfirmed
-        ? `🌟 雙方都已確認，交易完成！雙方各獲得一顆星`
+        ? `🤝 雙方都已確認，交易完成！可以互相評分囉`
         : `✅ ${me.username} 已標記這筆交易完成，等待對方確認`
 
       await insertMessage(systemMsg)
@@ -205,13 +228,37 @@ export default function ConversationPage({ params }: Props) {
     setConfirming(false)
   }
 
+  const handleSubmitReview = async () => {
+    if (!me || reviewRating < 1 || submittingReview) return
+    setSubmittingReview(true)
+
+    const { error } = await supabase.rpc('submit_review', {
+      p_conversation_id: params.id,
+      p_rating: reviewRating,
+      p_comment: reviewComment.trim() || null,
+    })
+
+    if (!error) {
+      setHasReviewed(true)
+      setShowReviewModal(false)
+      await insertMessage(`⭐ ${me.username} 給了 ${reviewRating} 星評價`)
+    } else {
+      alert('評價送出失敗，請稍後再試')
+    }
+    setSubmittingReview(false)
+  }
+
   return (
     <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-2xl flex-col">
       {deal && (
         <div className="sticky top-16 z-10 border-b border-scoreboard/10 bg-chalk px-4 py-2.5">
-          <Link href={`/listings/${deal.listingId}`} className="text-xs font-medium text-clay hover:underline dark:text-clay-light">
-            關於：{deal.listingTitle}
-          </Link>
+          {deal.listingId ? (
+            <Link href={`/listings/${deal.listingId}`} className="text-xs font-medium text-clay hover:underline dark:text-clay-light">
+              關於：{deal.listingTitle}
+            </Link>
+          ) : (
+            <span className="text-xs font-medium text-dugout">關於：{deal.listingTitle}</span>
+          )}
           <div className="mt-1.5 flex items-center justify-between">
             <div className="flex items-center gap-3 text-xs text-dugout">
               <span className="flex items-center gap-1">
@@ -233,10 +280,20 @@ export default function ConversationPage({ params }: Props) {
             </div>
 
             {bothConfirmed ? (
-              <span className="flex items-center gap-1 text-xs font-bold text-gold">
-                <Star size={14} className="fill-gold" />
-                交易完成，已獲得星星
-              </span>
+              hasReviewed === false ? (
+                <button
+                  className="flex items-center gap-1 rounded-md border-2 border-gold px-3 py-1 text-xs font-bold text-gold hover:bg-gold/10"
+                  onClick={() => setShowReviewModal(true)}
+                >
+                  <Star size={13} className="fill-gold" />
+                  給對方評分
+                </button>
+              ) : (
+                <span className="flex items-center gap-1 text-xs font-bold text-gold">
+                  <Star size={14} className="fill-gold" />
+                  {hasReviewed ? '交易完成，已評價' : '交易完成'}
+                </span>
+              )
             ) : !myConfirmedAt ? (
               <button
                 className="rounded-md border-2 border-field px-3 py-1 text-xs font-bold text-field hover:bg-field/10 dark:border-clay-light dark:text-clay-light dark:hover:bg-clay-light/10"
@@ -325,7 +382,7 @@ export default function ConversationPage({ params }: Props) {
           >
             <h2 className="text-base font-bold text-scoreboard">確認交易完成？</h2>
             <p className="mt-2 text-sm text-dugout">
-              確認後無法取消。雙方都確認後，交易即完成並各獲得一顆星。
+              確認後無法取消。雙方都確認後，交易完成次數 +1，並可互相給 1–5 星評價。
             </p>
             <div className="mt-4 flex justify-end gap-2">
               <button
@@ -341,6 +398,58 @@ export default function ConversationPage({ params }: Props) {
                 disabled={confirming}
               >
                 {confirming ? '處理中...' : '確認'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showReviewModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-scoreboard/50 p-4"
+          onClick={() => !submittingReview && setShowReviewModal(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-lg bg-white p-5 shadow-lg"
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 className="text-base font-bold text-scoreboard">為這次交易評分</h2>
+            <p className="mt-1 text-sm text-dugout">評價送出後無法修改</p>
+
+            <div className="mt-3 flex justify-center gap-2">
+              {[1, 2, 3, 4, 5].map(n => (
+                <button key={n} onClick={() => setReviewRating(n)} aria-label={`${n} 星`}>
+                  <Star
+                    size={32}
+                    className={n <= reviewRating ? 'fill-gold text-gold' : 'text-dugout/30'}
+                  />
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              className="input mt-3 w-full resize-none"
+              rows={3}
+              maxLength={300}
+              placeholder="留下評語（選填）..."
+              value={reviewComment}
+              onChange={e => setReviewComment(e.target.value)}
+            />
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                className="rounded-md px-4 py-1.5 text-sm text-dugout hover:bg-dugout/10"
+                onClick={() => setShowReviewModal(false)}
+                disabled={submittingReview}
+              >
+                取消
+              </button>
+              <button
+                className="rounded-md bg-field px-4 py-1.5 text-sm font-bold text-white hover:bg-field/90 disabled:opacity-60"
+                onClick={handleSubmitReview}
+                disabled={submittingReview || reviewRating < 1}
+              >
+                {submittingReview ? '送出中...' : '送出評價'}
               </button>
             </div>
           </div>

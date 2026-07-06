@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { MessageCircle, MapPin, Tag, Star } from 'lucide-react'
+import { MessageCircle, MapPin, Tag, Handshake } from 'lucide-react'
 import { formatRelativeTime, cn } from '@/lib/utils'
 import { getTeamColor, DEAL_METHOD_LABELS } from '@/types'
 import type { Listing } from '@/types'
@@ -77,8 +77,8 @@ export function ListingCard({ listing }: Props) {
                 </span>
               )}
               <span className="truncate">{listing.profile.username}</span>
-              <Star size={10} className="text-gold fill-gold flex-shrink-0" />
-              <span className="font-medium text-gold flex-shrink-0">{listing.profile.rating_count ?? 0}</span>
+              <Handshake size={11} className="text-field flex-shrink-0" />
+              <span className="font-medium text-field flex-shrink-0">{listing.profile.deal_count ?? 0}</span>
               <span className="ml-auto flex items-center gap-0.5 flex-shrink-0">
                 <MessageCircle size={11} />
                 {listing.comment_count ?? 0}

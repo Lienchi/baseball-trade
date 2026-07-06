@@ -53,7 +53,7 @@ export default async function ListingDetailPage({ params }: Props) {
   const [{ data: listing }, { data: { user } }] = await Promise.all([
     supabase
       .from('listings')
-      .select('*, profile:profiles!listings_user_id_fkey(username, avatar_url, rating_count)')
+      .select('*, profile:profiles!listings_user_id_fkey(username, avatar_url, rating, rating_count, deal_count)')
       .eq('id', params.id)
       .single(),
     supabase.auth.getUser(),
@@ -184,10 +184,16 @@ export default async function ListingDetailPage({ params }: Props) {
                 )}
                 <div>
                   <p className="text-sm font-semibold text-scoreboard">{l.profile.username}</p>
-                  <p className="flex items-center gap-1 text-xs text-dugout">
-                    <span className="text-gold">⭐</span>
-                    <span className="font-bold text-scoreboard">{l.profile.rating_count}</span>
-                    顆星
+                  <p className="flex items-center gap-2 text-xs text-dugout">
+                    <span>
+                      成交 <span className="font-bold text-scoreboard">{l.profile.deal_count ?? 0}</span> 次
+                    </span>
+                    <span className="flex items-center gap-0.5">
+                      <span className="text-gold">⭐</span>
+                      {(l.profile.rating_count ?? 0) > 0
+                        ? `${Number(l.profile.rating).toFixed(1)}（${l.profile.rating_count}）`
+                        : '尚無評價'}
+                    </span>
                   </p>
                 </div>
               </Link>

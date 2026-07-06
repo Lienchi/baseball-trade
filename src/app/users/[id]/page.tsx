@@ -2,9 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { ListingCard } from '@/components/listings/ListingCard'
 import Image from 'next/image'
-import { CalendarDays, Package } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
-import type { Listing, Profile } from '@/types'
+import { CalendarDays, Package, Handshake, Star, MessageSquareQuote } from 'lucide-react'
+import { formatDate, formatRelativeTime } from '@/lib/utils'
+import type { Listing, Profile, Review } from '@/types'
 
 interface Props {
   params: { id: string }
@@ -28,27 +28,34 @@ export async function generateMetadata({ params }: Props) {
 export default async function UserProfilePage({ params }: Props) {
   const supabase = createClient()
 
-  // 個人資料與刊登互不依賴，平行查詢
-  const [{ data: profile }, { data: rawListings }] = await Promise.all([
+  // 個人資料、刊登、收到的評價互不依賴，平行查詢
+  const [{ data: profile }, { data: rawListings }, { data: rawReviews }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('id, username, avatar_url, bio, rating_count, created_at')
+      .select('id, username, avatar_url, bio, rating, rating_count, deal_count, created_at')
       .eq('id', params.id)
       .single(),
     supabase
       .from('listings')
       .select(`
         *,
-        profile:profiles!listings_user_id_fkey(id, username, avatar_url, rating_count),
+        profile:profiles!listings_user_id_fkey(id, username, avatar_url, deal_count),
         comment_count:comments(count)
       `)
       .eq('user_id', params.id)
       .eq('status', 'active')
       .order('created_at', { ascending: false }),
+    supabase
+      .from('reviews')
+      .select('id, rating, comment, listing_title, created_at, reviewer:profiles!reviews_reviewer_id_fkey(id, username, avatar_url)')
+      .eq('reviewee_id', params.id)
+      .order('created_at', { ascending: false })
+      .limit(50),
   ])
 
   if (!profile) notFound()
   const p = profile as Profile
+  const reviews = (rawReviews ?? []) as unknown as Review[]
 
   const listings = (rawListings?.map(listing => ({
     ...listing,
@@ -78,9 +85,21 @@ export default async function UserProfilePage({ params }: Props) {
           <h1 className="font-display text-2xl text-scoreboard">{p.username}</h1>
           <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-dugout">
             <span className="flex items-center gap-1">
+              <Handshake size={14} className="text-field" />
+              成交
+              <span className="font-bold text-scoreboard">{p.deal_count}</span>
+              次
+            </span>
+            <span className="flex items-center gap-1">
               <span className="text-gold">⭐</span>
-              <span className="font-bold text-scoreboard">{p.rating_count}</span>
-              顆星
+              {p.rating_count > 0 ? (
+                <>
+                  <span className="font-bold text-scoreboard">{Number(p.rating).toFixed(1)}</span>
+                  （{p.rating_count} 則評價）
+                </>
+              ) : (
+                '尚無評價'
+              )}
             </span>
             <span className="flex items-center gap-1">
               <CalendarDays size={14} className="text-dugout/50" />
@@ -107,6 +126,59 @@ export default async function UserProfilePage({ params }: Props) {
         </div>
       ) : (
         <p className="mt-8 text-center text-sm text-dugout">目前沒有刊登中的商品</p>
+      )}
+
+      {/* 收到的評價 */}
+      <h2 className="mt-8 flex items-center gap-2 font-display text-lg text-scoreboard">
+        <MessageSquareQuote size={18} className="text-gold" />
+        收到的評價（{p.rating_count}）
+      </h2>
+
+      {reviews.length > 0 ? (
+        <ul className="mt-4 space-y-3">
+          {reviews.map(review => (
+            <li key={review.id} className="card p-4">
+              <div className="flex items-center gap-2">
+                {review.reviewer?.avatar_url ? (
+                  <Image
+                    src={review.reviewer.avatar_url}
+                    alt={review.reviewer.username}
+                    width={28}
+                    height={28}
+                    className="h-7 w-7 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-dugout/15 text-[10px] font-bold text-dugout">
+                    {review.reviewer?.username.slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+                <span className="text-sm font-semibold text-scoreboard">
+                  {review.reviewer?.username ?? '用戶'}
+                </span>
+                <span className="flex items-center">
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <Star
+                      key={n}
+                      size={13}
+                      className={n <= review.rating ? 'fill-gold text-gold' : 'text-dugout/25'}
+                    />
+                  ))}
+                </span>
+                <span className="ml-auto text-xs text-dugout/60">
+                  {formatRelativeTime(review.created_at)}
+                </span>
+              </div>
+              {review.comment && (
+                <p className="mt-2 whitespace-pre-wrap text-sm text-scoreboard">{review.comment}</p>
+              )}
+              {review.listing_title && (
+                <p className="mt-1.5 text-xs text-dugout/60">交易商品：{review.listing_title}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-6 text-center text-sm text-dugout">還沒有收到任何評價</p>
       )}
     </div>
   )

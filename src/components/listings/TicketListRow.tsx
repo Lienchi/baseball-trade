@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, MessageCircle, Star } from 'lucide-react'
+import { Calendar, MessageCircle, Handshake } from 'lucide-react'
 import { formatDateWithWeekday, formatPrice, formatRelativeTime, cn } from '@/lib/utils'
 import { getTeamColor } from '@/types'
 import type { Listing } from '@/types'
@@ -61,7 +61,7 @@ export function TicketListRow({ listing }: Props) {
             )}
           </ul>
         )}
-        {/* 刊登者 + 星星數 + 留言數 */}
+        {/* 刊登者 + 成交次數 + 留言數 */}
         <div className="mt-1 flex items-center gap-3 text-xs text-dugout">
           {listing.profile && (
             <span className="flex items-center gap-1.5 overflow-hidden">
@@ -73,8 +73,8 @@ export function TicketListRow({ listing }: Props) {
                 </span>
               )}
               <span className="truncate">{listing.profile.username}</span>
-              <Star size={10} className="text-gold fill-gold flex-shrink-0" />
-              <span className="font-medium text-gold">{listing.profile.rating_count ?? 0}</span>
+              <Handshake size={11} className="text-field flex-shrink-0" />
+              <span className="font-medium text-field">{listing.profile.deal_count ?? 0}</span>
             </span>
           )}
           <span className="flex flex-shrink-0 items-center gap-1">

@@ -27,7 +27,7 @@ export default async function FavoritesPage() {
       created_at,
       listing:listings(
         *,
-        profile:profiles!listings_user_id_fkey(id, username, avatar_url, rating_count),
+        profile:profiles!listings_user_id_fkey(id, username, avatar_url, deal_count),
         comment_count:comments(count)
       )
     `)

@@ -3,7 +3,9 @@ export interface Profile {
   username: string
   avatar_url: string | null
   bio: string | null
-  rating_count: number  // 星星數 = 完成交易次數（DB 另有 rating 欄位，前端未使用）
+  rating: number        // 平均星等（1–5，無評價時為 0）
+  rating_count: number  // 收到的評價數
+  deal_count: number    // 完成交易次數（雙方確認後 +1）
   created_at: string
 }
 
@@ -103,7 +105,9 @@ export interface Review {
   id: string
   reviewer_id: string
   reviewee_id: string
-  listing_id: string
+  conversation_id: string
+  listing_id: string | null
+  listing_title: string | null  // 快照，刊登刪除後仍可顯示
   rating: number
   comment: string | null
   created_at: string

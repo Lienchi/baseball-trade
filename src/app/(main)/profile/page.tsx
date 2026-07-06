@@ -52,7 +52,7 @@ export default function ProfilePage() {
 
       const { data: listingsData } = await supabase
         .from('listings')
-        .select('*, profile:profiles!listings_user_id_fkey(id, username, avatar_url, rating_count), comment_count:comments(count)')
+        .select('*, profile:profiles!listings_user_id_fkey(id, username, avatar_url, deal_count), comment_count:comments(count)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
@@ -251,10 +251,15 @@ export default function ProfilePage() {
 
         <div className="flex-1">
           <h1 className="font-display text-lg text-scoreboard">{profile.username}</h1>
-          <p className="mt-0.5 flex items-center gap-1 text-sm text-dugout">
-            <span className="text-gold">⭐</span>
-            <span className="font-bold text-scoreboard">{profile.rating_count}</span>
-            <span>顆星 · 加入於 {formatDate(profile.created_at)}</span>
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-dugout">
+            <span>成交 <span className="font-bold text-scoreboard">{profile.deal_count ?? 0}</span> 次</span>
+            <span className="flex items-center gap-0.5">
+              <span className="text-gold">⭐</span>
+              {(profile.rating_count ?? 0) > 0
+                ? `${Number(profile.rating).toFixed(1)}（${profile.rating_count} 則評價）`
+                : '尚無評價'}
+            </span>
+            <span>· 加入於 {formatDate(profile.created_at)}</span>
           </p>
 
           {editing ? (

@@ -34,7 +34,7 @@ export default async function MerchandisePage({
     .from('listings')
     .select(`
       *,
-      profile:profiles!listings_user_id_fkey(id, username, avatar_url, rating_count),
+      profile:profiles!listings_user_id_fkey(id, username, avatar_url, deal_count),
       comment_count:comments(count)
     `, { count: 'exact' })
     .eq('status', 'active')
