@@ -37,7 +37,7 @@ export default async function TicketsPage({
     .from('listings')
     .select(`
       *,
-      profile:profiles!listings_user_id_fkey(id, username, avatar_url, deal_count),
+      profile:profiles!listings_user_id_fkey(id, username, avatar_url, rating, rating_count, deal_count),
       comment_count:comments(count)
     `, { count: 'exact' })
     .eq('status', 'active')
@@ -103,9 +103,6 @@ export default async function TicketsPage({
             {count ?? 0} 筆球票刊登中
           </p>
         </div>
-        <Link href="/listings/new" className="btn-primary">
-          + 刊登球票
-        </Link>
       </div>
 
       <TicketSortFilterBar showGameDateSort />

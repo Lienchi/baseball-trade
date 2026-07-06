@@ -2,8 +2,8 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { MessageCircle, MapPin, Tag, Handshake } from 'lucide-react'
-import { formatRelativeTime, cn } from '@/lib/utils'
+import { MessageCircle, MapPin, Tag, Star, Calendar } from 'lucide-react'
+import { formatRelativeTime, formatDateWithWeekday, formatPrice, cn } from '@/lib/utils'
 import { getTeamColor, DEAL_METHOD_LABELS } from '@/types'
 import type { Listing } from '@/types'
 
@@ -55,6 +55,35 @@ export function ListingCard({ listing }: Props) {
         )}
         <p className="line-clamp-2 text-sm font-semibold text-scoreboard">{listing.title}</p>
 
+        {/* 品項清單：周邊用名稱、球票用日期＋座位（最多 3 筆，其餘收合），跟球票列表卡一致 */}
+        {(listing.ticket_items?.length ?? 0) > 0 && (
+          <ul className="mt-1.5 space-y-0.5">
+            {listing.ticket_items.slice(0, 3).map((item, i) => (
+              <li key={i} className="flex items-center gap-1.5 text-xs text-dugout">
+                {item.name ? (
+                  <span className="truncate font-medium text-scoreboard">{item.name}</span>
+                ) : (
+                  <>
+                    <span className="flex flex-shrink-0 items-center gap-1 font-medium text-scoreboard">
+                      <Calendar size={11} className="text-dugout/50" />
+                      {item.date && formatDateWithWeekday(item.date)}
+                    </span>
+                    {item.seat && <span className="truncate">{item.seat}</span>}
+                  </>
+                )}
+                {item.price != null && (
+                  <span className="ml-auto flex-shrink-0 font-bold text-field dark:text-blue-400">
+                    {formatPrice(item.price)}
+                  </span>
+                )}
+              </li>
+            ))}
+            {listing.ticket_items.length > 3 && (
+              <li className="text-xs text-dugout/60">還有 {listing.ticket_items.length - 3} 項…</li>
+            )}
+          </ul>
+        )}
+
         {listing.deal_methods?.length > 0 && (
           <div className="mt-1.5 flex flex-wrap gap-1">
             {listing.deal_methods.map(m => (
@@ -77,8 +106,10 @@ export function ListingCard({ listing }: Props) {
                 </span>
               )}
               <span className="truncate">{listing.profile.username}</span>
-              <Handshake size={11} className="text-field flex-shrink-0" />
-              <span className="font-medium text-field flex-shrink-0">{listing.profile.deal_count ?? 0}</span>
+              <Star size={10} className="text-gold fill-gold flex-shrink-0" />
+              <span className="font-medium text-gold flex-shrink-0">
+                {(listing.profile.rating_count ?? 0) > 0 ? Number(listing.profile.rating).toFixed(1) : '–'}
+              </span>
               <span className="ml-auto flex items-center gap-0.5 flex-shrink-0">
                 <MessageCircle size={11} />
                 {listing.comment_count ?? 0}

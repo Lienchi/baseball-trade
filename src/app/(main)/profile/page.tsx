@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Cropper, { type Area } from 'react-easy-crop'
 import { createClient } from '@/lib/supabase/client'
 import { ListingCard } from '@/components/listings/ListingCard'
+import { ReviewList } from '@/components/ReviewList'
 import { getCroppedImage, formatDate } from '@/lib/utils'
 import { Camera } from 'lucide-react'
 import type { Profile, Listing } from '@/types'
@@ -52,7 +53,7 @@ export default function ProfilePage() {
 
       const { data: listingsData } = await supabase
         .from('listings')
-        .select('*, profile:profiles!listings_user_id_fkey(id, username, avatar_url, deal_count), comment_count:comments(count)')
+        .select('*, profile:profiles!listings_user_id_fkey(id, username, avatar_url, rating, rating_count, deal_count), comment_count:comments(count)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
@@ -392,6 +393,14 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      {/* 收到的評價 */}
+      <div className="mt-10">
+        <div className="border-b-2 border-scoreboard/10 pb-3">
+          <h2 className="font-display text-base text-scoreboard">收到的評價（{profile.rating_count ?? 0}）</h2>
+        </div>
+        <ReviewList revieweeId={profile.id} />
+      </div>
     </div>
   )
 }

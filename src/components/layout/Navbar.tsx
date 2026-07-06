@@ -88,13 +88,13 @@ export function Navbar() {
 
         {/* 右側按鈕 */}
         <div className="flex items-center gap-2">
-          <Link href="/listings/new" className="btn-primary hidden sm:inline-flex">
+          {/* 在周邊商品相關頁面按「+ 刊登」時，new 頁預選周邊商品 */}
+          <Link
+            href={pathname.startsWith('/merchandise') ? '/listings/new?type=merchandise' : '/listings/new'}
+            className="btn-primary inline-flex"
+          >
             <PlusCircle size={16} />
             刊登
-          </Link>
-          {/* 手機版：刊登縮成 icon（訊息入口移到個人頁） */}
-          <Link href="/listings/new" className="p-2 text-white/70 hover:text-white sm:hidden" title="刊登">
-            <PlusCircle size={20} />
           </Link>
 
           {user ? (
