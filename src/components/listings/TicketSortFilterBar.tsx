@@ -65,14 +65,14 @@ export function TicketSortFilterBar() {
 
       {/* 日期範圍（左）＋ 排序 toggle（右） */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           {/* 標籤在手機上藏掉，讓日期框和排序鍵能排同一列 */}
           <span className="hidden text-xs text-dugout sm:inline">比賽日期</span>
           <div className="relative">
             <input
               type="date"
               required
-              className={`input w-[6rem] min-w-0 px-2 text-xs sm:w-[6.5rem] ${currentDateFrom ? 'pr-6' : ''}`}
+              className={`input w-[5.5rem] min-w-0 px-1.5 text-xs sm:w-[6.5rem] sm:px-2 ${currentDateFrom ? 'pr-6' : ''}`}
               value={currentDateFrom}
               onChange={e => update('date_from', e.target.value)}
             />
@@ -87,12 +87,12 @@ export function TicketSortFilterBar() {
               </button>
             )}
           </div>
-          <span className="text-xs text-dugout">～</span>
+          <span className="text-xs text-dugout">-</span>
           <div className="relative">
             <input
               type="date"
               required
-              className={`input w-[6rem] min-w-0 px-2 text-xs sm:w-[6.5rem] ${currentDateTo ? 'pr-6' : ''}`}
+              className={`input w-[5.5rem] min-w-0 px-1.5 text-xs sm:w-[6.5rem] sm:px-2 ${currentDateTo ? 'pr-6' : ''}`}
               value={currentDateTo}
               onChange={e => update('date_to', e.target.value)}
             />
