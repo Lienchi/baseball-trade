@@ -112,3 +112,16 @@
     display: none;
   }
 }
+
+/* iOS Safari 的空白 date input 不會顯示任何提示字，
+   用 :invalid（配合 required）補一個假 placeholder；
+   @supports (-webkit-touch-callout) 只在 iOS 成立，避免其他瀏覽器出現雙重提示 */
+@supports (-webkit-touch-callout: none) {
+  input[type='date'].input:invalid::before {
+    content: 'yyyy/mm/dd';
+    color: rgb(107 114 128 / 0.6);
+  }
+  input[type='date'].input::-webkit-date-and-time-value {
+    text-align: left;
+  }
+}
