@@ -164,6 +164,10 @@ export default function EditListingPage() {
       setError('請至少選擇一種交易方式')
       return
     }
+    if (form.type === 'ticket' && existingImages.length + newImages.length === 0) {
+      setError('刊登球票必須附上票券照片（可用遮蔽功能隱藏個人資訊）')
+      return
+    }
     setSaving(true)
     setError('')
 
@@ -446,7 +450,15 @@ export default function EditListingPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-scoreboard">商品圖片（最多 5 張）</label>
+          <label className="mb-1 block text-sm font-medium text-scoreboard">
+            商品圖片（最多 5 張）
+            {form.type === 'ticket' && <span className="ml-1 text-clay">*必填</span>}
+          </label>
+          {form.type === 'ticket' && (
+            <p className="mb-2 text-xs text-dugout">
+              刊登球票必須附上票券照片，上傳後可用遮蔽功能隱藏姓名、條碼等個人資訊
+            </p>
+          )}
           <div className="grid grid-cols-5 gap-2">
             {existingImages.map((url, i) => (
               <div key={`existing-${i}`} className="relative aspect-square">

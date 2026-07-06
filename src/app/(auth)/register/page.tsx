@@ -48,14 +48,15 @@ export default function RegisterPage() {
       return
     }
 
+    // 保留名稱表一律存小寫，這裡也轉小寫比對，Admin/ADMIN 都擋得住
     const { data: reserved } = await supabase
       .from('reserved_usernames')
       .select('username')
-      .eq('username', username)
+      .eq('username', username.trim().toLowerCase())
       .maybeSingle()
 
     if (reserved) {
-      setError('這個使用者名稱已經有人使用了')
+      setError('這個使用者名稱無法使用，請換一個')
       setLoading(false)
       return
     }

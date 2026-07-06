@@ -19,7 +19,7 @@ export function ListingGallery({ images, title }: { images: string[]; title: str
   return (
     <div className="overflow-hidden rounded-lg">
       <div className="grid gap-1">
-        <div className="relative aspect-[4/3] bg-dugout/10">
+        <div className="relative aspect-[4/3] rounded-lg border border-scoreboard/15 bg-dugout/10">
           <Image src={images[activeIndex]} alt={title} fill className="object-contain" priority />
         </div>
         {images.length > 1 && (
@@ -30,7 +30,7 @@ export function ListingGallery({ images, title }: { images: string[]; title: str
                 type="button"
                 onClick={() => setActiveIndex(i)}
                 className={cn(
-                  'relative aspect-square overflow-hidden',
+                  'relative aspect-square overflow-hidden rounded-sm border border-scoreboard/15',
                   i === activeIndex && 'ring-2 ring-clay ring-inset'
                 )}
               >

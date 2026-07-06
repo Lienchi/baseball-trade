@@ -6,6 +6,7 @@ export interface Profile {
   rating: number        // 平均星等（1–5，無評價時為 0）
   rating_count: number  // 收到的評價數
   deal_count: number    // 完成交易次數（雙方確認後 +1）
+  is_admin?: boolean
   created_at: string
 }
 
@@ -121,6 +122,7 @@ export const CPBL_TEAMS = [
   '樂天桃猿',
   '味全龍',
   '台鋼雄鷹',
+  '其他',  // 非中職六隊（明星賽、經典賽、日韓職等）；顏色走 getTeamColor 的 dugout fallback
 ] as const
 
 export type CpblTeam = typeof CPBL_TEAMS[number]
