@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { MessageCircle, PlusCircle, User, Heart, LogOut, LogIn, Menu, X, Moon, Sun } from 'lucide-react'
+import { MessageCircle, PlusCircle, User, Heart, LogOut, LogIn, Menu, X, Moon, Sun, Ticket, Shirt } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export function Navbar() {
@@ -86,6 +86,26 @@ export function Navbar() {
           </div>
         </Link>
 
+        {/* 分區連結（桌面）：手機版放在漢堡選單裡 */}
+        <div className="ml-6 mr-auto hidden items-center gap-1 sm:flex">
+          {([
+            { href: '/tickets', label: '球票' },
+            { href: '/merchandise', label: '周邊' },
+          ] as const).map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`rounded-md px-3 py-1.5 text-sm font-bold transition ${
+                pathname.startsWith(href)
+                  ? 'bg-white/10 text-white'
+                  : 'text-white/70 hover:text-white'
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+
         {/* 右側按鈕 */}
         <div className="flex items-center gap-2">
           {/* 在周邊商品相關頁面按「+ 刊登」時，new 頁預選周邊商品 */}
@@ -163,6 +183,17 @@ export function Navbar() {
           </div>
 
           <div className="flex flex-col gap-1 p-3">
+            <Link href="/tickets" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
+              <Ticket size={18} />
+              球票交易
+            </Link>
+            <Link href="/merchandise" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
+              <Shirt size={18} />
+              周邊商品
+            </Link>
+
+            <div className="my-2 border-t border-white/10" />
+
             {user ? (
               <>
                 <Link href="/profile" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">

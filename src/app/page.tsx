@@ -43,39 +43,6 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      {/* 兩個導覽入口 */}
-      <div className="grid grid-cols-2 gap-4">
-        <Link
-          href="/tickets"
-          className="card group flex items-center justify-between p-4 text-left transition hover:shadow-md sm:p-6"
-        >
-          <div className="flex items-center gap-2 sm:gap-4">
-            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-field/10 text-field dark:bg-blue-400/15 dark:text-blue-400">
-              <Ticket size={20} strokeWidth={2} />
-            </span>
-            <div>
-              <h2 className="font-display text-lg text-scoreboard">球票交易</h2>
-            </div>
-          </div>
-          <ArrowRight size={20} className="hidden text-dugout/40 transition group-hover:translate-x-1 group-hover:text-field sm:block" />
-        </Link>
-
-        <Link
-          href="/merchandise"
-          className="card group flex items-center justify-between p-4 text-left transition hover:shadow-md sm:p-6"
-        >
-          <div className="flex items-center gap-2 sm:gap-4">
-            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-clay/10 text-clay dark:bg-blue-300/15 dark:text-blue-300">
-              <Shirt size={20} strokeWidth={2} />
-            </span>
-            <div>
-              <h2 className="font-display text-lg text-scoreboard">周邊商品</h2>
-            </div>
-          </div>
-          <ArrowRight size={20} className="hidden text-dugout/40 transition group-hover:translate-x-1 group-hover:text-clay sm:block" />
-        </Link>
-      </div>
-
       {isEmpty ? (
         <div className="mt-16 flex flex-col items-center text-center">
           <p className="text-lg font-semibold text-scoreboard">目前還沒有任何刊登</p>
@@ -85,10 +52,10 @@ export default async function HomePage() {
           </Link>
         </div>
       ) : (
-        <>
+        <div className="space-y-10">
           {/* 球票精選 */}
           {tickets.length > 0 && (
-            <section className="mt-10">
+            <section>
               <div className="flex items-center justify-between">
                 <h2 className="flex items-center gap-1.5 font-display text-base text-scoreboard">
                   <Ticket size={16} className="text-field dark:text-blue-400" /> 最新球票
@@ -107,7 +74,7 @@ export default async function HomePage() {
 
           {/* 周邊精選 */}
           {merchandise.length > 0 && (
-            <section className="mt-10">
+            <section>
               <div className="flex items-center justify-between">
                 <h2 className="flex items-center gap-1.5 font-display text-base text-scoreboard">
                   <Shirt size={16} className="text-clay dark:text-blue-300" /> 最新周邊
@@ -123,7 +90,7 @@ export default async function HomePage() {
               </div>
             </section>
           )}
-        </>
+        </div>
       )}
     </div>
   )
