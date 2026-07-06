@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { formatRelativeTime } from '@/lib/utils'
@@ -17,55 +17,63 @@ interface ConversationRow {
   other_user_id: string
   other_username: string
   other_avatar_url: string | null
-  last_message?: string
-  last_message_at?: string
-  unread_count?: number
+  last_message: string | null
+  last_message_at: string | null
+  unread_count: number
 }
+
+const PAGE_SIZE = 10
 
 export default function MessagesListPage() {
   const supabase = createClient()
   const [conversations, setConversations] = useState<ConversationRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  // 用 ref 追蹤 offset / 載入狀態，讓 IntersectionObserver 的 callback 不用重綁
+  const offsetRef = useRef(0)
+  const busyRef = useRef(false)
+
+  const loadPage = useCallback(async () => {
+    if (busyRef.current) return
+    busyRef.current = true
+
+    const { data } = await supabase.rpc('get_my_conversations', {
+      p_limit: PAGE_SIZE,
+      p_offset: offsetRef.current,
+    })
+    const rows: ConversationRow[] = data ?? []
+
+    setConversations(prev => {
+      // 去重：新訊息進來可能讓對話跨頁重複出現
+      const seen = new Set(prev.map(c => c.id))
+      return [...prev, ...rows.filter(r => !seen.has(r.id))]
+    })
+    offsetRef.current += rows.length
+    setHasMore(rows.length === PAGE_SIZE)
+
+    busyRef.current = false
+    setLoading(false)
+    setLoadingMore(false)
+  }, [supabase])
 
   useEffect(() => {
-    const load = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setLoading(false); return }
+    loadPage()
+  }, [loadPage])
 
-      const { data: convos } = await supabase.rpc('get_my_conversations')
-      if (!convos || convos.length === 0) { setLoading(false); return }
-
-      const enriched = await Promise.all(
-        convos.map(async (c: ConversationRow) => {
-          const { data: lastMsg } = await supabase
-            .from('messages')
-            .select('content, created_at')
-            .eq('conversation_id', c.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle()
-
-          const { count: unreadCount } = await supabase
-            .from('messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('conversation_id', c.id)
-            .eq('is_read', false)
-            .neq('sender_id', user.id)
-
-          return {
-            ...c,
-            last_message: lastMsg?.content,
-            last_message_at: lastMsg?.created_at,
-            unread_count: unreadCount ?? 0,
-          }
-        })
-      )
-
-      setConversations(enriched)
-      setLoading(false)
-    }
-    load()
-  }, [supabase])
+  // 滑到底部 sentinel 時載入下一頁
+  useEffect(() => {
+    if (!hasMore || !sentinelRef.current) return
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        setLoadingMore(true)
+        loadPage()
+      }
+    }, { rootMargin: '200px' })
+    observer.observe(sentinelRef.current)
+    return () => observer.disconnect()
+  }, [hasMore, loadPage])
 
   if (loading) {
     return (
@@ -119,13 +127,19 @@ export default function MessagesListPage() {
                   {conv.last_message ?? '尚無訊息'}
                 </p>
               </div>
-              {(conv.unread_count ?? 0) > 0 && (
+              {conv.unread_count > 0 && (
                 <span className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-clay px-1 text-[11px] font-bold text-white">
                   {conv.unread_count}
                 </span>
               )}
             </Link>
           ))}
+
+          {hasMore && (
+            <div ref={sentinelRef} className="py-3 text-center text-xs text-dugout/60">
+              {loadingMore ? '載入中...' : ''}
+            </div>
+          )}
         </div>
       )}
     </div>

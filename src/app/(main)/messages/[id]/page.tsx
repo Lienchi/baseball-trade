@@ -29,6 +29,8 @@ export default function ConversationPage({ params }: Props) {
   const [confirming, setConfirming] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  // realtime callback 是在 effect 建立時綁定的，用 ref 拿到最新的自己 id
+  const myIdRef = useRef<string | null>(null)
 
   // 自己送出的訊息直接塞進畫面（不等 realtime），realtime 再收到同一筆時靠 id 去重
   const appendMessage = (msg: Message) => {
@@ -51,6 +53,7 @@ export default function ConversationPage({ params }: Props) {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      myIdRef.current = user.id
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -109,6 +112,25 @@ export default function ConversationPage({ params }: Props) {
           .eq('id', payload.new.id)
           .single()
         if (data) appendMessage(data as Message)
+
+        // 人正在對話頁裡，對方的新訊息直接標已讀（對方畫面會透過 UPDATE 事件看到「已讀」）
+        if (data && myIdRef.current && data.sender_id !== myIdRef.current) {
+          await supabase
+            .from('messages')
+            .update({ is_read: true })
+            .eq('id', data.id)
+        }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${params.id}`,
+      }, (payload) => {
+        // 對方把訊息標已讀時，同步到畫面上的「已讀」標記
+        setMessages(prev => prev.map(m =>
+          m.id === payload.new.id ? { ...m, is_read: payload.new.is_read } : m
+        ))
       })
       .subscribe()
 
@@ -149,6 +171,9 @@ export default function ConversationPage({ params }: Props) {
       setSending(false)
     }
   }
+
+  // 只在「自己最後一則已被對方讀取的訊息」旁顯示已讀，跟 LINE 一樣
+  const lastReadMineId = [...messages].reverse().find(m => m.sender_id === me?.id && m.is_read)?.id
 
   const isSeller = me && deal && me.id === deal.sellerId
   const myConfirmedAt = isSeller ? deal?.sellerConfirmedAt : deal?.buyerConfirmedAt
@@ -253,6 +278,7 @@ export default function ConversationPage({ params }: Props) {
                   </div>
                 )}
                 <span className="mt-0.5 text-xs text-dugout/60">
+                  {isMe && msg.id === lastReadMineId && <span className="mr-1">已讀</span>}
                   {formatRelativeTime(msg.created_at)}
                 </span>
               </div>

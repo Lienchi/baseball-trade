@@ -57,7 +57,8 @@
 
   /* ===== 輸入框 ===== */
   .input {
-    @apply block h-11 w-full rounded-md border-2 border-scoreboard/10 bg-surface px-3 py-2.5 text-sm
+    /* 手機用 16px（text-base）：iOS Safari 對 <16px 的輸入框聚焦時會自動放大頁面 */
+    @apply block h-11 w-full rounded-md border-2 border-scoreboard/10 bg-surface px-3 py-2.5 text-base sm:text-sm
            text-scoreboard placeholder-dugout/50 transition-colors
            focus:border-clay focus:ring-0 dark:border-clay/60;
   }
