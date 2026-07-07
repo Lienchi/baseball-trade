@@ -1,8 +1,15 @@
+// 社群帳號只存 handle，顯示時組網址（見 lib/utils 的 SOCIAL_PLATFORMS）
+export interface SocialLinks {
+  threads?: string
+  instagram?: string
+}
+
 export interface Profile {
   id: string
   username: string
   avatar_url: string | null
   bio: string | null
+  social_links: SocialLinks | null
   rating: number        // 平均星等（1–5，無評價時為 0）
   rating_count: number  // 收到的評價數
   deal_count: number    // 完成交易次數（雙方確認後 +1）

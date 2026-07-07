@@ -7,7 +7,8 @@ import Cropper, { type Area } from 'react-easy-crop'
 import { createClient } from '@/lib/supabase/client'
 import { ListingCard } from '@/components/listings/ListingCard'
 import { ReviewList } from '@/components/ReviewList'
-import { getCroppedImage, formatDate } from '@/lib/utils'
+import { SocialLinkRow } from '@/components/SocialLinkRow'
+import { getCroppedImage, formatDate, normalizeSocialHandle } from '@/lib/utils'
 import { Camera } from 'lucide-react'
 import type { Profile, Listing } from '@/types'
 
@@ -22,6 +23,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [bio, setBio] = useState('')
+  const [threads, setThreads] = useState('')
+  const [instagram, setInstagram] = useState('')
+  const [socialError, setSocialError] = useState('')
   const [saving, setSaving] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
@@ -49,6 +53,8 @@ export default function ProfilePage() {
       if (profileData) {
         setProfile(profileData)
         setBio(profileData.bio ?? '')
+        setThreads(profileData.social_links?.threads ?? '')
+        setInstagram(profileData.social_links?.instagram ?? '')
       }
 
       const { data: listingsData } = await supabase
@@ -73,9 +79,25 @@ export default function ProfilePage() {
 
   const handleSaveBio = async () => {
     if (!profile) return
+    setSocialError('')
+
+    const normalizedThreads = normalizeSocialHandle(threads)
+    const normalizedInstagram = normalizeSocialHandle(instagram)
+    if (normalizedThreads === null || normalizedInstagram === null) {
+      setSocialError('社群帳號只能包含英文、數字、句點與底線（不用填網址）')
+      return
+    }
+
+    // 空字串代表清空該平台，不存進 jsonb
+    const social_links: Record<string, string> = {}
+    if (normalizedThreads) social_links.threads = normalizedThreads
+    if (normalizedInstagram) social_links.instagram = normalizedInstagram
+
     setSaving(true)
-    await supabase.from('profiles').update({ bio }).eq('id', profile.id)
-    setProfile({ ...profile, bio })
+    await supabase.from('profiles').update({ bio, social_links }).eq('id', profile.id)
+    setProfile({ ...profile, bio, social_links })
+    setThreads(normalizedThreads)
+    setInstagram(normalizedInstagram)
     setEditing(false)
     setSaving(false)
   }
@@ -274,6 +296,23 @@ export default function ProfilePage() {
                 onChange={e => setBio(e.target.value)}
                 maxLength={150}
               />
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                <input
+                  className="input"
+                  placeholder="Threads 帳號（不含 @）"
+                  value={threads}
+                  onChange={e => setThreads(e.target.value)}
+                  maxLength={31}
+                />
+                <input
+                  className="input"
+                  placeholder="Instagram 帳號（不含 @）"
+                  value={instagram}
+                  onChange={e => setInstagram(e.target.value)}
+                  maxLength={31}
+                />
+              </div>
+              {socialError && <p className="mt-1 text-xs text-clay-dark">{socialError}</p>}
               <div className="mt-2 flex gap-2">
                 <button className="btn-primary px-3 py-1.5 text-xs" onClick={handleSaveBio} disabled={saving}>
                   {saving ? '儲存中...' : '儲存'}
@@ -285,7 +324,10 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="mt-3 flex items-start justify-between gap-3">
-              <p className="text-sm text-dugout">{profile.bio || '這個人很神秘，還沒留下自我介紹'}</p>
+              <div>
+                <p className="text-sm text-dugout">{profile.bio || '這個人很神秘，還沒留下自我介紹'}</p>
+                <SocialLinkRow socialLinks={profile.social_links} />
+              </div>
               <button className="btn-secondary flex-shrink-0 px-3 py-1.5 text-xs" onClick={() => setEditing(true)}>
                 編輯
               </button>

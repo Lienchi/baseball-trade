@@ -40,6 +40,24 @@ export function formatDateWithWeekday(date: string): string {
   return `${formatDate(date)}(${formatWeekday(date)})`
 }
 
+// 社群帳號：只存 handle、白名單驗證，網址一律由這裡組出，杜絕自由 URL（釣魚連結）
+export const SOCIAL_PLATFORMS = {
+  threads: { label: 'Threads', url: (h: string) => `https://www.threads.net/@${h}` },
+  instagram: { label: 'Instagram', url: (h: string) => `https://www.instagram.com/${h}` },
+} as const
+
+export type SocialPlatform = keyof typeof SOCIAL_PLATFORMS
+
+// IG/Threads 帳號規則：英數、句點、底線，30 字內
+const SOCIAL_HANDLE_RE = /^[A-Za-z0-9._]{1,30}$/
+
+// 去掉開頭 @ 與空白後驗證；空字串回傳 ''（代表清空），不合法回傳 null
+export function normalizeSocialHandle(input: string): string | null {
+  const handle = input.trim().replace(/^@/, '')
+  if (handle === '') return ''
+  return SOCIAL_HANDLE_RE.test(handle) ? handle : null
+}
+
 // 從 Supabase Storage 的 public URL 反推出 bucket 內的檔案路徑（供刪除檔案用）
 export function storagePathFromUrl(url: string): string | null {
   const marker = '/object/public/images/'

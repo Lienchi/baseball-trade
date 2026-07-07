@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { CalendarDays, Package, Handshake, MessageSquareQuote } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { ReviewList } from '@/components/ReviewList'
+import { SocialLinkRow } from '@/components/SocialLinkRow'
 import type { Listing, Profile } from '@/types'
 
 interface Props {
@@ -33,7 +34,7 @@ export default async function UserProfilePage({ params }: Props) {
   const [{ data: profile }, { data: rawListings }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('id, username, avatar_url, bio, rating, rating_count, deal_count, created_at')
+      .select('id, username, avatar_url, bio, social_links, rating, rating_count, deal_count, created_at')
       .eq('id', params.id)
       .single(),
     supabase
@@ -104,6 +105,7 @@ export default async function UserProfilePage({ params }: Props) {
           <p className="mt-2 text-sm text-dugout">
             {p.bio || '這個人很神秘，還沒留下自我介紹'}
           </p>
+          <SocialLinkRow socialLinks={p.social_links} />
         </div>
       </div>
 
