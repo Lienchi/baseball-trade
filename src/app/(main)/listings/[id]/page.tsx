@@ -115,7 +115,7 @@ export default async function ListingDetailPage({ params }: Props) {
             </p>
           </div>
 
-          <CommentSection listingId={l.id} />
+          <CommentSection listingId={l.id} ownerId={l.user_id} viewerId={user?.id ?? null} />
         </div>
 
         <div className="lg:col-span-2">

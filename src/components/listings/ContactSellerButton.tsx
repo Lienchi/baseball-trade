@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { findOrCreateConversation } from '@/lib/conversation'
 import { MessageCircle } from 'lucide-react'
 
 interface Props {
@@ -30,27 +31,13 @@ export function ContactSellerButton({ listingId, sellerId }: Props) {
       return
     }
 
-    const { data: existingId } = await supabase.rpc('get_existing_conversation', {
-      p_seller_id: sellerId,
-      p_listing_id: listingId,
-    })
-
-    if (existingId) {
-      router.push(`/messages/${existingId}`)
+    const { id, error } = await findOrCreateConversation(supabase, listingId, sellerId)
+    if (id) {
+      router.push(`/messages/${id}`)
       return
     }
 
-    const { data: convId, error } = await supabase.rpc('create_conversation', {
-      p_listing_id: listingId,
-      p_seller_id: sellerId,
-    })
-
-    if (convId) {
-      router.push(`/messages/${convId}`)
-      return
-    }
-
-    alert(`建立對話失敗，請稍後再試${error ? `（${error.message}）` : ''}`)
+    alert(`建立對話失敗，請稍後再試（${error}）`)
     setLoading(false)
   }
 

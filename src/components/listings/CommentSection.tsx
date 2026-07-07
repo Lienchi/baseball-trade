@@ -3,15 +3,19 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { findOrCreateConversation } from '@/lib/conversation'
 import { formatRelativeTime } from '@/lib/utils'
-import { ShieldCheck } from 'lucide-react'
+import { MessageCircle, ShieldCheck } from 'lucide-react'
 import type { Comment } from '@/types'
 
 interface Props {
   listingId: string
+  // 刊登擁有者 id 與目前登入者 id：兩者相同時，留言旁顯示「私訊」讓賣家主動聯絡留言者
+  ownerId: string
+  viewerId: string | null
 }
 
-export function CommentSection({ listingId }: Props) {
+export function CommentSection({ listingId, ownerId, viewerId }: Props) {
   const supabase = createClient()
   const router = useRouter()
   const [comments, setComments] = useState<Comment[]>([])
@@ -45,6 +49,20 @@ export function CommentSection({ listingId }: Props) {
 
   const topLevel = comments.filter(c => !c.parent_id)
   const repliesOf = (id: string) => comments.filter(c => c.parent_id === id)
+
+  // 賣家（刊登擁有者）可以主動私訊留言者；自己和管理員的留言不顯示
+  const canContact = (c: Comment) =>
+    viewerId !== null && viewerId === ownerId && c.user_id !== viewerId && !c.profile?.is_admin
+
+  const [contactingId, setContactingId] = useState<string | null>(null)
+  const handleContact = async (comment: Comment) => {
+    if (contactingId) return
+    setContactingId(comment.id)
+    const { id, error } = await findOrCreateConversation(supabase, listingId, comment.user_id)
+    if (id) { router.push(`/messages/${id}`); return }
+    alert(`建立對話失敗，請稍後再試（${error}）`)
+    setContactingId(null)
+  }
 
   const handleSubmit = async () => {
     if (!content.trim()) return
@@ -100,7 +118,15 @@ export function CommentSection({ listingId }: Props) {
 
       <div className="mt-6 space-y-4">
         {topLevel.map(comment => (
-          <CommentItem key={comment.id} comment={comment} replies={repliesOf(comment.id)} onReply={setReplyTo} />
+          <CommentItem
+            key={comment.id}
+            comment={comment}
+            replies={repliesOf(comment.id)}
+            onReply={setReplyTo}
+            canContact={canContact}
+            onContact={handleContact}
+            contactingId={contactingId}
+          />
         ))}
       </div>
     </div>
@@ -113,10 +139,16 @@ function CommentItem({
   comment,
   replies,
   onReply,
+  canContact,
+  onContact,
+  contactingId,
 }: {
   comment: Comment
   replies: Comment[]
   onReply: (c: Comment) => void
+  canContact: (c: Comment) => boolean
+  onContact: (c: Comment) => void
+  contactingId: string | null
 }) {
   const [expanded, setExpanded] = useState(false)
   const visibleReplies = expanded ? replies : replies.slice(0, COLLAPSED_REPLY_COUNT)
@@ -151,6 +183,16 @@ function CommentItem({
           <button className="hover:text-clay" onClick={() => onReply(comment)}>
             回覆
           </button>
+          {canContact(comment) && (
+            <button
+              className="flex items-center gap-0.5 font-medium text-field hover:underline dark:text-blue-400"
+              onClick={() => onContact(comment)}
+              disabled={contactingId !== null}
+            >
+              <MessageCircle size={11} />
+              {contactingId === comment.id ? '開啟中...' : '私訊'}
+            </button>
+          )}
         </div>
 
         {visibleReplies.map(reply => (
@@ -175,6 +217,16 @@ function CommentItem({
               </span>
               <p className="text-xs text-dugout">{reply.content}</p>
             </div>
+            {canContact(reply) && (
+              <button
+                className="flex flex-shrink-0 items-center gap-0.5 self-center text-xs font-medium text-field hover:underline dark:text-blue-400"
+                onClick={() => onContact(reply)}
+                disabled={contactingId !== null}
+              >
+                <MessageCircle size={11} />
+                {contactingId === reply.id ? '開啟中...' : '私訊'}
+              </button>
+            )}
           </div>
         ))}
 
