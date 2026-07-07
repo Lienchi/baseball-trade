@@ -60,7 +60,7 @@ export default async function HomePage() {
                 <h2 className="flex items-center gap-1.5 font-display text-base text-scoreboard">
                   <Ticket size={16} className="text-field dark:text-blue-400" /> 最新球票
                 </h2>
-                <Link href="/tickets" className="flex items-center gap-1 text-xs font-bold text-clay hover:underline">
+                <Link href="/tickets" className="flex items-center gap-1 text-xs font-bold text-clay hover:underline dark:text-clay-light">
                   查看全部 <ArrowRight size={12} />
                 </Link>
               </div>
@@ -79,7 +79,7 @@ export default async function HomePage() {
                 <h2 className="flex items-center gap-1.5 font-display text-base text-scoreboard">
                   <Shirt size={16} className="text-clay dark:text-blue-300" /> 最新周邊
                 </h2>
-                <Link href="/merchandise" className="flex items-center gap-1 text-xs font-bold text-clay hover:underline">
+                <Link href="/merchandise" className="flex items-center gap-1 text-xs font-bold text-clay hover:underline dark:text-clay-light">
                   查看全部 <ArrowRight size={12} />
                 </Link>
               </div>

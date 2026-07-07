@@ -253,11 +253,11 @@ export default function ConversationPage({ params }: Props) {
       {deal && (
         <div className="sticky top-16 z-10 border-b border-scoreboard/10 bg-chalk px-4 py-2.5">
           {deal.listingId ? (
-            <Link href={`/listings/${deal.listingId}`} className="text-xs font-medium text-clay hover:underline dark:text-clay-light">
+            <Link href={`/listings/${deal.listingId}`} className="text-sm font-semibold text-clay hover:underline dark:text-clay-light">
               關於：{deal.listingTitle}
             </Link>
           ) : (
-            <span className="text-xs font-medium text-dugout">關於：{deal.listingTitle}</span>
+            <span className="text-sm font-semibold text-dugout">關於：{deal.listingTitle}</span>
           )}
           <div className="mt-1.5 flex items-center justify-between">
             <div className="flex items-center gap-3 text-xs text-dugout">
