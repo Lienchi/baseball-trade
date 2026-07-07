@@ -122,6 +122,15 @@ export function Navbar() {
         {/* 右側按鈕 */}
         <div className="flex items-center gap-2">
           {/* 在周邊商品相關頁面按「+ 刊登」時，new 頁預選周邊商品 */}
+          <button
+            onClick={toggleDark}
+            className="hidden p-2 text-white/70 hover:text-white sm:block"
+            title={dark ? '切換淺色模式' : '切換深色模式'}
+            aria-label={dark ? '切換淺色模式' : '切換深色模式'}
+          >
+            {dark ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+
           <Link
             href={pathname.startsWith('/merchandise') ? '/listings/new?type=merchandise' : '/listings/new'}
             className="btn-primary inline-flex px-3 sm:px-5"
