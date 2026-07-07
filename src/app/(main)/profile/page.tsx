@@ -226,6 +226,7 @@ export default function ProfilePage() {
                 src={profile.avatar_url}
                 alt={profile.username}
                 fill
+                unoptimized
                 className="object-cover"
               />
             ) : (

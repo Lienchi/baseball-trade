@@ -99,7 +99,7 @@ export function ListingCard({ listing }: Props) {
           {listing.profile && (
             <div className="mb-2 flex items-center gap-1.5">
               {listing.profile.avatar_url ? (
-                <Image src={listing.profile.avatar_url} alt={listing.profile.username} width={16} height={16} className="rounded-full object-cover flex-shrink-0" />
+                <Image src={listing.profile.avatar_url} alt={listing.profile.username} width={16} height={16} unoptimized className="rounded-full object-cover flex-shrink-0" />
               ) : (
                 <span className="h-4 w-4 flex-shrink-0 rounded-full bg-dugout/20 flex items-center justify-center text-[9px] font-bold text-dugout">
                   {listing.profile.username[0]?.toUpperCase()}

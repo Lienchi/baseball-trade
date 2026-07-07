@@ -68,6 +68,7 @@ export default async function UserProfilePage({ params }: Props) {
             alt={p.username}
             width={96}
             height={96}
+            unoptimized
             className="h-24 w-24 flex-shrink-0 rounded-full object-cover"
           />
         ) : (

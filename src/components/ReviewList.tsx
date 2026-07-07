@@ -69,6 +69,7 @@ export function ReviewList({ revieweeId }: Props) {
                     alt={review.reviewer.username}
                     width={28}
                     height={28}
+                    unoptimized
                     className="h-7 w-7 rounded-full object-cover"
                   />
                 ) : (

@@ -20,7 +20,14 @@ export function ListingGallery({ images, title }: { images: string[]; title: str
     <div className="overflow-hidden rounded-lg">
       <div className="grid gap-1">
         <div className="relative aspect-[4/3] rounded-lg border border-scoreboard/15 bg-dugout/10">
-          <Image src={images[activeIndex]} alt={title} fill className="object-contain" priority />
+          <Image
+            src={images[activeIndex]}
+            alt={title}
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-contain"
+            priority
+          />
         </div>
         {images.length > 1 && (
           <div className="grid grid-cols-4 gap-1">
@@ -34,7 +41,7 @@ export function ListingGallery({ images, title }: { images: string[]; title: str
                   i === activeIndex && 'ring-2 ring-clay ring-inset'
                 )}
               >
-                <Image src={img} alt="" fill className="object-cover" />
+                <Image src={img} alt="" fill sizes="120px" className="object-cover" />
               </button>
             ))}
           </div>

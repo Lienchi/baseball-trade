@@ -175,6 +175,7 @@ export default async function ListingDetailPage({ params }: Props) {
                     alt={l.profile.username}
                     width={40}
                     height={40}
+                    unoptimized
                     className="h-10 w-10 flex-shrink-0 rounded-full object-cover"
                   />
                 ) : (
