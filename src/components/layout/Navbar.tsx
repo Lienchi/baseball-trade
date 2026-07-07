@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -11,6 +12,7 @@ export function Navbar() {
   const supabase = createClient()
   const pathname = usePathname()
   const [user, setUser] = useState<SupabaseUser | null>(null)
+  const [profile, setProfile] = useState<{ username: string; avatar_url: string | null } | null>(null)
   const [unread, setUnread] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const [dark, setDark] = useState(false)
@@ -41,6 +43,17 @@ export function Navbar() {
     )
     return () => subscription.unsubscribe()
   }, [supabase])
+
+  // 登入後抓一次個人資料，顯示 Navbar 大頭照與選單姓名
+  useEffect(() => {
+    if (!user) { setProfile(null); return }
+    supabase
+      .from('profiles')
+      .select('username, avatar_url')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => { if (data) setProfile(data) })
+  }, [supabase, user])
 
   // 未讀數：換頁時重查（讀完訊息回上頁數字才會清掉），並訂閱新訊息即時更新
   useEffect(() => {
@@ -111,7 +124,7 @@ export function Navbar() {
           {/* 在周邊商品相關頁面按「+ 刊登」時，new 頁預選周邊商品 */}
           <Link
             href={pathname.startsWith('/merchandise') ? '/listings/new?type=merchandise' : '/listings/new'}
-            className="btn-primary inline-flex"
+            className="btn-primary inline-flex px-3 sm:px-5"
           >
             <PlusCircle size={16} />
             刊登
@@ -130,8 +143,23 @@ export function Navbar() {
               <Link href="/favorites" className="hidden p-2 text-white/70 hover:text-white sm:block">
                 <Heart size={20} />
               </Link>
-              <Link href="/profile" className="hidden p-2 text-white/70 hover:text-white sm:block">
-                <User size={20} />
+              <Link href="/profile" className="hidden p-2 sm:block" title={profile?.username}>
+                {profile?.avatar_url ? (
+                  <Image
+                    src={profile.avatar_url}
+                    alt={profile.username}
+                    width={28}
+                    height={28}
+                    unoptimized
+                    className="h-7 w-7 rounded-full object-cover ring-2 ring-white/25 transition hover:ring-white/60"
+                  />
+                ) : profile ? (
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-field text-xs font-bold text-white ring-2 ring-white/25 transition hover:ring-white/60">
+                    {profile.username[0]?.toUpperCase()}
+                  </span>
+                ) : (
+                  <User size={20} className="text-white/70 hover:text-white" />
+                )}
               </Link>
               <button
                 onClick={handleLogout}
@@ -176,7 +204,27 @@ export function Navbar() {
           className={`absolute inset-y-0 right-0 flex w-64 flex-col bg-banner shadow-xl transition-transform duration-300 ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}
         >
           <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
-            <span className="font-display text-base text-white">選單</span>
+            {user && profile ? (
+              <Link href="/profile" className="flex min-w-0 items-center gap-2.5">
+                {profile.avatar_url ? (
+                  <Image
+                    src={profile.avatar_url}
+                    alt={profile.username}
+                    width={32}
+                    height={32}
+                    unoptimized
+                    className="h-8 w-8 flex-shrink-0 rounded-full object-cover ring-2 ring-white/25"
+                  />
+                ) : (
+                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-field text-xs font-bold text-white ring-2 ring-white/25">
+                    {profile.username[0]?.toUpperCase()}
+                  </span>
+                )}
+                <span className="truncate font-display text-base text-white">{profile.username}</span>
+              </Link>
+            ) : (
+              <span className="font-display text-base text-white">選單</span>
+            )}
             <button onClick={() => setMenuOpen(false)} className="p-2 text-white/70 hover:text-white" aria-label="關閉選單">
               <X size={22} />
             </button>
