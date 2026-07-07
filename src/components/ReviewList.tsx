@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
 import { Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -63,23 +64,25 @@ export function ReviewList({ revieweeId }: Props) {
           return (
             <li key={review.id} className="card p-4">
               <div className="flex items-center gap-2">
-                {review.reviewer?.avatar_url ? (
-                  <Image
-                    src={review.reviewer.avatar_url}
-                    alt={review.reviewer.username}
-                    width={28}
-                    height={28}
-                    unoptimized
-                    className="h-7 w-7 rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-dugout/15 text-[10px] font-bold text-dugout">
-                    {review.reviewer?.username.slice(0, 2).toUpperCase()}
+                <ReviewerLink reviewerId={review.reviewer?.id}>
+                  {review.reviewer?.avatar_url ? (
+                    <Image
+                      src={review.reviewer.avatar_url}
+                      alt={review.reviewer.username}
+                      width={28}
+                      height={28}
+                      unoptimized
+                      className="h-7 w-7 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-dugout/15 text-[10px] font-bold text-dugout">
+                      {review.reviewer?.username.slice(0, 2).toUpperCase()}
+                    </span>
+                  )}
+                  <span className="text-sm font-semibold text-scoreboard">
+                    {review.reviewer?.username ?? '用戶'}
                   </span>
-                )}
-                <span className="text-sm font-semibold text-scoreboard">
-                  {review.reviewer?.username ?? '用戶'}
-                </span>
+                </ReviewerLink>
                 <span className="flex items-center">
                   {[1, 2, 3, 4, 5].map(n => (
                     <Star
@@ -126,5 +129,15 @@ export function ReviewList({ revieweeId }: Props) {
         </div>
       )}
     </>
+  )
+}
+
+// 評價者帳號還在才給連結，已刪除帳號維持純文字
+function ReviewerLink({ reviewerId, children }: { reviewerId: string | undefined; children: React.ReactNode }) {
+  if (!reviewerId) return <>{children}</>
+  return (
+    <Link href={`/users/${reviewerId}`} className="flex items-center gap-2 transition hover:opacity-80">
+      {children}
+    </Link>
   )
 }

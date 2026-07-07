@@ -377,7 +377,7 @@ export default function ConversationPage({ params }: Props) {
           onClick={() => !confirming && setShowConfirmModal(false)}
         >
           <div
-            className="w-full max-w-sm rounded-lg bg-white p-5 shadow-lg"
+            className="w-full max-w-sm rounded-lg bg-surface p-5 shadow-lg"
             onClick={e => e.stopPropagation()}
           >
             <h2 className="text-base font-bold text-scoreboard">確認交易完成？</h2>
@@ -410,7 +410,7 @@ export default function ConversationPage({ params }: Props) {
           onClick={() => !submittingReview && setShowReviewModal(false)}
         >
           <div
-            className="w-full max-w-sm rounded-lg bg-white p-5 shadow-lg"
+            className="w-full max-w-sm rounded-lg bg-surface p-5 shadow-lg"
             onClick={e => e.stopPropagation()}
           >
             <h2 className="text-base font-bold text-scoreboard">為這次交易評分</h2>

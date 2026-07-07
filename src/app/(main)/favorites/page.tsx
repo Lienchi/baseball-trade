@@ -96,7 +96,7 @@ function FavoriteItemRow({ listing, item }: { listing: Listing; item: TicketItem
     <Link
       href={`/listings/${listing.id}`}
       className={cn(
-        'card group flex items-center gap-4 border-l-4 p-4 transition-all hover:shadow-md',
+        'card group flex items-center gap-4 border-l-4 px-4 py-3 transition-all hover:shadow-md',
         team.border
       )}
     >
