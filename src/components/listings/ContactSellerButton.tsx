@@ -40,15 +40,17 @@ export function ContactSellerButton({ listingId, sellerId }: Props) {
       return
     }
 
-    const { data: convId } = await supabase.rpc('create_conversation', {
+    const { data: convId, error } = await supabase.rpc('create_conversation', {
       p_listing_id: listingId,
       p_seller_id: sellerId,
     })
 
     if (convId) {
       router.push(`/messages/${convId}`)
+      return
     }
 
+    alert(`建立對話失敗，請稍後再試${error ? `（${error.message}）` : ''}`)
     setLoading(false)
   }
 

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createStaticClient } from '@/lib/supabase/static'
 import { ListingCard } from '@/components/listings/ListingCard'
 import { TicketListRow } from '@/components/listings/TicketListRow'
 import Link from 'next/link'
@@ -10,7 +10,7 @@ export const revalidate = 60
 const PREVIEW_COUNT = 6
 
 export default async function HomePage() {
-  const supabase = createClient()
+  const supabase = createStaticClient()
 
   const normalize = (rawListings: any[] | null) =>
     (rawListings?.map(listing => ({

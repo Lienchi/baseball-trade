@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { formatDateWithWeekday, formatRelativeTime } from '@/lib/utils'
@@ -18,13 +19,19 @@ interface Props {
   params: { id: string }
 }
 
-export async function generateMetadata({ params }: Props) {
+// 同一次請求裡 generateMetadata 和 page 都要查 listing，用 cache() 去重
+const getListing = cache(async (id: string) => {
   const supabase = createClient()
-  const { data: listing } = await supabase
+  const { data } = await supabase
     .from('listings')
-    .select('title, description, price, location, team, status, images')
-    .eq('id', params.id)
+    .select('*, profile:profiles!listings_user_id_fkey(username, avatar_url, rating, rating_count, deal_count)')
+    .eq('id', id)
     .single()
+  return data
+})
+
+export async function generateMetadata({ params }: Props) {
+  const listing = await getListing(params.id)
 
   if (!listing) return { title: '找不到刊登' }
 
@@ -50,12 +57,8 @@ export default async function ListingDetailPage({ params }: Props) {
   const supabase = createClient()
 
   // listing 與 auth 互不依賴，平行查詢減少 TTFB
-  const [{ data: listing }, { data: { user } }] = await Promise.all([
-    supabase
-      .from('listings')
-      .select('*, profile:profiles!listings_user_id_fkey(username, avatar_url, rating, rating_count, deal_count)')
-      .eq('id', params.id)
-      .single(),
+  const [listing, { data: { user } }] = await Promise.all([
+    getListing(params.id),
     supabase.auth.getUser(),
   ])
 
@@ -90,9 +93,10 @@ export default async function ListingDetailPage({ params }: Props) {
       .filter((x): x is string => x !== null)
   }
 
-  // 瀏覽數：擁有者看自己不計，且不 await（不阻塞頁面回應）
+  // 瀏覽數：擁有者看自己不計。serverless 回應送出後 function 即凍結，
+  // fire-and-forget 的請求可能根本沒送出，所以要 await（單一 RPC，延遲可忽略）
   if (!isOwner) {
-    void supabase.rpc('increment_view_count', { listing_id: params.id })
+    await supabase.rpc('increment_view_count', { listing_id: params.id })
   }
 
   const l = listing as Listing
