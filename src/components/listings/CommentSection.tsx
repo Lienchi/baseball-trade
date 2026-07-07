@@ -25,7 +25,6 @@ export function CommentSection({ listingId }: Props) {
         .from('comments')
         .select('*, profile:profiles(id, username, avatar_url, is_admin)')
         .eq('listing_id', listingId)
-        .is('parent_id', null)
         .order('created_at', { ascending: true })
       if (data) setComments(data as Comment[])
     }
@@ -43,6 +42,9 @@ export function CommentSection({ listingId }: Props) {
 
     return () => { supabase.removeChannel(channel) }
   }, [listingId, supabase])
+
+  const topLevel = comments.filter(c => !c.parent_id)
+  const repliesOf = (id: string) => comments.filter(c => c.parent_id === id)
 
   const handleSubmit = async () => {
     if (!content.trim()) return
@@ -97,35 +99,28 @@ export function CommentSection({ listingId }: Props) {
       </div>
 
       <div className="mt-6 space-y-4">
-        {comments.map(comment => (
-          <CommentItem key={comment.id} comment={comment} onReply={setReplyTo} />
+        {topLevel.map(comment => (
+          <CommentItem key={comment.id} comment={comment} replies={repliesOf(comment.id)} onReply={setReplyTo} />
         ))}
       </div>
     </div>
   )
 }
 
+const COLLAPSED_REPLY_COUNT = 2
+
 function CommentItem({
   comment,
+  replies,
   onReply,
 }: {
   comment: Comment
+  replies: Comment[]
   onReply: (c: Comment) => void
 }) {
-  const supabase = createClient()
-  const [replies, setReplies] = useState<Comment[]>([])
-  const [showReplies, setShowReplies] = useState(false)
-
-  const loadReplies = async () => {
-    if (showReplies) { setShowReplies(false); return }
-    const { data } = await supabase
-      .from('comments')
-      .select('*, profile:profiles(id, username, avatar_url, is_admin)')
-      .eq('parent_id', comment.id)
-      .order('created_at')
-    if (data) setReplies(data as Comment[])
-    setShowReplies(true)
-  }
+  const [expanded, setExpanded] = useState(false)
+  const visibleReplies = expanded ? replies : replies.slice(0, COLLAPSED_REPLY_COUNT)
+  const hiddenCount = replies.length - visibleReplies.length
 
   return (
     <div className="flex gap-3">
@@ -156,12 +151,9 @@ function CommentItem({
           <button className="hover:text-clay" onClick={() => onReply(comment)}>
             回覆
           </button>
-          <button className="hover:text-scoreboard" onClick={loadReplies}>
-            {showReplies ? '收起' : '查看回覆'}
-          </button>
         </div>
 
-        {showReplies && replies.map(reply => (
+        {visibleReplies.map(reply => (
           <div key={reply.id} className="ml-4 mt-2 flex gap-2">
             {reply.profile?.is_admin ? (
               <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-field text-white">
@@ -185,6 +177,23 @@ function CommentItem({
             </div>
           </div>
         ))}
+
+        {hiddenCount > 0 && (
+          <button
+            className="ml-4 mt-2 text-xs text-dugout/70 hover:text-scoreboard"
+            onClick={() => setExpanded(true)}
+          >
+            查看其餘 {hiddenCount} 則回覆
+          </button>
+        )}
+        {expanded && replies.length > COLLAPSED_REPLY_COUNT && (
+          <button
+            className="ml-4 mt-2 text-xs text-dugout/70 hover:text-scoreboard"
+            onClick={() => setExpanded(false)}
+          >
+            收起回覆
+          </button>
+        )}
       </div>
     </div>
   )
