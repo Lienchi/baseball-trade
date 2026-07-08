@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { findExistingConversation } from '@/lib/conversation'
@@ -24,15 +24,16 @@ export function CommentSection({ listingId, ownerId, viewerId }: Props) {
   const [replyTo, setReplyTo] = useState<Comment | null>(null)
   const [loading, setLoading] = useState(false)
 
+  const fetchComments = useCallback(async () => {
+    const { data } = await supabase
+      .from('comments')
+      .select('*, profile:profiles(id, username, avatar_url, is_admin)')
+      .eq('listing_id', listingId)
+      .order('created_at', { ascending: true })
+    if (data) setComments(data as Comment[])
+  }, [supabase, listingId])
+
   useEffect(() => {
-    const fetchComments = async () => {
-      const { data } = await supabase
-        .from('comments')
-        .select('*, profile:profiles(id, username, avatar_url, is_admin)')
-        .eq('listing_id', listingId)
-        .order('created_at', { ascending: true })
-      if (data) setComments(data as Comment[])
-    }
     fetchComments()
 
     const channel = supabase
@@ -46,7 +47,7 @@ export function CommentSection({ listingId, ownerId, viewerId }: Props) {
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [listingId, supabase])
+  }, [listingId, supabase, fetchComments])
 
   const topLevel = comments.filter(c => !c.parent_id)
   const repliesOf = (id: string) => comments.filter(c => c.parent_id === id)
@@ -74,13 +75,21 @@ export function CommentSection({ listingId, ownerId, viewerId }: Props) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    await supabase.from('comments').insert({
+    const { error } = await supabase.from('comments').insert({
       listing_id: listingId,
       user_id: user.id,
       content: content.trim(),
       parent_id: replyTo?.id ?? null,
     })
 
+    if (error) {
+      alert(`留言失敗，請稍後再試（${error.message}）`)
+      setLoading(false)
+      return
+    }
+
+    // 不依賴 realtime（comments 表可能不在 publication 裡），送出成功後自己重抓
+    await fetchComments()
     setContent('')
     setReplyTo(null)
     setLoading(false)
