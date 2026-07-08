@@ -275,7 +275,14 @@ function CommentItem({
         </div>
         <div className="mt-1 flex gap-3 text-xs text-dugout/70">
           <span>{formatRelativeTime(comment.created_at)}</span>
-          <button className="hover:text-clay" onClick={() => onReply(comment)}>
+          <button
+            className="hover:text-clay"
+            onClick={() => {
+              // 展開整串，讓送出後的新回覆（排在串尾）不會被折疊藏住
+              setExpanded(true)
+              onReply(comment)
+            }}
+          >
             回覆
           </button>
           {canContact(comment) && (
@@ -327,12 +334,6 @@ function CommentItem({
               </span>
               <p className="text-xs text-dugout">{reply.content}</p>
             </div>
-            <button
-              className="flex-shrink-0 self-center text-xs text-dugout/70 hover:text-clay"
-              onClick={() => onReply(reply)}
-            >
-              回覆
-            </button>
             {canContact(reply) && (
               <button
                 className="flex flex-shrink-0 items-center gap-0.5 self-center text-xs font-medium text-field hover:underline dark:text-blue-400"
@@ -344,11 +345,6 @@ function CommentItem({
               </button>
             )}
           </div>
-          {replyingId === reply.id && (
-            <div className="ml-4">
-              <ReplyBox target={reply} onSubmit={onReplySubmit} onCancel={onCancelReply} />
-            </div>
-          )}
           {composingId === reply.id && viewerId && (
             <div className="ml-4">
               <StartChatComposer
