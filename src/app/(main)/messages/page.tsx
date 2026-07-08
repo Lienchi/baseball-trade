@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { formatRelativeTime } from '@/lib/utils'
 import { MessageCircle } from 'lucide-react'
@@ -106,9 +107,20 @@ export default function MessagesListPage() {
               href={`/messages/${conv.id}`}
               className="card flex items-center gap-3 p-3 transition hover:bg-dugout/5"
             >
-              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-field text-sm font-bold text-white">
-                {conv.other_username?.slice(0, 2).toUpperCase() ?? '?'}
-              </div>
+              {conv.other_avatar_url ? (
+                <Image
+                  src={conv.other_avatar_url}
+                  alt={conv.other_username ?? ''}
+                  width={44}
+                  height={44}
+                  unoptimized
+                  className="h-11 w-11 flex-shrink-0 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-field text-sm font-bold text-white">
+                  {conv.other_username?.slice(0, 2).toUpperCase() ?? '?'}
+                </div>
+              )}
               <div className="flex-1 overflow-hidden">
                 <div className="flex items-center justify-between">
                   <p className="truncate text-sm font-semibold text-scoreboard">

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { formatRelativeTime } from '@/lib/utils'
 import { Send, CheckCircle2, Circle, Star } from 'lucide-react'
@@ -316,9 +317,23 @@ export default function ConversationPage({ params }: Props) {
           const isMe = msg.sender_id === me?.id
           return (
             <div key={msg.id} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-dugout/15 text-xs font-bold text-dugout">
-                {msg.sender?.username.slice(0, 2).toUpperCase()}
-              </div>
+              {/* 自己的訊息靠泡泡顏色就能辨識，頭像省略 */}
+              {!isMe && (
+                msg.sender?.avatar_url ? (
+                  <Image
+                    src={msg.sender.avatar_url}
+                    alt={msg.sender.username}
+                    width={32}
+                    height={32}
+                    unoptimized
+                    className="h-8 w-8 flex-shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-dugout/15 text-xs font-bold text-dugout">
+                    {msg.sender?.username.slice(0, 2).toUpperCase()}
+                  </div>
+                )
+              )}
               <div className={`max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
                 {msg.image_url ? (
                   // 縮圖顯示，點開新分頁看原圖
