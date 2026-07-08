@@ -318,8 +318,8 @@ export default function EditListingPage() {
         {form.type === 'ticket' && (
           <>
             <div>
-              <label className="mb-1 block text-sm font-medium text-scoreboard">球隊</label>
-              <select className="input" value={form.team} onChange={e => set('team', e.target.value)}>
+              <label className="mb-1 block text-sm font-medium text-scoreboard">球隊 *</label>
+              <select className="input" value={form.team} onChange={e => set('team', e.target.value)} required>
                 <option value="">選擇球隊</option>
                 {CPBL_TEAMS.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
