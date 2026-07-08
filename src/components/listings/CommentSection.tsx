@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { findOrCreateConversation } from '@/lib/conversation'
+import { findExistingConversation } from '@/lib/conversation'
+import { StartChatComposer } from '@/components/listings/StartChatComposer'
 import { formatRelativeTime } from '@/lib/utils'
 import { MessageCircle, ShieldCheck } from 'lucide-react'
 import type { Comment } from '@/types'
@@ -55,12 +56,14 @@ export function CommentSection({ listingId, ownerId, viewerId }: Props) {
     viewerId !== null && viewerId === ownerId && c.user_id !== viewerId && !c.profile?.is_admin
 
   const [contactingId, setContactingId] = useState<string | null>(null)
+  // 展開首訊輸入框的留言 id（聊過的直接進聊天室，沒聊過才展開；送出時才建對話）
+  const [composingId, setComposingId] = useState<string | null>(null)
   const handleContact = async (comment: Comment) => {
     if (contactingId) return
     setContactingId(comment.id)
-    const { id, error } = await findOrCreateConversation(supabase, listingId, comment.user_id)
-    if (id) { router.push(`/messages/${id}`); return }
-    alert(`建立對話失敗，請稍後再試（${error}）`)
+    const existingId = await findExistingConversation(supabase, listingId, comment.user_id)
+    if (existingId) { router.push(`/messages/${existingId}`); return }
+    setComposingId(comment.id)
     setContactingId(null)
   }
 
@@ -126,6 +129,10 @@ export function CommentSection({ listingId, ownerId, viewerId }: Props) {
             canContact={canContact}
             onContact={handleContact}
             contactingId={contactingId}
+            composingId={composingId}
+            onCloseComposer={() => setComposingId(null)}
+            listingId={listingId}
+            viewerId={viewerId}
           />
         ))}
       </div>
@@ -142,6 +149,10 @@ function CommentItem({
   canContact,
   onContact,
   contactingId,
+  composingId,
+  onCloseComposer,
+  listingId,
+  viewerId,
 }: {
   comment: Comment
   replies: Comment[]
@@ -149,6 +160,10 @@ function CommentItem({
   canContact: (c: Comment) => boolean
   onContact: (c: Comment) => void
   contactingId: string | null
+  composingId: string | null
+  onCloseComposer: () => void
+  listingId: string
+  viewerId: string | null
 }) {
   const [expanded, setExpanded] = useState(false)
   const visibleReplies = expanded ? replies : replies.slice(0, COLLAPSED_REPLY_COUNT)
@@ -195,8 +210,19 @@ function CommentItem({
           )}
         </div>
 
+        {composingId === comment.id && viewerId && (
+          <StartChatComposer
+            listingId={listingId}
+            otherUserId={comment.user_id}
+            senderId={viewerId}
+            placeholder={`私訊 @${comment.profile?.username}...`}
+            onCancel={onCloseComposer}
+          />
+        )}
+
         {visibleReplies.map(reply => (
-          <div key={reply.id} className="ml-4 mt-2 flex gap-2">
+          <div key={reply.id}>
+          <div className="ml-4 mt-2 flex gap-2">
             {reply.profile?.is_admin ? (
               <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-field text-white">
                 <ShieldCheck size={12} />
@@ -227,6 +253,18 @@ function CommentItem({
                 {contactingId === reply.id ? '開啟中...' : '私訊'}
               </button>
             )}
+          </div>
+          {composingId === reply.id && viewerId && (
+            <div className="ml-4">
+              <StartChatComposer
+                listingId={listingId}
+                otherUserId={reply.user_id}
+                senderId={viewerId}
+                placeholder={`私訊 @${reply.profile?.username}...`}
+                onCancel={onCloseComposer}
+              />
+            </div>
+          )}
           </div>
         ))}
 

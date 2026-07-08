@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { findOrCreateConversation } from '@/lib/conversation'
+import { findExistingConversation } from '@/lib/conversation'
+import { StartChatComposer } from '@/components/listings/StartChatComposer'
 import { MessageCircle } from 'lucide-react'
 
 interface Props {
@@ -15,6 +16,7 @@ export function ContactSellerButton({ listingId, sellerId }: Props) {
   const supabase = createClient()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [composerFor, setComposerFor] = useState<string | null>(null) // 登入者 id，展開輸入框時記下
 
   const handleContact = async () => {
     setLoading(true)
@@ -31,14 +33,27 @@ export function ContactSellerButton({ listingId, sellerId }: Props) {
       return
     }
 
-    const { id, error } = await findOrCreateConversation(supabase, listingId, sellerId)
-    if (id) {
-      router.push(`/messages/${id}`)
+    // 聊過就直接進聊天室；沒聊過才展開輸入框，送出首訊時才建對話
+    const existingId = await findExistingConversation(supabase, listingId, sellerId)
+    if (existingId) {
+      router.push(`/messages/${existingId}`)
       return
     }
 
-    alert(`建立對話失敗，請稍後再試（${error}）`)
+    setComposerFor(user.id)
     setLoading(false)
+  }
+
+  if (composerFor) {
+    return (
+      <StartChatComposer
+        listingId={listingId}
+        otherUserId={sellerId}
+        senderId={composerFor}
+        placeholder="想跟賣家說什麼..."
+        onCancel={() => setComposerFor(null)}
+      />
+    )
   }
 
   return (
