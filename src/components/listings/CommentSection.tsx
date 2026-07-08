@@ -21,7 +21,8 @@ export function CommentSection({ listingId, ownerId, viewerId }: Props) {
   const router = useRouter()
   const [comments, setComments] = useState<Comment[]>([])
   const [content, setContent] = useState('')
-  const [replyTo, setReplyTo] = useState<Comment | null>(null)
+  // 展開回覆框的留言 id（回覆框直接開在該則留言下方，頂部輸入框只發新留言）
+  const [replyingId, setReplyingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   const fetchComments = useCallback(async () => {
@@ -79,7 +80,7 @@ export function CommentSection({ listingId, ownerId, viewerId }: Props) {
       listing_id: listingId,
       user_id: user.id,
       content: content.trim(),
-      parent_id: replyTo?.id ?? null,
+      parent_id: null,
     })
 
     if (error) {
@@ -91,8 +92,27 @@ export function CommentSection({ listingId, ownerId, viewerId }: Props) {
     // 不依賴 realtime（comments 表可能不在 publication 裡），送出成功後自己重抓
     await fetchComments()
     setContent('')
-    setReplyTo(null)
     setLoading(false)
+  }
+
+  // 回覆一律掛回同一串頂層留言（回覆的回覆若掛在回覆底下，畫面不會渲染出來）
+  const handleReplySubmit = async (target: Comment, text: string) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push('/login'); return }
+
+    const { error } = await supabase.from('comments').insert({
+      listing_id: listingId,
+      user_id: user.id,
+      content: text,
+      parent_id: target.parent_id ?? target.id,
+    })
+
+    if (error) {
+      alert(`回覆失敗，請稍後再試（${error.message}）`)
+      return
+    }
+    await fetchComments()
+    setReplyingId(null)
   }
 
   return (
@@ -102,14 +122,6 @@ export function CommentSection({ listingId, ownerId, viewerId }: Props) {
       </h2>
 
       <div className="mt-4">
-        {replyTo && (
-          <div className="mb-2 flex items-center gap-2 text-xs text-dugout">
-            <span>回覆 @{replyTo.profile?.username}</span>
-            <button onClick={() => setReplyTo(null)} className="text-clay hover:underline">
-              取消
-            </button>
-          </div>
-        )}
         <div className="flex gap-2">
           <textarea
             className="input flex-1 resize-none"
@@ -134,7 +146,10 @@ export function CommentSection({ listingId, ownerId, viewerId }: Props) {
             key={comment.id}
             comment={comment}
             replies={repliesOf(comment.id)}
-            onReply={setReplyTo}
+            onReply={c => setReplyingId(prev => prev === c.id ? null : c.id)}
+            replyingId={replyingId}
+            onReplySubmit={handleReplySubmit}
+            onCancelReply={() => setReplyingId(null)}
             canContact={canContact}
             onContact={handleContact}
             contactingId={contactingId}
@@ -151,10 +166,63 @@ export function CommentSection({ listingId, ownerId, viewerId }: Props) {
 
 const COLLAPSED_REPLY_COUNT = 2
 
+// 原地展開的回覆輸入框：開在被回覆的留言正下方，不共用頂部的新留言輸入框
+function ReplyBox({
+  target,
+  onSubmit,
+  onCancel,
+}: {
+  target: Comment
+  onSubmit: (target: Comment, text: string) => Promise<void>
+  onCancel: () => void
+}) {
+  const [text, setText] = useState('')
+  const [sending, setSending] = useState(false)
+
+  const handleSend = async () => {
+    if (!text.trim() || sending) return
+    setSending(true)
+    await onSubmit(target, text.trim())
+    setSending(false)
+  }
+
+  return (
+    <div className="mt-2 flex gap-2">
+      <textarea
+        className="input flex-1 resize-none"
+        rows={2}
+        placeholder={`回覆 @${target.profile?.username}...`}
+        value={text}
+        autoFocus
+        onChange={e => setText(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Escape') onCancel()
+          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSend()
+        }}
+      />
+      <div className="flex flex-col justify-end gap-1">
+        <button
+          className="btn-primary px-3 py-1.5 text-xs"
+          onClick={handleSend}
+          disabled={sending || !text.trim()}
+        >
+          {sending ? '送出中' : '送出'}
+        </button>
+        <button className="text-xs text-dugout/70 hover:text-scoreboard" onClick={onCancel} disabled={sending}>
+          取消
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function CommentItem({
   comment,
   replies,
   onReply,
+  replyingId,
+  onReplySubmit,
+  onCancelReply,
   canContact,
   onContact,
   contactingId,
@@ -166,6 +234,9 @@ function CommentItem({
   comment: Comment
   replies: Comment[]
   onReply: (c: Comment) => void
+  replyingId: string | null
+  onReplySubmit: (target: Comment, text: string) => Promise<void>
+  onCancelReply: () => void
   canContact: (c: Comment) => boolean
   onContact: (c: Comment) => void
   contactingId: string | null
@@ -219,6 +290,10 @@ function CommentItem({
           )}
         </div>
 
+        {replyingId === comment.id && (
+          <ReplyBox target={comment} onSubmit={onReplySubmit} onCancel={onCancelReply} />
+        )}
+
         {composingId === comment.id && viewerId && (
           <StartChatComposer
             listingId={listingId}
@@ -252,6 +327,12 @@ function CommentItem({
               </span>
               <p className="text-xs text-dugout">{reply.content}</p>
             </div>
+            <button
+              className="flex-shrink-0 self-center text-xs text-dugout/70 hover:text-clay"
+              onClick={() => onReply(reply)}
+            >
+              回覆
+            </button>
             {canContact(reply) && (
               <button
                 className="flex flex-shrink-0 items-center gap-0.5 self-center text-xs font-medium text-field hover:underline dark:text-blue-400"
@@ -263,6 +344,11 @@ function CommentItem({
               </button>
             )}
           </div>
+          {replyingId === reply.id && (
+            <div className="ml-4">
+              <ReplyBox target={reply} onSubmit={onReplySubmit} onCancel={onCancelReply} />
+            </div>
+          )}
           {composingId === reply.id && viewerId && (
             <div className="ml-4">
               <StartChatComposer
