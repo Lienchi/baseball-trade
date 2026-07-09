@@ -16,6 +16,8 @@ export interface Profile {
   is_admin?: boolean
   suspended_until: string | null   // null=正常；'infinity'=無限期；判斷用 suspended_until > now()
   suspended_reason: string | null
+  message_email_enabled?: boolean       // 新訊息 email 通知開關（預設開）
+  last_message_email_at?: string | null // 通知節流：24 小時內最多一封
   created_at: string
 }
 

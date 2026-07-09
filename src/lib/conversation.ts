@@ -51,5 +51,14 @@ export async function startConversationWithMessage(
     .from('messages')
     .insert({ conversation_id: id, sender_id: senderId, content })
   if (msgError) return { id: null, error: msgError.message }
+
+  // 首訊 email 通知對方（fire-and-forget：通知失敗不影響傳訊）
+  fetch('/api/notify/first-message', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ conversationId: id }),
+    keepalive: true,
+  }).catch(() => {})
+
   return { id, error: null }
 }

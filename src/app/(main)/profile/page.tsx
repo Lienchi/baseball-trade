@@ -421,6 +421,27 @@ export default function ProfilePage() {
         )}
       </div>
 
+      {/* 通知設定 */}
+      <div className="card mt-4 p-5">
+        <h2 className="font-display text-base text-scoreboard">通知設定</h2>
+        <label className="mt-3 flex cursor-pointer items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-scoreboard">新訊息 Email 通知</p>
+            <p className="mt-0.5 text-xs text-dugout">有買家首次詢問你的刊登時寄信通知（同一天最多一封）</p>
+          </div>
+          <input
+            type="checkbox"
+            className="h-5 w-5 flex-shrink-0 accent-field"
+            checked={profile.message_email_enabled ?? true}
+            onChange={async e => {
+              const enabled = e.target.checked
+              setProfile({ ...profile, message_email_enabled: enabled })
+              await supabase.from('profiles').update({ message_email_enabled: enabled }).eq('id', profile.id)
+            }}
+          />
+        </label>
+      </div>
+
       {/* 刊登中 */}
       <div className="mt-8">
         <div className="border-b-2 border-scoreboard/10 pb-3">
