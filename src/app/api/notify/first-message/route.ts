@@ -82,10 +82,10 @@ export async function POST(request: Request) {
       <p>有買家對你的刊登送出了詢問：</p>
       ${listingInfo}
       <p style="margin:16px 0;">
-        <a href="${siteUrl}/messages/${conversationId}" style="display:inline-block;background:#1a5c38;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;">前往對話回覆</a>
+        <a href="${siteUrl}/messages/${conversationId}" style="display:inline-block;background:#154C99;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;">前往對話回覆</a>
       </p>
       <p style="color:#666;font-size:13px;">回站後也別忘了查看其他未讀對話。球票有時效性，儘早回覆能提高成交機會。</p>
-      <p style="color:#999;font-size:12px;">不想收到這類通知？可以到「個人資料」頁關閉新訊息 email 通知。</p>
+      <p style="color:#999;font-size:12px;">BenjiFan 本質球迷 <a href="${siteUrl}" style="color:#154C99;">${siteUrl.replace(/^https?:\/\//, '')}</a><br>不想收到這類通知？可以到「個人資料」頁關閉新訊息 email 通知。</p>
     </div>`
   )
 
