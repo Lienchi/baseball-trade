@@ -4,6 +4,7 @@ import { TicketListRow } from '@/components/listings/TicketListRow'
 import Link from 'next/link'
 import { ArrowRight, Ticket, Shirt } from 'lucide-react'
 import type { Listing } from '@/types'
+import { todayTaipei } from '@/lib/utils'
 
 export const revalidate = 60
 
@@ -26,6 +27,8 @@ export default async function HomePage() {
       .select('*, profile:profiles!listings_user_id_fkey(id, username, avatar_url, rating, rating_count, deal_count), comment_count:comments(count)')
       .eq('status', 'active')
       .eq('type', 'ticket')
+      // 場次全數過期的刊登即時消失，不等半夜 pg_cron 標記 expired
+      .or(`last_game_date.is.null,last_game_date.gte.${todayTaipei()}`)
       .order('created_at', { ascending: false })
       .limit(PREVIEW_COUNT),
     supabase

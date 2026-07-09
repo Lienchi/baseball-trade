@@ -31,3 +31,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Supabase CLI 快取（link 後產生，不含機密但無需版控）
+supabase/.temp/

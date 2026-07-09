@@ -3,9 +3,10 @@ import { notFound } from 'next/navigation'
 import { ListingCard } from '@/components/listings/ListingCard'
 import Image from 'next/image'
 import { CalendarDays, Package, Handshake, MessageSquareQuote } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { formatDate, todayTaipei } from '@/lib/utils'
 import { ReviewList } from '@/components/ReviewList'
 import { SocialLinkRow } from '@/components/SocialLinkRow'
+import { SuspendUserButton } from '@/components/SuspendUserButton'
 import type { Listing, Profile } from '@/types'
 
 interface Props {
@@ -31,10 +32,10 @@ export default async function UserProfilePage({ params }: Props) {
   const supabase = createClient()
 
   // 個人資料與刊登互不依賴，平行查詢（評價由 ReviewList 客端分頁載入）
-  const [{ data: profile }, { data: rawListings }] = await Promise.all([
+  const [{ data: profile }, { data: rawListings }, { data: { user } }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('id, username, avatar_url, bio, social_links, rating, rating_count, deal_count, created_at')
+      .select('id, username, avatar_url, bio, social_links, rating, rating_count, deal_count, created_at, suspended_until, suspended_reason')
       .eq('id', params.id)
       .single(),
     supabase
@@ -46,11 +47,25 @@ export default async function UserProfilePage({ params }: Props) {
       `)
       .eq('user_id', params.id)
       .eq('status', 'active')
+      // 球票場次全過期即時消失（周邊 last_game_date 為 null 不受影響）
+      .or(`last_game_date.is.null,last_game_date.gte.${todayTaipei()}`)
       .order('created_at', { ascending: false }),
+    supabase.auth.getUser(),
   ])
 
   if (!profile) notFound()
   const p = profile as Profile
+
+  // 停權操作只給管理者（且不能對自己）；欄位保護由 DB trigger 強制
+  let viewerIsAdmin = false
+  if (user && user.id !== p.id) {
+    const { data: viewer } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+    viewerIsAdmin = (viewer as any)?.is_admin === true
+  }
 
   const listings = (rawListings?.map(listing => ({
     ...listing,
@@ -106,6 +121,13 @@ export default async function UserProfilePage({ params }: Props) {
             {p.bio || '這個人很神秘，還沒留下自我介紹'}
           </p>
           <SocialLinkRow socialLinks={p.social_links} />
+          {viewerIsAdmin && (
+            <SuspendUserButton
+              userId={p.id}
+              suspendedUntil={p.suspended_until}
+              suspendedReason={p.suspended_reason}
+            />
+          )}
         </div>
       </div>
 

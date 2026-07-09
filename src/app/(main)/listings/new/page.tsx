@@ -4,7 +4,7 @@ import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { compressImage } from '@/lib/utils'
+import { compressImage, isSuspendedUntil, formatDate } from '@/lib/utils'
 import { CPBL_TEAMS, DEAL_METHOD_LABELS, DEAL_METHOD_OPTIONS, LISTING_LIMITS, MAX_ITEMS_PER_LISTING } from '@/types'
 import type { DealMethod } from '@/types'
 import { Upload, X, Ticket, Shirt, Plus, Trash2, EyeOff } from 'lucide-react'
@@ -115,6 +115,21 @@ function NewListingForm() {
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); setLoading(false); return }
+
+    // 停權檢查（DB 的 RLS 也會擋，這裡給友善訊息而不是奇怪的權限錯誤）
+    const { data: myProfile } = await supabase
+      .from('profiles')
+      .select('suspended_until, suspended_reason')
+      .eq('id', user.id)
+      .single()
+    if (isSuspendedUntil(myProfile?.suspended_until)) {
+      const until = myProfile!.suspended_until === 'infinity'
+        ? '無限期'
+        : `至 ${formatDate(myProfile!.suspended_until!)}`
+      setError(`帳號停權中（${until}），停權期間無法刊登${myProfile?.suspended_reason ? `。原因：${myProfile.suspended_reason}` : ''}`)
+      setLoading(false)
+      return
+    }
 
     // 同時上架數量限制（DB trigger 也會擋，這裡先給友善提示）
     const { count: activeCount } = await supabase

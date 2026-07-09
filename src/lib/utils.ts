@@ -40,6 +40,24 @@ export function formatDateWithWeekday(date: string): string {
   return `${formatDate(date)}(${formatWeekday(date)})`
 }
 
+// 台北時區的今天（YYYY-MM-DD）。過期判斷一律用這個，不能用 toISOString()
+// （DB 與 server 都是 UTC，台北 00:00–08:00 間 UTC 還在前一天）
+export function todayTaipei(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Taipei' }).format(new Date())
+}
+
+// 場次是否已過期：比賽當天仍有效（當天還能面交入場），過了才算過期
+export function isPastGameDate(date: string | null | undefined): boolean {
+  return !!date && date < todayTaipei()
+}
+
+// 停權判斷：suspended_until 為 null 或已過即未停權；'infinity' 恆為停權
+export function isSuspendedUntil(until: string | null | undefined): boolean {
+  if (!until) return false
+  if (until === 'infinity') return true
+  return new Date(until).getTime() > Date.now()
+}
+
 // 社群帳號：只存 handle、白名單驗證，網址一律由這裡組出，杜絕自由 URL（釣魚連結）
 export const SOCIAL_PLATFORMS = {
   threads: { label: 'Threads', url: (h: string) => `https://www.threads.net/@${h}` },

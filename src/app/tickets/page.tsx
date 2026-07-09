@@ -5,6 +5,7 @@ import { Pagination } from '@/components/listings/Pagination'
 import Link from 'next/link'
 import { Ticket } from 'lucide-react'
 import type { Listing } from '@/types'
+import { todayTaipei } from '@/lib/utils'
 
 export const metadata = {
   title: '球票專區',
@@ -41,6 +42,8 @@ export default async function TicketsPage({
     `, { count: 'exact' })
     .eq('status', 'active')
     .eq('type', 'ticket')
+    // 場次全數過期的刊登即時消失，不等半夜 pg_cron 標記 expired（比賽當天仍顯示）
+    .or(`last_game_date.is.null,last_game_date.gte.${todayTaipei()}`)
 
   if (searchParams.team) query = query.eq('team', searchParams.team)
   if (searchParams.q) query = query.ilike('title', `%${searchParams.q}%`)

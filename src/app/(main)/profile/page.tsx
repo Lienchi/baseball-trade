@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import { ListingCard } from '@/components/listings/ListingCard'
 import { ReviewList } from '@/components/ReviewList'
 import { SocialLinkRow } from '@/components/SocialLinkRow'
-import { getCroppedImage, formatDate, normalizeSocialHandle } from '@/lib/utils'
+import { getCroppedImage, formatDate, normalizeSocialHandle, isPastGameDate, isSuspendedUntil } from '@/lib/utils'
 import { Camera } from 'lucide-react'
 import type { Profile, Listing } from '@/types'
 
@@ -20,6 +20,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [activeListings, setActiveListings] = useState<Listing[]>([])
   const [soldListings, setSoldListings] = useState<Listing[]>([])
+  const [inactiveListings, setInactiveListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [bio, setBio] = useState('')
@@ -68,8 +69,13 @@ export default function ProfilePage() {
           ...l,
           comment_count: Array.isArray(l.comment_count) ? (l.comment_count[0]?.count ?? 0) : 0,
         })) as Listing[]
-        setActiveListings(normalized.filter(l => l.status === 'active'))
+        // 場次全過期但排程還沒標 expired 的，即時歸入已下架區
+        const isExpiredByDate = (l: Listing) => isPastGameDate(l.last_game_date)
+        setActiveListings(normalized.filter(l => l.status === 'active' && !isExpiredByDate(l)))
         setSoldListings(normalized.filter(l => l.status === 'sold'))
+        setInactiveListings(normalized.filter(l =>
+          l.status === 'expired' || l.status === 'removed' || (l.status === 'active' && isExpiredByDate(l))
+        ))
       }
 
       setLoading(false)
@@ -231,6 +237,17 @@ export default function ProfilePage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 停權公告：發文/留言/訊息/評價在 DB 層被擋，這裡讓使用者知道原因與期限 */}
+      {isSuspendedUntil(profile.suspended_until) && (
+        <div className="mb-4 rounded-md border-2 border-clay/30 bg-clay/5 px-4 py-3 text-sm text-clay">
+          <p className="font-bold">
+            帳號停權中（{profile.suspended_until === 'infinity' ? '無限期' : `至 ${formatDate(profile.suspended_until!)}`}）
+          </p>
+          {profile.suspended_reason && <p className="mt-1">原因：{profile.suspended_reason}</p>}
+          <p className="mt-1">停權期間無法刊登、留言、發送訊息與評價。如有疑問請聯繫 contact@benjifan.com</p>
         </div>
       )}
 
@@ -432,6 +449,34 @@ export default function ProfilePage() {
           <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3">
             {soldListings.map(listing => (
               <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 已下架（過期或管理員下架）：只有本人看得到，附原因 */}
+      {inactiveListings.length > 0 && (
+        <div className="mt-10">
+          <div className="border-b-2 border-scoreboard/10 pb-3">
+            <h2 className="font-display text-base text-scoreboard">已下架（{inactiveListings.length}）</h2>
+          </div>
+          <div className="mt-5 space-y-3">
+            {inactiveListings.map(listing => (
+              <div key={listing.id} className="card flex items-center justify-between gap-3 p-4">
+                <div className="min-w-0">
+                  <a href={`/listings/${listing.id}`} className="block truncate text-sm font-semibold text-scoreboard hover:underline">
+                    {listing.title}
+                  </a>
+                  <p className="mt-1 text-xs text-dugout">
+                    {listing.status === 'removed'
+                      ? `管理員下架${listing.removed_reason ? `：${listing.removed_reason}` : ''}`
+                      : '場次已結束，自動下架'}
+                  </p>
+                </div>
+                <span className="flex-shrink-0 rounded-full bg-dugout/10 px-2.5 py-1 text-xs font-bold text-dugout">
+                  {listing.status === 'removed' ? '已下架' : '已過期'}
+                </span>
+              </div>
             ))}
           </div>
         </div>

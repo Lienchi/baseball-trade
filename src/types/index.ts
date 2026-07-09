@@ -14,11 +14,15 @@ export interface Profile {
   rating_count: number  // 收到的評價數
   deal_count: number    // 完成交易次數（雙方確認後 +1）
   is_admin?: boolean
+  suspended_until: string | null   // null=正常；'infinity'=無限期；判斷用 suspended_until > now()
+  suspended_reason: string | null
   created_at: string
 }
 
 export type ListingType = 'ticket' | 'merchandise'
-export type ListingStatus = 'active' | 'sold' | 'closed'
+// expired：場次全數過期（pg_cron 每日標記，顯示端另以日期即時判斷）
+// removed：管理者下架（removed_reason 給作者看）；只有管理者能設定/解除
+export type ListingStatus = 'active' | 'sold' | 'closed' | 'expired' | 'removed'
 export type DealMethod = 'meetup' | 'mail' | 'eticket' | 'app_transfer'
 
 export const DEAL_METHOD_LABELS: Record<DealMethod, string> = {
@@ -70,6 +74,8 @@ export interface Listing {
   ticket_items: TicketItem[]
   images: string[]
   view_count: number
+  removed_reason: string | null
+  removed_at: string | null
   created_at: string
   updated_at: string
   profile?: Profile

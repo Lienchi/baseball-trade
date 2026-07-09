@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { formatDateWithWeekday, formatPrice } from '@/lib/utils'
+import { formatDateWithWeekday, formatPrice, isPastGameDate } from '@/lib/utils'
 import { Heart } from 'lucide-react'
 import type { ListingType, TicketItem } from '@/types'
 
@@ -61,10 +61,13 @@ export function TicketItemsList({
 
   return (
     <ul className="mt-1.5 space-y-1">
-      {items.map((item, i) => (
+      {items.map((item, i) => {
+        // 過期場次（比賽日已過）灰化並關閉關注，顯示端即時判斷不依賴排程
+        const expired = type === 'ticket' && isPastGameDate(item.date)
+        return (
         <li
           key={item.id ?? i}
-          className={`flex items-baseline gap-2 rounded-md bg-scoreboard/5 px-2.5 py-1.5 ${item.sold ? 'opacity-50' : ''}`}
+          className={`flex items-baseline gap-2 rounded-md bg-scoreboard/5 px-2.5 py-1.5 ${item.sold || expired ? 'opacity-50' : ''}`}
         >
           {type === 'ticket' ? (
             <>
@@ -100,12 +103,16 @@ export function TicketItemsList({
             </button>
           ) : (
             <>
-              {item.sold && (
+              {item.sold ? (
                 <span className="ml-auto flex-shrink-0 rounded-full bg-clay/10 px-2 py-0.5 text-xs font-bold text-clay">
                   已售出
                 </span>
+              ) : expired && (
+                <span className="ml-auto flex-shrink-0 rounded-full bg-dugout/10 px-2 py-0.5 text-xs font-bold text-dugout">
+                  已過期
+                </span>
               )}
-              {type === 'ticket' && item.id && !item.sold && (
+              {type === 'ticket' && item.id && !item.sold && !expired && (
                 <button
                   type="button"
                   onClick={() => toggleItemFavorite(item.id!)}
@@ -122,7 +129,8 @@ export function TicketItemsList({
             </>
           )}
         </li>
-      ))}
+        )
+      })}
     </ul>
   )
 }

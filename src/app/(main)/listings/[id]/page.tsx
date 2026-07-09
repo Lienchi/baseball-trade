@@ -8,6 +8,7 @@ import { ContactSellerButton } from '@/components/listings/ContactSellerButton'
 import { MarkSoldButton } from '@/components/listings/MarkSoldButton'
 import { TicketItemsList } from '@/components/listings/TicketItemsList'
 import { DeleteListingButton } from '@/components/listings/DeleteListingButton'
+import { RemoveListingButton } from '@/components/listings/RemoveListingButton'
 import { FavoriteButton } from '@/components/listings/FavoriteButton'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -67,7 +68,7 @@ export default async function ListingDetailPage({ params }: Props) {
   const isOwner = user?.id === listing.user_id
 
   let isAdmin = false
-  if (user && !isOwner) {
+  if (user) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('is_admin')
@@ -104,6 +105,17 @@ export default async function ListingDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
+      {l.status === 'removed' && (
+        <div className="mb-6 rounded-md border-2 border-clay/30 bg-clay/5 px-4 py-3 text-sm text-clay">
+          <p className="font-bold">此刊登已由管理員下架</p>
+          {l.removed_reason && <p className="mt-1">原因：{l.removed_reason}</p>}
+        </div>
+      )}
+      {l.status === 'expired' && (
+        <div className="mb-6 rounded-md border-2 border-dugout/20 bg-dugout/5 px-4 py-3 text-sm text-dugout">
+          場次已全數結束，此刊登已自動下架
+        </div>
+      )}
       <div className="grid gap-8 lg:grid-cols-5">
         <div className="lg:col-span-3">
           <ListingGallery images={l.images} title={l.title} />
@@ -213,7 +225,9 @@ export default async function ListingDetailPage({ params }: Props) {
                 >
                   編輯刊登
                 </Link>
-                <DeleteListingButton listingId={l.id} />
+                {/* 管理者：下架（記錄原因，作者看得到）優先於真刪；真刪留給垃圾內容 */}
+                {isAdmin && !isOwner && <RemoveListingButton listingId={l.id} status={l.status} />}
+                <DeleteListingButton listingId={l.id} isAdmin={isAdmin && !isOwner} />
               </div>
             ) : (
               <>

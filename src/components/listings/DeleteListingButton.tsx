@@ -7,15 +7,19 @@ import { storagePathFromUrl } from '@/lib/utils'
 
 interface Props {
   listingId: string
+  isAdmin?: boolean  // 管理者刪別人的文章時，確認文案強調作者不會收到說明（日常處置應優先用下架）
 }
 
-export function DeleteListingButton({ listingId }: Props) {
+export function DeleteListingButton({ listingId, isAdmin = false }: Props) {
   const supabase = createClient()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
-    if (!confirm('確定要刪除這個刊登嗎？此操作無法復原。')) return
+    const message = isAdmin
+      ? '確定要永久刪除這個刊登嗎？資料與圖片將直接消失，作者不會收到任何說明。若要讓作者知道原因，請改用「下架刊登」。'
+      : '確定要刪除這個刊登嗎？此操作無法復原。'
+    if (!confirm(message)) return
     setLoading(true)
 
     // 先取得圖片清單，刪除資料列成功後把 Storage 檔案一併清掉（避免孤兒檔案佔空間）
