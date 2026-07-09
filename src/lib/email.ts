@@ -1,7 +1,7 @@
 // Resend 寄信（REST API，不裝 SDK）。只能在 server 端使用。
 // RESEND_API_KEY 未設定時靜默跳過（開發環境不寄信）。
 const RESEND_API_URL = 'https://api.resend.com/emails'
-const FROM = process.env.EMAIL_FROM ?? 'BenjiFan 本質棒球 <notify@benjifan.com>'
+const FROM = process.env.EMAIL_FROM ?? 'BenjiFan 本質球迷 <notify@benjifan.com>'
 
 export async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY
