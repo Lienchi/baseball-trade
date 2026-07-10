@@ -19,8 +19,8 @@ export default function ResetPasswordPage() {
     setLoading(true)
     setError('')
 
-    if (password.length < 6) {
-      setError('密碼至少需要 6 個字元')
+    if (password.length < 8) {
+      setError('密碼至少需要 8 個字元')
       setLoading(false)
       return
     }
@@ -78,9 +78,9 @@ export default function ResetPasswordPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
             />
-            <p className="mt-1 text-xs text-dugout/60">至少 6 個字元</p>
+            <p className="mt-1 text-xs text-dugout/60">至少 8 個字元</p>
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-scoreboard">確認新密碼</label>
@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
             />
           </div>
           <button type="submit" className="btn-primary w-full" disabled={loading}>

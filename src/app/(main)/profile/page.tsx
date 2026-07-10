@@ -117,8 +117,8 @@ export default function ProfilePage() {
   const handleChangePassword = async () => {
     setPasswordError('')
 
-    if (newPassword.length < 6) {
-      setPasswordError('密碼至少需要 6 個字元')
+    if (newPassword.length < 8) {
+      setPasswordError('密碼至少需要 8 個字元')
       return
     }
     if (newPassword !== confirmNewPassword) {
@@ -416,7 +416,7 @@ export default function ProfilePage() {
                 className="input"
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
-                minLength={6}
+                minLength={8}
               />
             </div>
             <div>
@@ -426,7 +426,7 @@ export default function ProfilePage() {
                 className="input"
                 value={confirmNewPassword}
                 onChange={e => setConfirmNewPassword(e.target.value)}
-                minLength={6}
+                minLength={8}
               />
             </div>
             <div className="flex gap-2">
