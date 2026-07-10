@@ -312,15 +312,6 @@ export default function ConversationPage({ params }: Props) {
                   </div>
                 </Link>
               )}
-              {deal && (
-                deal.listingId ? (
-                  <Link href={`/listings/${deal.listingId}`} className="mt-1.5 block truncate text-sm font-semibold text-clay hover:underline dark:text-clay-light">
-                    關於：{deal.listingTitle}
-                  </Link>
-                ) : (
-                  <span className="mt-1.5 block truncate text-sm font-semibold text-dugout">關於：{deal.listingTitle}</span>
-                )
-              )}
             </div>
 
             {deal && (
@@ -373,6 +364,17 @@ export default function ConversationPage({ params }: Props) {
             </div>
             )}
           </div>
+
+          {/* 獨立一行吃滿寬度，標題再長也完整換行顯示 */}
+          {deal && (
+            deal.listingId ? (
+              <Link href={`/listings/${deal.listingId}`} className="mt-1.5 block break-words text-sm font-semibold text-clay hover:underline dark:text-clay-light">
+                關於：{deal.listingTitle}
+              </Link>
+            ) : (
+              <span className="mt-1.5 block break-words text-sm font-semibold text-dugout">關於：{deal.listingTitle}</span>
+            )
+          )}
         </div>
       )}
 
