@@ -9,7 +9,8 @@ import { ListingCard } from '@/components/listings/ListingCard'
 import { ReviewList } from '@/components/ReviewList'
 import { SocialLinkRow } from '@/components/SocialLinkRow'
 import { getCroppedImage, formatDate, normalizeSocialHandle, isPastGameDate, isSuspendedUntil } from '@/lib/utils'
-import { Camera } from 'lucide-react'
+import Link from 'next/link'
+import { Camera, Megaphone } from 'lucide-react'
 import type { Profile, Listing } from '@/types'
 
 export default function ProfilePage() {
@@ -441,6 +442,19 @@ export default function ProfilePage() {
           />
         </label>
       </div>
+
+      {/* 站務管理：僅管理員看得到 */}
+      {profile.is_admin && (
+        <div className="card mt-4 p-5">
+          <h2 className="font-display text-base text-scoreboard">站務管理</h2>
+          <Link
+            href="/admin/announcements"
+            className="mt-3 flex items-center gap-2 text-sm font-medium text-clay hover:underline"
+          >
+            <Megaphone size={16} /> 置頂公告管理
+          </Link>
+        </div>
+      )}
 
       {/* 刊登中 */}
       <div className="mt-8">
