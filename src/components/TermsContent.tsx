@@ -28,6 +28,7 @@ export default function TermsContent() {
         <h3 className="mt-5 font-bold text-scoreboard">三、交易行為</h3>
         <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-dugout">
           <li>交易完成後，請雙方於私訊中按下「確認交易完成」，累積信用星星。</li>
+          <li>成交次數與星等評價僅供參考。為維護信譽制度的真實性，系統會依對話內容與交易情形判定是否計入；異常或重複的交易（例如刷量、互刷評價）將不予計入，情節重大者得停權處理。判定標準不對外公開，亦不接受申訴補計。</li>
           <li>禁止在交易過程中騷擾、辱罵、詐欺對方。</li>
           <li>會員個人聯絡資訊請透過站內私訊交換，本站不對站外聯繫產生的糾紛負責。</li>
         </ol>

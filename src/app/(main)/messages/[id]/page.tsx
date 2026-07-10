@@ -27,6 +27,8 @@ interface DealState {
   sellerId: string
   buyerConfirmedAt: string | null
   sellerConfirmedAt: string | null
+  // null = 舊資料（修法前成交），視為可評價
+  reviewEligible: boolean | null
 }
 
 export default function ConversationPage({ params }: Props) {
@@ -55,11 +57,12 @@ export default function ConversationPage({ params }: Props) {
   }
 
   // 送出並立刻顯示；select 帶回 sender 讓新訊息的頭像/名稱正常
-  const insertMessage = async (content: string) => {
+  // isSystem：確認/評價產生的系統訊息，不算進成交判定的對話門檻
+  const insertMessage = async (content: string, isSystem = false) => {
     if (!me) return { error: new Error('尚未登入') }
     const { data, error } = await supabase
       .from('messages')
-      .insert({ conversation_id: params.id, sender_id: me.id, content })
+      .insert({ conversation_id: params.id, sender_id: me.id, content, is_system: isSystem })
       .select('*, sender:profiles(id, username, avatar_url)')
       .single()
     if (data) appendMessage(data as Message)
@@ -111,7 +114,7 @@ export default function ConversationPage({ params }: Props) {
       const { data: conv } = await supabase
         .from('conversations')
         .select(`
-          id, listing_id, buyer_confirmed_at, seller_confirmed_at, seller_id, listing_title,
+          id, listing_id, buyer_confirmed_at, seller_confirmed_at, seller_id, listing_title, review_eligible,
           listing:listings(id, title, user_id)
         `)
         .eq('id', params.id)
@@ -128,6 +131,7 @@ export default function ConversationPage({ params }: Props) {
             sellerId,
             buyerConfirmedAt: conv.buyer_confirmed_at,
             sellerConfirmedAt: conv.seller_confirmed_at,
+            reviewEligible: conv.review_eligible,
           })
         }
 
@@ -196,6 +200,7 @@ export default function ConversationPage({ params }: Props) {
           ...prev,
           buyerConfirmedAt: payload.new.buyer_confirmed_at,
           sellerConfirmedAt: payload.new.seller_confirmed_at,
+          reviewEligible: payload.new.review_eligible ?? prev.reviewEligible,
         } : prev)
       })
       .subscribe()
@@ -245,11 +250,25 @@ export default function ConversationPage({ params }: Props) {
         [isSeller ? 'sellerConfirmedAt' : 'buyerConfirmedAt']: now,
       } : prev)
 
+      // 雙方都確認後，trigger 已寫入評價資格，抓回來決定評分入口是否顯示
+      let reviewEligible: boolean | null = deal.reviewEligible
+      if (otherAlreadyConfirmed) {
+        const { data: conv } = await supabase
+          .from('conversations')
+          .select('review_eligible')
+          .eq('id', params.id)
+          .single()
+        reviewEligible = conv?.review_eligible ?? null
+        setDeal(prev => prev ? { ...prev, reviewEligible } : prev)
+      }
+
       const systemMsg = otherAlreadyConfirmed
-        ? `🤝 雙方都已確認，交易完成！可以互相評分囉`
+        ? (reviewEligible !== false
+            ? `🤝 雙方都已確認，交易完成！可以互相評分囉`
+            : `🤝 雙方都已確認，交易完成！`)
         : `✅ ${me.username} 已標記這筆交易完成，等待對方確認`
 
-      await insertMessage(systemMsg)
+      await insertMessage(systemMsg, true)
     }
     setConfirming(false)
   }
@@ -267,7 +286,7 @@ export default function ConversationPage({ params }: Props) {
     if (!error) {
       setHasReviewed(true)
       setShowReviewModal(false)
-      await insertMessage(`⭐ ${me.username} 給了 ${reviewRating} 星評價`)
+      await insertMessage(`⭐ ${me.username} 給了 ${reviewRating} 星評價`, true)
     } else {
       alert('評價送出失敗，請稍後再試')
     }
@@ -336,7 +355,8 @@ export default function ConversationPage({ params }: Props) {
               </div>
 
               {bothConfirmed ? (
-              hasReviewed === false ? (
+              // reviewEligible === false（隱藏判定未達標）時不給評分入口，只顯示交易完成
+              hasReviewed === false && deal.reviewEligible !== false ? (
                 <button
                   className="flex items-center gap-1 rounded-md border-2 border-gold px-3 py-1 text-xs font-bold text-gold hover:bg-gold/10"
                   onClick={() => setShowReviewModal(true)}

@@ -10,6 +10,7 @@ import { TicketItemsList } from '@/components/listings/TicketItemsList'
 import { DeleteListingButton } from '@/components/listings/DeleteListingButton'
 import { RemoveListingButton } from '@/components/listings/RemoveListingButton'
 import { FavoriteButton } from '@/components/listings/FavoriteButton'
+import { ReportListingButton } from '@/components/listings/ReportListingButton'
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, Calendar, Package, Users, Clock, ShoppingBag } from 'lucide-react'
@@ -92,6 +93,18 @@ export default async function ListingDetailPage({ params }: Props) {
     favoritedItemIds = (favs ?? [])
       .map(f => f.item_id as string | null)
       .filter((x): x is string => x !== null)
+  }
+
+  // 檢舉狀態：非擁有者且已登入才需要（RLS 只回自己的檢舉）
+  let hasReported = false
+  if (user && !isOwner) {
+    const { data: myReport } = await supabase
+      .from('reports')
+      .select('id')
+      .eq('listing_id', params.id)
+      .eq('reporter_id', user.id)
+      .maybeSingle()
+    hasReported = !!myReport
   }
 
   // 瀏覽數：擁有者看自己不計。serverless 回應送出後 function 即凍結，
@@ -238,6 +251,9 @@ export default async function ListingDetailPage({ params }: Props) {
                     userId={user?.id ?? null}
                     initialFavorited={isFavorited}
                   />
+                )}
+                {user && (
+                  <ReportListingButton listingId={l.id} initialReported={hasReported} />
                 )}
               </>
             )}

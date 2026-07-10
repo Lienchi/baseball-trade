@@ -114,6 +114,7 @@ export interface Message {
   content: string
   image_url: string | null
   is_read: boolean
+  is_system?: boolean
   created_at: string
   sender?: Profile
 }

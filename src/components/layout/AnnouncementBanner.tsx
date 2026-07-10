@@ -13,7 +13,7 @@ type Announcement = {
 
 // 關閉是整條橫幅一起關；記最新一則的 id，之後發新公告（id 變了）橫幅會重新出現
 const DISMISS_KEY = 'dismissed_announcement'
-const ROTATE_MS = 5000
+const ROTATE_MS = 10000
 
 export function AnnouncementBanner() {
   const supabase = createClient()
