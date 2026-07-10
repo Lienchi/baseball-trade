@@ -99,11 +99,11 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      <div className="flex min-h-dvh items-center justify-center bg-chalk px-4 pb-24 sm:pb-0">
         <div className="card w-full max-w-sm p-8 text-center">
           <span className="text-4xl">📧</span>
-          <h1 className="mt-3 text-lg font-bold">請確認你的 Email</h1>
-          <p className="mt-2 text-sm text-gray-500">
+          <h1 className="mt-3 text-lg font-bold text-scoreboard">請確認你的 Email</h1>
+          <p className="mt-2 text-sm text-dugout">
             我們已經寄送驗證信到 <strong>{email}</strong>，請點擊信中連結完成註冊。
           </p>
           <Link href="/login" className="btn-secondary mt-6 inline-flex">
@@ -116,7 +116,7 @@ export default function RegisterPage() {
 
   if (step === 'terms') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
+      <div className="flex min-h-dvh items-center justify-center bg-chalk px-4 py-10">
         <div className="card w-full max-w-2xl p-8">
           <div className="max-h-[60vh] overflow-y-auto pr-2">
             <TermsContent />
@@ -139,18 +139,18 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-chalk px-4 pb-24 sm:pb-0">
       <div className="card w-full max-w-sm p-8">
 
         {error && (
-          <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mb-4 rounded-lg bg-clay/10 px-4 py-3 text-sm text-clay-dark">
             {error}
           </div>
         )}
 
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">使用者名稱</label>
+            <label className="mb-1 block text-sm font-medium text-scoreboard">使用者名稱</label>
             <input
               className="input"
               value={username}
@@ -159,10 +159,10 @@ export default function RegisterPage() {
               minLength={2}
               maxLength={20}
             />
-            <p className="mt-1 text-xs text-gray-400">註冊後無法更改，請謹慎選擇</p>
+            <p className="mt-1 text-xs text-dugout/70">註冊後無法更改，請謹慎選擇</p>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
+            <label className="mb-1 block text-sm font-medium text-scoreboard">Email</label>
             <input
               type="email"
               className="input"
@@ -172,7 +172,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">密碼</label>
+            <label className="mb-1 block text-sm font-medium text-scoreboard">密碼</label>
             <input
               type="password"
               className="input"
@@ -181,10 +181,10 @@ export default function RegisterPage() {
               required
               minLength={6}
             />
-            <p className="mt-1 text-xs text-gray-400">至少 6 個字元</p>
+            <p className="mt-1 text-xs text-dugout/70">至少 6 個字元</p>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">確認密碼</label>
+            <label className="mb-1 block text-sm font-medium text-scoreboard">確認密碼</label>
             <input
               type="password"
               className="input"
@@ -199,16 +199,16 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-xs text-gray-400">
+        <p className="mt-4 text-center text-xs text-dugout/70">
           註冊即代表你同意
-          <Link href="/terms" target="_blank" className="font-medium text-red-600 hover:underline">
+          <Link href="/terms" target="_blank" className="font-medium text-clay hover:underline">
             網站規定與免責聲明
           </Link>
         </p>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        <p className="mt-6 text-center text-sm text-dugout">
           已經有帳號了？{' '}
-          <Link href="/login" className="font-medium text-red-600 hover:underline">
+          <Link href="/login" className="font-medium text-clay hover:underline">
             立即登入
           </Link>
         </p>
