@@ -354,8 +354,8 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* 社群帳號提醒：缺哪個平台就提醒哪個，填了就自然消失 */}
-      {!editing && (!profile.social_links?.threads || !profile.social_links?.instagram) && (
+      {/* 社群帳號提醒：Threads / Instagram 任一有填就不提醒 */}
+      {!editing && !profile.social_links?.threads && !profile.social_links?.instagram && (
         <div className="mt-4 flex items-center justify-between gap-3 rounded-md border-2 border-gold/30 bg-gold/5 px-4 py-3">
           <p className="text-sm text-scoreboard">
             還沒填社群帳號——讓買家看到你的社群，更容易建立信任、談成交易
@@ -443,7 +443,7 @@ export default function ProfilePage() {
         <label className="mt-3 flex cursor-pointer items-center justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-scoreboard">新訊息 Email 通知</p>
-            <p className="mt-0.5 text-xs text-dugout">有買家首次詢問你的刊登時寄信通知（同一天最多一封）</p>
+            <p className="mt-0.5 text-xs text-dugout">有買家首次詢問你的刊登時寄信通知</p>
           </div>
           <input
             type="checkbox"

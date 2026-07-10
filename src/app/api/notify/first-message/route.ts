@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/email'
 
 // 首訊 email 通知：買家送出對話的第一則訊息後，前端 fire-and-forget 呼叫這裡。
-// 所有檢查（參與者驗證、收件人開關、24h 節流）都在 server 端做，前端只給 conversationId。
+// 所有檢查（參與者驗證、收件人開關）都在 server 端做，前端只給 conversationId。
 export async function POST(request: Request) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -34,19 +34,13 @@ export async function POST(request: Request) {
   const recipientId = ids.find(id => id !== user.id)
   if (!recipientId) return NextResponse.json({ sent: false })
 
-  // 收件人關掉通知、或 24 小時內已寄過 → 跳過
+  // 收件人關掉通知 → 跳過（不做時間節流，每個新對話首訊都通知）
   const { data: recipient } = await admin
     .from('profiles')
-    .select('message_email_enabled, last_message_email_at')
+    .select('message_email_enabled')
     .eq('id', recipientId)
     .single()
   if (!recipient?.message_email_enabled) return NextResponse.json({ sent: false })
-  if (
-    recipient.last_message_email_at &&
-    Date.now() - new Date(recipient.last_message_email_at).getTime() < 24 * 60 * 60 * 1000
-  ) {
-    return NextResponse.json({ sent: false })
-  }
 
   const { data: conversation } = await admin
     .from('conversations')
@@ -65,7 +59,7 @@ export async function POST(request: Request) {
   const email = authUser?.user?.email
   if (!email) return NextResponse.json({ sent: false })
 
-  // 先更新節流時間戳再寄，避免同時多請求重複寄信
+  // 記錄最後寄信時間（若之後要恢復節流可直接使用）
   await admin
     .from('profiles')
     .update({ last_message_email_at: new Date().toISOString() })

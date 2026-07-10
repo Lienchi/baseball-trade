@@ -12,6 +12,15 @@ interface Props {
   params: { id: string }
 }
 
+interface OtherUser {
+  id: string
+  username: string
+  avatar_url: string | null
+  rating: number
+  rating_count: number
+  deal_count: number
+}
+
 interface DealState {
   listingId: string | null   // 刊登可能已被賣家刪除，此時用快照欄位
   listingTitle: string
@@ -27,6 +36,7 @@ export default function ConversationPage({ params }: Props) {
   const [content, setContent] = useState('')
   const [sending, setSending] = useState(false)
   const [deal, setDeal] = useState<DealState | null>(null)
+  const [otherUser, setOtherUser] = useState<OtherUser | null>(null)
   const [confirming, setConfirming] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   // null = 尚未查詢；false = 還沒評價；true = 已評價
@@ -82,6 +92,21 @@ export default function ConversationPage({ params }: Props) {
         .eq('conversation_id', params.id)
         .neq('sender_id', user.id)
         .eq('is_read', false)
+
+      // 對話標頭顯示對方的頭像、名稱與信譽（成交數、評價）
+      const { data: parts } = await supabase
+        .from('conversation_participants')
+        .select('user_id')
+        .eq('conversation_id', params.id)
+      const otherId = (parts ?? []).map(p => p.user_id).find(id => id !== user.id)
+      if (otherId) {
+        const { data: other } = await supabase
+          .from('profiles')
+          .select('id, username, avatar_url, rating, rating_count, deal_count')
+          .eq('id', otherId)
+          .single()
+        if (other) setOtherUser(other)
+      }
 
       const { data: conv } = await supabase
         .from('conversations')
@@ -251,36 +276,75 @@ export default function ConversationPage({ params }: Props) {
 
   return (
     <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-2xl flex-col">
-      {deal && (
+      {(otherUser || deal) && (
         <div className="sticky top-16 z-10 border-b border-scoreboard/10 bg-chalk px-4 py-2.5">
-          {deal.listingId ? (
-            <Link href={`/listings/${deal.listingId}`} className="text-sm font-semibold text-clay hover:underline dark:text-clay-light">
-              關於：{deal.listingTitle}
-            </Link>
-          ) : (
-            <span className="text-sm font-semibold text-dugout">關於：{deal.listingTitle}</span>
-          )}
-          <div className="mt-1.5 flex items-center justify-between">
-            <div className="flex items-center gap-3 text-xs text-dugout">
-              <span className="flex items-center gap-1">
-                {deal.buyerConfirmedAt ? (
-                  <CheckCircle2 size={13} className="text-field" />
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              {otherUser && (
+                <Link href={`/users/${otherUser.id}`} className="group flex items-center gap-2">
+                  {otherUser.avatar_url ? (
+                    <Image
+                      src={otherUser.avatar_url}
+                      alt={otherUser.username}
+                      width={36}
+                      height={36}
+                      unoptimized
+                      className="h-9 w-9 flex-shrink-0 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-field text-xs font-bold text-white">
+                      {otherUser.username.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-scoreboard group-hover:underline">
+                      {otherUser.username}
+                    </p>
+                    <p className="flex items-center gap-1.5 text-xs text-dugout">
+                      <span>成交 {otherUser.deal_count ?? 0} 次</span>
+                      <span className="flex items-center gap-0.5">
+                        <Star size={11} className="fill-gold text-gold" />
+                        {(otherUser.rating_count ?? 0) > 0
+                          ? `${Number(otherUser.rating).toFixed(1)}（${otherUser.rating_count}）`
+                          : '尚無評價'}
+                      </span>
+                    </p>
+                  </div>
+                </Link>
+              )}
+              {deal && (
+                deal.listingId ? (
+                  <Link href={`/listings/${deal.listingId}`} className="mt-1.5 block truncate text-sm font-semibold text-clay hover:underline dark:text-clay-light">
+                    關於：{deal.listingTitle}
+                  </Link>
                 ) : (
-                  <Circle size={13} className="text-dugout/30" />
-                )}
-                買家確認
-              </span>
-              <span className="flex items-center gap-1">
-                {deal.sellerConfirmedAt ? (
-                  <CheckCircle2 size={13} className="text-field" />
-                ) : (
-                  <Circle size={13} className="text-dugout/30" />
-                )}
-                賣家確認
-              </span>
+                  <span className="mt-1.5 block truncate text-sm font-semibold text-dugout">關於：{deal.listingTitle}</span>
+                )
+              )}
             </div>
 
-            {bothConfirmed ? (
+            {deal && (
+            <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
+              <div className="flex items-center gap-3 text-xs text-dugout">
+                <span className="flex items-center gap-1">
+                  {deal.buyerConfirmedAt ? (
+                    <CheckCircle2 size={13} className="text-field" />
+                  ) : (
+                    <Circle size={13} className="text-dugout/30" />
+                  )}
+                  買家確認
+                </span>
+                <span className="flex items-center gap-1">
+                  {deal.sellerConfirmedAt ? (
+                    <CheckCircle2 size={13} className="text-field" />
+                  ) : (
+                    <Circle size={13} className="text-dugout/30" />
+                  )}
+                  賣家確認
+                </span>
+              </div>
+
+              {bothConfirmed ? (
               hasReviewed === false ? (
                 <button
                   className="flex items-center gap-1 rounded-md border-2 border-gold px-3 py-1 text-xs font-bold text-gold hover:bg-gold/10"
@@ -303,8 +367,10 @@ export default function ConversationPage({ params }: Props) {
               >
                 {confirming ? '處理中...' : '確認交易完成'}
               </button>
-            ) : (
-              <span className="text-xs text-dugout">等待對方確認...</span>
+              ) : (
+                <span className="text-xs text-dugout">等待對方確認...</span>
+              )}
+            </div>
             )}
           </div>
         </div>
