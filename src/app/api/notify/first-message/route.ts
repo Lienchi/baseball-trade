@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   const { data: listing } = conversation?.listing_id
     ? await admin
         .from('listings')
-        .select('title, team')
+        .select('title, team, user_id')
         .eq('id', conversation.listing_id)
         .single()
     : { data: null }
@@ -69,11 +69,13 @@ export async function POST(request: Request) {
   const listingInfo = listing
     ? `<p style="margin:0 0 4px;"><strong>${escapeHtml(listing.title)}</strong>${listing.team ? `（${escapeHtml(listing.team)}）` : ''}</p>`
     : ''
+  // 寄件者是刊登擁有者 → 賣家主動私訊（例如私訊留言者），文案用賣家視角
+  const senderIsOwner = listing?.user_id === user.id
   const sent = await sendEmail(
     email,
-    '你在 BenjiFan 有新的買家詢問',
+    senderIsOwner ? '賣家在 BenjiFan 主動聯繫你' : '你在 BenjiFan 有新的買家詢問',
     `<div style="font-family:sans-serif;font-size:14px;line-height:1.7;color:#1a1a1a;">
-      <p>有買家對你的刊登送出了詢問：</p>
+      <p>${senderIsOwner ? '以下刊登的賣家傳送了私訊給你：' : '有買家對你的刊登送出了詢問：'}</p>
       ${listingInfo}
       <p style="margin:16px 0;">
         <a href="${siteUrl}/messages/${conversationId}" style="display:inline-block;background:#154C99;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;">前往對話回覆</a>
