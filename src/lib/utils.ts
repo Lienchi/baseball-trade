@@ -59,21 +59,20 @@ export function isSuspendedUntil(until: string | null | undefined): boolean {
 }
 
 // 社群帳號：只存 handle、白名單驗證，網址一律由這裡組出，杜絕自由 URL（釣魚連結）
+// re：各平台 handle 規則（IG/Threads 英數句點底線 30 字內；LINE ID 另可含連字號、20 字內）
 export const SOCIAL_PLATFORMS = {
-  threads: { label: 'Threads', url: (h: string) => `https://www.threads.net/@${h}` },
-  instagram: { label: 'Instagram', url: (h: string) => `https://www.instagram.com/${h}` },
+  threads: { label: 'Threads', url: (h: string) => `https://www.threads.net/@${h}`, re: /^[A-Za-z0-9._]{1,30}$/ },
+  instagram: { label: 'Instagram', url: (h: string) => `https://www.instagram.com/${h}`, re: /^[A-Za-z0-9._]{1,30}$/ },
+  line: { label: 'LINE', url: (h: string) => `https://line.me/ti/p/~${h}`, re: /^[a-z0-9._-]{1,20}$/i },
 } as const
 
 export type SocialPlatform = keyof typeof SOCIAL_PLATFORMS
 
-// IG/Threads 帳號規則：英數、句點、底線，30 字內
-const SOCIAL_HANDLE_RE = /^[A-Za-z0-9._]{1,30}$/
-
 // 去掉開頭 @ 與空白後驗證；空字串回傳 ''（代表清空），不合法回傳 null
-export function normalizeSocialHandle(input: string): string | null {
+export function normalizeSocialHandle(input: string, platform: SocialPlatform = 'instagram'): string | null {
   const handle = input.trim().replace(/^@/, '')
   if (handle === '') return ''
-  return SOCIAL_HANDLE_RE.test(handle) ? handle : null
+  return SOCIAL_PLATFORMS[platform].re.test(handle) ? handle : null
 }
 
 // 從 Supabase Storage 的 public URL 反推出 bucket 內的檔案路徑（供刪除檔案用）

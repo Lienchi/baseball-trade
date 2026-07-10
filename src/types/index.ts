@@ -2,6 +2,7 @@
 export interface SocialLinks {
   threads?: string
   instagram?: string
+  line?: string
 }
 
 export interface Profile {

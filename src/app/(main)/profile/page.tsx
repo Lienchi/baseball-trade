@@ -27,6 +27,7 @@ export default function ProfilePage() {
   const [bio, setBio] = useState('')
   const [threads, setThreads] = useState('')
   const [instagram, setInstagram] = useState('')
+  const [lineId, setLineId] = useState('')
   const [socialError, setSocialError] = useState('')
   const [saving, setSaving] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
@@ -57,6 +58,7 @@ export default function ProfilePage() {
         setBio(profileData.bio ?? '')
         setThreads(profileData.social_links?.threads ?? '')
         setInstagram(profileData.social_links?.instagram ?? '')
+        setLineId(profileData.social_links?.line ?? '')
       }
 
       const { data: listingsData } = await supabase
@@ -88,10 +90,11 @@ export default function ProfilePage() {
     if (!profile) return
     setSocialError('')
 
-    const normalizedThreads = normalizeSocialHandle(threads)
-    const normalizedInstagram = normalizeSocialHandle(instagram)
-    if (normalizedThreads === null || normalizedInstagram === null) {
-      setSocialError('社群帳號只能包含英文、數字、句點與底線（不用填網址）')
+    const normalizedThreads = normalizeSocialHandle(threads, 'threads')
+    const normalizedInstagram = normalizeSocialHandle(instagram, 'instagram')
+    const normalizedLine = normalizeSocialHandle(lineId, 'line')
+    if (normalizedThreads === null || normalizedInstagram === null || normalizedLine === null) {
+      setSocialError('社群帳號只能包含英文、數字、句點與底線（LINE ID 可含連字號，不用填網址）')
       return
     }
 
@@ -99,12 +102,14 @@ export default function ProfilePage() {
     const social_links: Record<string, string> = {}
     if (normalizedThreads) social_links.threads = normalizedThreads
     if (normalizedInstagram) social_links.instagram = normalizedInstagram
+    if (normalizedLine) social_links.line = normalizedLine
 
     setSaving(true)
     await supabase.from('profiles').update({ bio, social_links }).eq('id', profile.id)
     setProfile({ ...profile, bio, social_links })
     setThreads(normalizedThreads)
     setInstagram(normalizedInstagram)
+    setLineId(normalizedLine)
     setEditing(false)
     setSaving(false)
   }
@@ -329,6 +334,13 @@ export default function ProfilePage() {
                   onChange={e => setInstagram(e.target.value)}
                   maxLength={31}
                 />
+                <input
+                  className="input"
+                  placeholder="LINE ID"
+                  value={lineId}
+                  onChange={e => setLineId(e.target.value)}
+                  maxLength={20}
+                />
               </div>
               {socialError && <p className="mt-1 text-xs text-clay-dark">{socialError}</p>}
               <div className="mt-2 flex gap-2">
@@ -354,8 +366,8 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* 社群帳號提醒：Threads / Instagram 任一有填就不提醒 */}
-      {!editing && !profile.social_links?.threads && !profile.social_links?.instagram && (
+      {/* 社群帳號提醒：任一平台有填就不提醒 */}
+      {!editing && !profile.social_links?.threads && !profile.social_links?.instagram && !profile.social_links?.line && (
         <div className="mt-4 flex items-center justify-between gap-3 rounded-md border-2 border-gold/30 bg-gold/5 px-4 py-3">
           <p className="text-sm text-scoreboard">
             還沒填社群帳號——讓買家看到你的社群，更容易建立信任、談成交易
