@@ -9,6 +9,9 @@ export function Footer() {
           <p className="mt-1">球迷自營交易平台，不經手金流，交易風險請自行評估</p>
         </div>
         <nav className="flex items-center gap-4 text-xs">
+          <Link href="/announcements" className="font-medium text-dugout hover:text-scoreboard hover:underline">
+            網站公告
+          </Link>
           <Link href="/terms" className="font-medium text-dugout hover:text-scoreboard hover:underline">
             網站規定
           </Link>

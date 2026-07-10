@@ -354,6 +354,21 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* 社群帳號提醒：缺哪個平台就提醒哪個，填了就自然消失 */}
+      {!editing && (!profile.social_links?.threads || !profile.social_links?.instagram) && (
+        <div className="mt-4 flex items-center justify-between gap-3 rounded-md border-2 border-gold/30 bg-gold/5 px-4 py-3">
+          <p className="text-sm text-scoreboard">
+            還沒填社群帳號——讓買家看到你的社群，更容易建立信任、談成交易
+          </p>
+          <button
+            className="btn-secondary flex-shrink-0 px-3 py-1.5 text-xs"
+            onClick={() => setEditing(true)}
+          >
+            去填寫
+          </button>
+        </div>
+      )}
+
       {/* 帳號安全 */}
       <div id="security" className="card mt-4 scroll-mt-20 p-5">
         <div className="flex items-center justify-between">
