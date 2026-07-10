@@ -151,6 +151,30 @@ export default function ConversationPage({ params }: Props) {
     }
     init()
 
+    // 補抓漏掉的訊息：realtime 斷線重連或手機切回前景時，把離線期間的訊息撈回來
+    const catchUp = async () => {
+      const { data } = await supabase
+        .from('messages')
+        .select('*, sender:profiles(id, username, avatar_url)')
+        .eq('conversation_id', params.id)
+        .order('created_at')
+      if (data) setMessages(data as Message[])
+      if (myIdRef.current) {
+        await supabase
+          .from('messages')
+          .update({ is_read: true })
+          .eq('conversation_id', params.id)
+          .neq('sender_id', myIdRef.current)
+          .eq('is_read', false)
+      }
+    }
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') catchUp()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
+    let hadSubscribed = false
     const channel = supabase
       .channel(`messages:${params.id}`)
       .on('postgres_changes', {
@@ -185,7 +209,15 @@ export default function ConversationPage({ params }: Props) {
           m.id === payload.new.id ? { ...m, is_read: payload.new.is_read } : m
         ))
       })
-      .subscribe()
+      .subscribe((status, err) => {
+        // 重連成功時補抓斷線期間的訊息；失敗時留下線索方便排查
+        if (status === 'SUBSCRIBED') {
+          if (hadSubscribed) catchUp()
+          hadSubscribed = true
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error('[messages realtime]', status, err?.message)
+        }
+      })
 
     // 同時監聽 conversations 的更新（對方確認時即時反映）
     const dealChannel = supabase
@@ -206,6 +238,7 @@ export default function ConversationPage({ params }: Props) {
       .subscribe()
 
     return () => {
+      document.removeEventListener('visibilitychange', onVisible)
       supabase.removeChannel(channel)
       supabase.removeChannel(dealChannel)
     }
