@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-chalk px-4">
+      <div className="flex min-h-dvh items-center justify-center bg-chalk px-4 pb-24 sm:pb-0">
         <div className="card w-full max-w-sm p-8 text-center">
           <span className="text-4xl">📧</span>
           <h1 className="mt-3 text-lg font-bold text-scoreboard">請確認你的 Email</h1>
@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-chalk px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-chalk px-4 pb-24 sm:pb-0">
       <div className="card w-full max-w-sm p-8">
         <h1 className="mb-1 text-lg font-bold text-scoreboard">忘記密碼</h1>
         <p className="mb-4 text-sm text-dugout">輸入註冊時使用的 Email，我們會寄送重設密碼連結給你。</p>

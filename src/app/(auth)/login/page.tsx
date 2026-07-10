@@ -32,7 +32,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-chalk px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-chalk px-4 pb-24 sm:pb-0">
       <div className="card w-full max-w-sm p-8">
 
         {error && (
