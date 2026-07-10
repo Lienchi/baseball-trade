@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
+import { AnnouncementBanner } from '@/components/layout/AnnouncementBanner'
 import { Providers } from './providers'
 import { Analytics } from '@vercel/analytics/react'
 
@@ -45,6 +46,7 @@ export default function RootLayout({
         <Providers>
           <Navbar />
           <main className="min-h-screen bg-chalk pt-16">
+            <AnnouncementBanner />
             {children}
           </main>
           <Footer />
