@@ -9,9 +9,11 @@ import type { Listing } from '@/types'
 
 interface Props {
   listing: Listing
+  /** 不顯示商品圖（首頁止血 Supabase egress 用），點進詳情才載圖 */
+  hideImage?: boolean
 }
 
-export function ListingCard({ listing }: Props) {
+export function ListingCard({ listing, hideImage = false }: Props) {
   const firstImage = listing.images?.[0]
   const team = getTeamColor(listing.team)
 
@@ -22,6 +24,7 @@ export function ListingCard({ listing }: Props) {
       className="card group flex flex-col overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-scoreboard/5"
     >
       {/* 圖片區 */}
+      {!hideImage && (
       <div className="relative aspect-[4/3] bg-dugout/10">
         {firstImage ? (
           <Image
@@ -46,6 +49,7 @@ export function ListingCard({ listing }: Props) {
           </div>
         )}
       </div>
+      )}
 
       {/* 內容區 */}
       <div className="flex flex-1 flex-col p-3">

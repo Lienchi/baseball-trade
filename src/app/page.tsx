@@ -2,7 +2,6 @@ import { createStaticClient } from '@/lib/supabase/static'
 import { ListingCard } from '@/components/listings/ListingCard'
 import { TicketListRow } from '@/components/listings/TicketListRow'
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowRight, Ticket, Shirt, Trophy, Star } from 'lucide-react'
 import type { Listing, Profile } from '@/types'
 import { todayTaipei } from '@/lib/utils'
@@ -84,13 +83,10 @@ export default async function HomePage() {
                     title={star.username}
                     className="flex w-14 flex-shrink-0 flex-col items-center transition hover:opacity-80"
                   >
-                    {star.avatar_url ? (
-                      <Image src={star.avatar_url} alt={star.username} width={48} height={48} unoptimized className="h-12 w-12 rounded-full border border-scoreboard/10 object-cover" />
-                    ) : (
-                      <span className="flex h-12 w-12 items-center justify-center rounded-full border border-scoreboard/10 bg-dugout/20 text-lg font-bold text-dugout">
-                        {star.username[0]?.toUpperCase()}
-                      </span>
-                    )}
+                    {/* 頭像暫以字母圈取代，省 Supabase egress（本期額度爆掉的止血措施） */}
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full border border-scoreboard/10 bg-dugout/20 text-lg font-bold text-dugout">
+                      {star.username[0]?.toUpperCase()}
+                    </span>
                     <span className="mt-1 text-[10px] leading-tight text-dugout">{star.deal_count} 次成交</span>
                     <span className="flex items-center gap-0.5 text-[10px] font-medium leading-tight text-gold">
                       <Star size={8} className="fill-gold" />
@@ -134,7 +130,7 @@ export default async function HomePage() {
               </div>
               <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-3">
                 {merchandise.map(listing => (
-                  <ListingCard key={listing.id} listing={listing} />
+                  <ListingCard key={listing.id} listing={listing} hideImage />
                 ))}
               </div>
             </section>
