@@ -10,7 +10,7 @@ import { todayTaipei } from '@/lib/utils'
 export const revalidate = 60
 
 const PREVIEW_COUNT = 6
-const DEAL_STARS_COUNT = 8
+const DEAL_STARS_COUNT = 10
 
 export default async function HomePage() {
   const supabase = createStaticClient()
