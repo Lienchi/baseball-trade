@@ -178,13 +178,22 @@ export default function EditListingPage() {
     let uploadedUrls: string[]
     try {
       uploadedUrls = await Promise.all(newImages.map(async file => {
-        const { blob, ext, contentType } = await compressImage(file, 1000)
-        const path = `listings/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+        // 同時產原圖（詳情頁，800px 夠用）與 400px 縮圖（列表頁），縮圖檔名加 -thumb
+        const [full, thumb] = await Promise.all([
+          compressImage(file, 800),
+          compressImage(file, 400, 0.75),
+        ])
+        const base = `listings/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}`
+        const path = `${base}.${full.ext}`
         const { error: uploadError } = await supabase.storage
           .from('images')
           // 檔名唯一，可安全快取一年，降低 Supabase egress
-          .upload(path, blob, { contentType, cacheControl: '31536000' })
-        if (uploadError) throw new Error(`${uploadError.message}（${contentType}，${(blob.size / 1048576).toFixed(2)}MB）`)
+          .upload(path, full.blob, { contentType: full.contentType, cacheControl: '31536000' })
+        if (uploadError) throw new Error(`${uploadError.message}（${full.contentType}，${(full.blob.size / 1048576).toFixed(2)}MB）`)
+        // 縮圖上傳失敗不擋流程：列表元件載不到縮圖會退回原圖
+        await supabase.storage
+          .from('images')
+          .upload(`${base}-thumb.${thumb.ext}`, thumb.blob, { contentType: thumb.contentType, cacheControl: '31536000' })
         return supabase.storage.from('images').getPublicUrl(path).data.publicUrl
       }))
     } catch (err) {
@@ -244,6 +253,8 @@ export default function EditListingPage() {
       .filter(url => !existingImages.includes(url))
       .map(storagePathFromUrl)
       .filter((p): p is string => p !== null)
+      // 連 -thumb 縮圖一起清（不存在的路徑 remove 會略過，不影響其他檔案）
+      .flatMap(p => [p, p.replace(/\.(\w+)$/, '-thumb.$1')])
     if (removedPaths.length > 0) {
       await supabase.storage.from('images').remove(removedPaths)
     }

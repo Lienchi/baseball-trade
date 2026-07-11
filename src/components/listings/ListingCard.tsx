@@ -1,9 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { MessageCircle, MapPin, Tag, Star, Calendar } from 'lucide-react'
-import { formatRelativeTime, formatDateWithWeekday, formatPrice, cn } from '@/lib/utils'
+import { formatRelativeTime, formatDateWithWeekday, formatPrice, cn, listingThumbUrl } from '@/lib/utils'
 import { getTeamColor, DEAL_METHOD_LABELS } from '@/types'
 import type { Listing } from '@/types'
 
@@ -15,6 +16,8 @@ interface Props {
 
 export function ListingCard({ listing, hideImage = false }: Props) {
   const firstImage = listing.images?.[0]
+  // 列表用 400px 縮圖省流量；縮圖不存在（補產前的舊圖）時 onError 退回原圖
+  const [imgSrc, setImgSrc] = useState(firstImage ? listingThumbUrl(firstImage) : undefined)
   const team = getTeamColor(listing.team)
 
   return (
@@ -26,11 +29,12 @@ export function ListingCard({ listing, hideImage = false }: Props) {
       {/* 圖片區 */}
       {!hideImage && (
       <div className="relative aspect-[4/3] bg-dugout/10">
-        {firstImage ? (
+        {imgSrc ? (
           <Image
-            src={firstImage}
+            src={imgSrc}
             alt={listing.title}
             fill
+            onError={() => { if (firstImage && imgSrc !== firstImage) setImgSrc(firstImage) }}
             className="object-cover transition group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />

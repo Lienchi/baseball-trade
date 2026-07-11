@@ -39,6 +39,8 @@ export function DeleteListingButton({ listingId, isAdmin = false }: Props) {
     const paths = ((listing?.images ?? []) as string[])
       .map(storagePathFromUrl)
       .filter((p): p is string => p !== null)
+      // 連 -thumb 縮圖一起清（不存在的路徑 remove 會略過，不影響其他檔案）
+      .flatMap(p => [p, p.replace(/\.(\w+)$/, '-thumb.$1')])
     if (paths.length > 0) {
       // 清檔失敗不擋流程（刊登已刪成功），最多留下孤兒檔案
       await supabase.storage.from('images').remove(paths)

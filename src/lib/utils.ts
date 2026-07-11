@@ -84,6 +84,12 @@ export function storagePathFromUrl(url: string): string | null {
   return url.slice(idx + marker.length).split('?')[0]
 }
 
+// 列表縮圖與原圖同路徑、檔名加 -thumb（上傳時一併產生，舊圖由批次腳本補產）。
+// 縮圖與原圖在同一瀏覽器產生，webp/jpeg fallback 行為一致，副檔名必相同。
+export function listingThumbUrl(url: string): string {
+  return url.replace(/\.(\w+)$/, '-thumb.$1')
+}
+
 function loadImageElement(file: File | Blob): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
