@@ -50,6 +50,7 @@ export default function ConversationPage({ params }: Props) {
   const [reviewComment, setReviewComment] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const composerRef = useRef<HTMLTextAreaElement>(null)
   // realtime callback 是在 effect 建立時綁定的，用 ref 拿到最新的自己 id
   const myIdRef = useRef<string | null>(null)
 
@@ -256,7 +257,11 @@ export default function ConversationPage({ params }: Props) {
     setSending(true)
     try {
       const { error } = await insertMessage(content.trim())
-      if (!error) setContent('')
+      if (!error) {
+        setContent('')
+        // 清空後把 textarea 高度縮回單行
+        if (composerRef.current) composerRef.current.style.height = 'auto'
+      }
     } finally {
       setSending(false)
     }
@@ -481,7 +486,7 @@ export default function ConversationPage({ params }: Props) {
                     <img src={msg.image_url} alt="圖片" className="max-h-48 max-w-full rounded-md" />
                   </a>
                 ) : (
-                  <div className={`rounded-2xl px-3 py-2 text-sm ${
+                  <div className={`whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-sm ${
                     isMe
                       ? 'bg-field text-white rounded-tr-sm'
                       : 'bg-dugout/10 text-scoreboard rounded-tl-sm'
@@ -502,15 +507,25 @@ export default function ConversationPage({ params }: Props) {
       </div>
 
       <div className="border-t border-scoreboard/10 bg-surface p-3">
-        <div className="flex items-center gap-2">
-          <input
-            className="input flex-1"
+        <div className="flex items-end gap-2">
+          <textarea
+            ref={composerRef}
+            className="input max-h-32 flex-1 resize-none"
+            rows={1}
             placeholder="輸入訊息..."
             value={content}
-            onChange={e => setContent(e.target.value)}
+            onChange={e => {
+              setContent(e.target.value)
+              // 隨內容自動長高，最多 max-h-32
+              e.target.style.height = 'auto'
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 128)}px`
+            }}
             onKeyDown={e => {
+              // 觸控裝置 Enter 一律換行，送出靠按鈕
+              if (window.matchMedia('(pointer: coarse)').matches) return
               // isComposing：中文輸入法選字的 Enter 不能當送出
               if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && !sending) {
+                e.preventDefault()
                 sendMessage()
               }
             }}
