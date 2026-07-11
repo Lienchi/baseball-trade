@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import { ListingCard } from '@/components/listings/ListingCard'
 import { ReviewList } from '@/components/ReviewList'
 import { SocialLinkRow } from '@/components/SocialLinkRow'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { getCroppedImage, formatDate, normalizeSocialHandle, isPastGameDate, isSuspendedUntil } from '@/lib/utils'
 import Link from 'next/link'
 import { Camera, Megaphone } from 'lucide-react'
@@ -191,7 +192,22 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <p className="text-sm text-dugout">載入中...</p>
+        {/* 骨架屏：對齊實際版型（個人資訊卡 + 兩張區塊卡），避免載入完成時版面跳動 */}
+        <div className="card flex items-start gap-4 p-4">
+          <Skeleton className="h-20 w-20 flex-shrink-0 rounded-full" />
+          <div className="flex-1 space-y-2 py-1">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-4 w-40" />
+          </div>
+        </div>
+        {[0, 1].map(i => (
+          <div key={i} className="card mt-4 space-y-3 p-4">
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
+        ))}
       </div>
     )
   }
@@ -258,7 +274,7 @@ export default function ProfilePage() {
       )}
 
       {/* 個人資訊卡 */}
-      <div className="card flex items-start gap-4 p-5">
+      <div className="card flex items-start gap-4 p-4">
         {/* 頭像 */}
         <div className="relative flex-shrink-0">
           <button
@@ -382,7 +398,7 @@ export default function ProfilePage() {
       )}
 
       {/* 帳號安全 */}
-      <div id="security" className="card mt-4 scroll-mt-20 p-5">
+      <div id="security" className="card mt-4 scroll-mt-20 p-4">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-base text-scoreboard">帳號安全</h2>
           {!changingPassword && (
@@ -450,7 +466,7 @@ export default function ProfilePage() {
       </div>
 
       {/* 通知設定 */}
-      <div className="card mt-4 p-5">
+      <div className="card mt-4 p-4">
         <h2 className="font-display text-base text-scoreboard">通知設定</h2>
         <label className="mt-3 flex cursor-pointer items-center justify-between gap-3">
           <div>
@@ -472,7 +488,7 @@ export default function ProfilePage() {
 
       {/* 站務管理：僅管理員看得到 */}
       {profile.is_admin && (
-        <div className="card mt-4 p-5">
+        <div className="card mt-4 p-4">
           <h2 className="font-display text-base text-scoreboard">站務管理</h2>
           <Link
             href="/admin/announcements"

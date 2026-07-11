@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { formatRelativeTime } from '@/lib/utils'
 import { Send, CheckCircle2, Circle, Star } from 'lucide-react'
+import { Skeleton } from '@/components/ui/Skeleton'
 import type { Message, Profile } from '@/types'
 
 interface Props {
@@ -34,6 +35,7 @@ interface DealState {
 export default function ConversationPage({ params }: Props) {
   const supabase = createClient()
   const [messages, setMessages] = useState<Message[]>([])
+  const [loadingMessages, setLoadingMessages] = useState(true)
   const [me, setMe] = useState<Profile | null>(null)
   const [content, setContent] = useState('')
   const [sending, setSending] = useState(false)
@@ -88,6 +90,7 @@ export default function ConversationPage({ params }: Props) {
         .eq('conversation_id', params.id)
         .order('created_at')
       if (data) setMessages(data as Message[])
+      setLoadingMessages(false)
 
       await supabase
         .from('messages')
@@ -434,6 +437,22 @@ export default function ConversationPage({ params }: Props) {
       <div className="flex-1 overflow-y-auto p-4">
         {/* justify-end：訊息少時貼齊底部（靠近輸入框），像一般聊天室由下往上長 */}
         <div className="flex min-h-full flex-col justify-end space-y-3">
+        {/* 骨架屏：模擬左右交錯的訊息泡泡 */}
+        {loadingMessages && messages.length === 0 && (
+          <>
+            <div className="flex gap-2">
+              <Skeleton className="h-8 w-8 flex-shrink-0 rounded-full" />
+              <Skeleton className="h-10 w-48 rounded-2xl" />
+            </div>
+            <div className="flex flex-row-reverse gap-2">
+              <Skeleton className="h-10 w-40 rounded-2xl" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-8 w-8 flex-shrink-0 rounded-full" />
+              <Skeleton className="h-10 w-32 rounded-2xl" />
+            </div>
+          </>
+        )}
         {messages.map(msg => {
           const isMe = msg.sender_id === me?.id
           return (

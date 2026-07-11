@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { formatRelativeTime } from '@/lib/utils'
 import { MessageCircle } from 'lucide-react'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 interface ConversationRow {
   id: string
@@ -79,7 +80,22 @@ export default function MessagesListPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8">
-        <p className="text-sm text-dugout">載入中...</p>
+        {/* 骨架屏：標題 + 對話列，對齊實際版型避免載入完成時跳動 */}
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-9 w-9 rounded-full" />
+          <Skeleton className="h-6 w-24" />
+        </div>
+        <div className="mt-6 space-y-2">
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} className="card flex items-center gap-3 p-4">
+              <Skeleton className="h-11 w-11 flex-shrink-0 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-3 w-2/3" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
