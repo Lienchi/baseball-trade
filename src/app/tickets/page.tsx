@@ -14,6 +14,22 @@ export const metadata = {
 
 const PAGE_SIZE = 20
 
+// 列舉範圍內每一天（YYYY-MM-DD），供 overlaps 篩選；日期無效或範圍過大時回傳 null，
+// 交由 game_date / last_game_date 的區間條件把關
+const MAX_RANGE_DAYS = 400
+function enumerateDates(from: string, to: string): string[] | null {
+  const start = new Date(`${from}T00:00:00Z`)
+  const end = new Date(`${to}T00:00:00Z`)
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return null
+  const days = (end.getTime() - start.getTime()) / 86400000 + 1
+  if (days > MAX_RANGE_DAYS) return null
+  const dates: string[] = []
+  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+    dates.push(d.toISOString().slice(0, 10))
+  }
+  return dates
+}
+
 interface SearchParams {
   page?: string
   team?: string
@@ -33,6 +49,15 @@ export default async function TicketsPage({
   const from = (currentPage - 1) * PAGE_SIZE
   const to = from + PAGE_SIZE - 1
 
+  // 搜尋日期夾限在「今天 ~ 今年年底」（與篩選列的 min/max 一致），
+  // 手動改 URL 超出範圍時直接夾回，避免無意義的大範圍查詢
+  const today = todayTaipei()
+  const yearEnd = `${today.slice(0, 4)}-12-31`
+  const clampDate = (d: string | undefined) =>
+    d ? (d < today ? today : d > yearEnd ? yearEnd : d) : undefined
+  const dateFrom = clampDate(searchParams.date_from)
+  const dateTo = clampDate(searchParams.date_to)
+
   let query = supabase
     .from('listings')
     .select(`
@@ -47,10 +72,15 @@ export default async function TicketsPage({
 
   if (searchParams.team) query = query.eq('team', searchParams.team)
   if (searchParams.q) query = query.ilike('title', `%${searchParams.q}%`)
-  // 場次日期範圍 [game_date, last_game_date] 與篩選範圍重疊即符合，
-  // 避免多場次刊登因「最早場次在範圍外」被漏掉
-  if (searchParams.date_from) query = query.gte('last_game_date', searchParams.date_from)
-  if (searchParams.date_to) query = query.lte('game_date', searchParams.date_to)
+  // 日期範圍篩選：單邊條件用 game_date / last_game_date 即為精準判斷；
+  // 兩邊都有時改檢查 ticket_items 的實際場次日期（game_dates computed column），
+  // 避免多場次刊登（如 7/10、9/17）的中間空檔（8/1~8/5）被區間重疊誤含
+  if (dateFrom) query = query.gte('last_game_date', dateFrom)
+  if (dateTo) query = query.lte('game_date', dateTo)
+  if (dateFrom && dateTo) {
+    const dates = enumerateDates(dateFrom, dateTo)
+    if (dates) query = query.overlaps('game_dates', dates)
+  }
 
   // 排序
   switch (searchParams.sort) {

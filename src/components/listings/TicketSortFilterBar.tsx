@@ -4,8 +4,12 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useCallback } from 'react'
 import { ArrowUpDown, Search, X } from 'lucide-react'
 import { TEAM_FILTER_ORDER, getTeamShortName } from '@/types'
+import { todayTaipei } from '@/lib/utils'
 
 export function TicketSortFilterBar() {
+  // 可搜尋的比賽日期：今天（過期場次不會顯示）到今年年底（球季範圍）
+  const minDate = todayTaipei()
+  const maxDate = `${minDate.slice(0, 4)}-12-31`
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -74,6 +78,8 @@ export function TicketSortFilterBar() {
               required
               className={`input w-[5.5rem] min-w-0 px-1.5 text-xs sm:w-[6.5rem] sm:px-2 ${currentDateFrom ? 'pr-6' : ''}`}
               value={currentDateFrom}
+              min={minDate}
+              max={currentDateTo || maxDate}
               onChange={e => update('date_from', e.target.value)}
             />
             {currentDateFrom && (
@@ -94,6 +100,8 @@ export function TicketSortFilterBar() {
               required
               className={`input w-[5.5rem] min-w-0 px-1.5 text-xs sm:w-[6.5rem] sm:px-2 ${currentDateTo ? 'pr-6' : ''}`}
               value={currentDateTo}
+              min={currentDateFrom || minDate}
+              max={maxDate}
               onChange={e => update('date_to', e.target.value)}
             />
             {currentDateTo && (
