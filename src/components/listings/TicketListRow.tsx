@@ -17,6 +17,7 @@ export function TicketListRow({ listing }: Props) {
   return (
     <Link
       href={`/listings/${listing.id}`}
+      prefetch={false}
       className={cn(
         'card group flex items-center gap-4 border-l-4 px-4 py-2 transition-all hover:shadow-md',
         team.border

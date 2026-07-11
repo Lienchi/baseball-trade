@@ -18,6 +18,7 @@ export function ListingCard({ listing }: Props) {
   return (
     <Link
       href={`/listings/${listing.id}`}
+      prefetch={false}
       className="card group flex flex-col overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-scoreboard/5"
     >
       {/* 圖片區 */}
