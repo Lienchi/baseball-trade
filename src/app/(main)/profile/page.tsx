@@ -173,7 +173,8 @@ export default function ProfilePage() {
       const path = `avatars/${profile.id}.${ext}`
       const { error } = await supabase.storage
         .from('images')
-        .upload(path, blob, { contentType, upsert: true })
+        // URL 帶 ?t= 時間戳破快取，換頭像不受長快取影響
+        .upload(path, blob, { contentType, upsert: true, cacheControl: '31536000' })
 
       if (!error) {
         const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)

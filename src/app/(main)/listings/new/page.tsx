@@ -155,7 +155,8 @@ function NewListingForm() {
         const path = `listings/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
         const { error: uploadError } = await supabase.storage
           .from('images')
-          .upload(path, blob, { contentType })
+          // 檔名唯一，可安全快取一年，降低 Supabase egress
+          .upload(path, blob, { contentType, cacheControl: '31536000' })
         if (uploadError) throw new Error(`${uploadError.message}（${contentType}，${(blob.size / 1048576).toFixed(2)}MB）`)
         return supabase.storage.from('images').getPublicUrl(path).data.publicUrl
       }))
