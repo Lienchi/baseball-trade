@@ -169,7 +169,8 @@ export default function ProfilePage() {
     setUploadingAvatar(true)
 
     try {
-      const { blob, ext, contentType } = await getCroppedImage(cropFile, croppedAreaPixels, 400, 0.85)
+      // 最大顯示 96 CSS px（個人頁 h-24），3x Retina 需 288 實體 px；再大只是流量
+      const { blob, ext, contentType } = await getCroppedImage(cropFile, croppedAreaPixels, 288, 0.8)
       const path = `avatars/${profile.id}.${ext}`
       const { error } = await supabase.storage
         .from('images')
