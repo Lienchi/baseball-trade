@@ -137,6 +137,35 @@ async function loadSafeCanvasSource(file: File | Blob): Promise<{
 }
 
 // react-easy-crop 給的 pixel crop 範圍，依裁切框比例輸出（最長邊 = outputSizePx）
+// 不支援 webp 輸出的瀏覽器（如部分 iOS Safari），toBlob('image/webp') 不一定回 null——
+// 規格允許 fallback 成 PNG blob（超大且不吃 quality），所以必須驗 blob.type 而不是只驗 null，
+// 否則會把肥 PNG 標成 .webp 上傳（實際發生過：800px 卻 1.8MB）
+function canvasToCompressedBlob(
+  canvas: HTMLCanvasElement,
+  quality: number,
+  failMessage: string
+): Promise<{ blob: Blob; ext: string; contentType: string }> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      blob => {
+        if (blob && blob.type === 'image/webp') {
+          resolve({ blob, ext: 'webp', contentType: 'image/webp' })
+          return
+        }
+        canvas.toBlob(
+          fallbackBlob => fallbackBlob && fallbackBlob.type === 'image/jpeg'
+            ? resolve({ blob: fallbackBlob, ext: 'jpg', contentType: 'image/jpeg' })
+            : reject(new Error(failMessage)),
+          'image/jpeg',
+          quality
+        )
+      },
+      'image/webp',
+      quality
+    )
+  })
+}
+
 export async function getCroppedImage(
   file: File,
   crop: { x: number; y: number; width: number; height: number },
@@ -155,25 +184,7 @@ export async function getCroppedImage(
       crop.x * scale, crop.y * scale, crop.width * scale, crop.height * scale,
       0, 0, canvas.width, canvas.height
     )
-    // 部分手機瀏覽器（如較舊版 iOS Safari）canvas 不支援輸出 webp，toBlob 會回傳 null，
-    // 這裡失敗時改用 jpeg 再試一次，避免手機上傳直接失敗
-    canvas.toBlob(
-      blob => {
-        if (blob) {
-          resolve({ blob, ext: 'webp', contentType: 'image/webp' })
-          return
-        }
-        canvas.toBlob(
-          fallbackBlob => fallbackBlob
-            ? resolve({ blob: fallbackBlob, ext: 'jpg', contentType: 'image/jpeg' })
-            : reject(new Error('裁切失敗')),
-          'image/jpeg',
-          quality
-        )
-      },
-      'image/webp',
-      quality
-    )
+    resolve(canvasToCompressedBlob(canvas, quality, '裁切失敗'))
   })
 }
 
@@ -210,31 +221,11 @@ export async function compressImage(
   quality = 0.8
 ): Promise<{ blob: Blob; ext: string; contentType: string }> {
   const { source, width, height } = await loadSafeCanvasSource(file)
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas')
-    const ratio = Math.min(maxWidthPx / width, 1)
-    canvas.width = width * ratio
-    canvas.height = height * ratio
-    const ctx = canvas.getContext('2d')!
-    ctx.drawImage(source, 0, 0, canvas.width, canvas.height)
-    // 部分手機瀏覽器（如較舊版 iOS Safari）canvas 不支援輸出 webp，toBlob 會回傳 null，
-    // 這裡失敗時改用 jpeg 再試一次，避免手機上傳直接失敗
-    canvas.toBlob(
-      blob => {
-        if (blob) {
-          resolve({ blob, ext: 'webp', contentType: 'image/webp' })
-          return
-        }
-        canvas.toBlob(
-          fallbackBlob => fallbackBlob
-            ? resolve({ blob: fallbackBlob, ext: 'jpg', contentType: 'image/jpeg' })
-            : reject(new Error('壓縮失敗')),
-          'image/jpeg',
-          quality
-        )
-      },
-      'image/webp',
-      quality
-    )
-  })
+  const canvas = document.createElement('canvas')
+  const ratio = Math.min(maxWidthPx / width, 1)
+  canvas.width = width * ratio
+  canvas.height = height * ratio
+  const ctx = canvas.getContext('2d')!
+  ctx.drawImage(source, 0, 0, canvas.width, canvas.height)
+  return canvasToCompressedBlob(canvas, quality, '壓縮失敗')
 }
