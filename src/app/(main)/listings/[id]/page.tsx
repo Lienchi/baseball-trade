@@ -14,6 +14,7 @@ import { ReportListingButton } from '@/components/listings/ReportListingButton'
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, Calendar, Package, Users, Clock, ShoppingBag } from 'lucide-react'
+import { BackToListLink } from '@/components/listings/BackToListLink'
 import { DEAL_METHOD_LABELS } from '@/types'
 import type { Listing } from '@/types'
 
@@ -118,6 +119,10 @@ export default async function ListingDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
+      <BackToListLink
+        href={l.type === 'ticket' ? '/tickets' : '/merchandise'}
+        label={l.type === 'ticket' ? '返回球票列表' : '返回周邊列表'}
+      />
       {l.status === 'removed' && (
         <div className="mb-6 rounded-md border-2 border-clay/30 bg-clay/5 px-4 py-3 text-sm text-clay">
           <p className="font-bold">此刊登已由管理員下架</p>
