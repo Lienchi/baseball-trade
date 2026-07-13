@@ -36,10 +36,19 @@ export default function RegisterPage() {
       return
     }
 
+    // DB trigger 存的是 trim 後的名稱，這裡也用 trim 後的值查重複與送出才對得上
+    const trimmedUsername = username.trim()
+
+    if (trimmedUsername.length < 2) {
+      setError('使用者名稱至少需要 2 個字元')
+      setLoading(false)
+      return
+    }
+
     const { data: existing } = await supabase
       .from('profiles')
       .select('id')
-      .eq('username', username)
+      .eq('username', trimmedUsername)
       .maybeSingle()
 
     if (existing) {
@@ -52,7 +61,7 @@ export default function RegisterPage() {
     const { data: reserved } = await supabase
       .from('reserved_usernames')
       .select('username')
-      .eq('username', username.trim().toLowerCase())
+      .eq('username', trimmedUsername.toLowerCase())
       .maybeSingle()
 
     if (reserved) {
@@ -65,7 +74,7 @@ export default function RegisterPage() {
       email,
       password,
       options: {
-        data: { username },
+        data: { username: trimmedUsername },
       },
     })
 
