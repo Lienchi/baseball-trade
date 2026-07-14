@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { MessageCircle, MapPin, Tag, Star, Calendar } from 'lucide-react'
 import { formatRelativeTime, formatDateWithWeekday, formatPrice, cn, listingThumbUrl } from '@/lib/utils'
-import { getTeamColor, DEAL_METHOD_LABELS } from '@/types'
+import { getTeamColor, DEAL_METHOD_LABELS, INTENT_LABELS } from '@/types'
 import type { Listing } from '@/types'
 
 interface Props {
@@ -62,7 +62,15 @@ export function ListingCard({ listing, hideImage = false }: Props) {
             {listing.team}
           </span>
         )}
-        <p className="line-clamp-2 text-sm font-semibold text-scoreboard">{listing.title}</p>
+        <p className="line-clamp-2 text-sm font-semibold text-scoreboard">
+          <span className={cn(
+            'mr-1.5 inline-block rounded-sm px-1 py-px align-text-bottom text-[11px] font-bold leading-tight',
+            listing.intent === 'wanted' ? 'bg-gold/15 text-gold' : 'bg-field/10 text-field dark:bg-blue-400/15 dark:text-blue-400'
+          )}>
+            {INTENT_LABELS[listing.intent ?? 'sell']}
+          </span>
+          {listing.title}
+        </p>
 
         {/* 品項清單：周邊用名稱、球票用日期＋座位（最多 3 筆，其餘收合），跟球票列表卡一致 */}
         {(listing.ticket_items?.length ?? 0) > 0 && (

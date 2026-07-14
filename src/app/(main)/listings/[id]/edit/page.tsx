@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { compressImage, storagePathFromUrl } from '@/lib/utils'
 import { CPBL_TEAMS, DEAL_METHOD_LABELS, DEAL_METHOD_OPTIONS, MAX_ITEMS_PER_LISTING } from '@/types'
-import type { DealMethod, TicketItem } from '@/types'
+import type { DealMethod, ListingIntent, TicketItem } from '@/types'
 import { Upload, X, Ticket, Shirt, Plus, Trash2, EyeOff } from 'lucide-react'
 import { RedactModal } from '@/components/listings/RedactModal'
 
@@ -37,6 +37,7 @@ export default function EditListingPage() {
     title: '',
     description: '',
     type: 'ticket' as 'ticket' | 'merchandise',
+    intent: 'sell' as ListingIntent,
     deal_methods: [] as DealMethod[],
     location: '',
     team: '',
@@ -80,6 +81,7 @@ export default function EditListingPage() {
         title: listing.title,
         description: listing.description,
         type: listing.type,
+        intent: listing.intent ?? 'sell',
         deal_methods: listing.deal_methods ?? [],
         location: listing.location ?? '',
         team: listing.team ?? '',
@@ -164,7 +166,8 @@ export default function EditListingPage() {
       setError('請至少選擇一種交易方式')
       return
     }
-    if (form.type === 'ticket' && existingImages.length + newImages.length === 0) {
+    // 徵求刊登手上還沒有票，免附圖
+    if (form.type === 'ticket' && form.intent === 'sell' && existingImages.length + newImages.length === 0) {
       setError('刊登球票必須附上票券照片（可用遮蔽功能隱藏個人資訊）')
       return
     }
@@ -232,6 +235,7 @@ export default function EditListingPage() {
         title: form.title,
         description: form.description,
         type: form.type,
+        intent: form.intent,
         deal_methods: form.deal_methods,
         location: form.location || null,
         team: form.team || null,
@@ -312,6 +316,25 @@ export default function EditListingPage() {
                 {t === 'ticket' ? <Ticket size={16} /> : <Shirt size={16} />}
                 {t === 'ticket' ? '球票' : '周邊商品'}
               </span>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-3">
+          {(['sell', 'wanted'] as const).map(i => (
+            <button
+              key={i}
+              type="button"
+              className={`flex-1 rounded-md border-2 py-2 text-sm font-bold transition ${
+                form.intent === i
+                  ? i === 'sell'
+                    ? 'border-field bg-field/10 text-field'
+                    : 'border-gold bg-gold/10 text-gold'
+                  : 'border-scoreboard/10 text-dugout hover:border-scoreboard/20'
+              }`}
+              onClick={() => set('intent', i)}
+            >
+              {i === 'sell' ? '出售' : '徵求'}
             </button>
           ))}
         </div>
@@ -464,9 +487,9 @@ export default function EditListingPage() {
         <div>
           <label className="mb-1 block text-sm font-medium text-scoreboard">
             商品圖片（最多 5 張）
-            {form.type === 'ticket' && <span className="ml-1 text-clay">*必填</span>}
+            {form.type === 'ticket' && form.intent === 'sell' && <span className="ml-1 text-clay">*必填</span>}
           </label>
-          {form.type === 'ticket' && (
+          {form.type === 'ticket' && form.intent === 'sell' && (
             <p className="mb-2 text-xs text-dugout">
               刊登球票必須附上票券照片，上傳後可用遮蔽功能隱藏姓名、條碼等個人資訊
             </p>

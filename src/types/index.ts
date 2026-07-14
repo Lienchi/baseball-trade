@@ -41,6 +41,14 @@ export const DEAL_METHOD_OPTIONS: Record<ListingType, DealMethod[]> = {
   merchandise: ['meetup', 'mail'],
 }
 
+// 刊登意向：出售或徵求（徵求的球票免附圖）
+export type ListingIntent = 'sell' | 'wanted'
+
+export const INTENT_LABELS: Record<ListingIntent, string> = {
+  sell: '售',
+  wanted: '徵',
+}
+
 // 同時上架（active）數量上限，防黃牛/洗版；DB 端另有 trigger 強制
 export const LISTING_LIMITS: Record<ListingType, number> = {
   ticket: 3,
@@ -67,6 +75,7 @@ export interface Listing {
   description: string
   type: ListingType
   status: ListingStatus
+  intent: ListingIntent
   price: number | null
   is_negotiable: boolean
   deal_methods: DealMethod[]

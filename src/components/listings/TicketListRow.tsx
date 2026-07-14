@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, MessageCircle, Star } from 'lucide-react'
 import { formatDateWithWeekday, formatPrice, formatRelativeTime, cn } from '@/lib/utils'
-import { getTeamColor } from '@/types'
+import { getTeamColor, INTENT_LABELS } from '@/types'
 import type { Listing } from '@/types'
 
 interface Props {
@@ -38,6 +38,12 @@ export function TicketListRow({ listing }: Props) {
           <span className="badge mb-1 bg-clay/10 text-clay-dark">已售出</span>
         )}
         <p className="truncate text-sm font-semibold text-scoreboard">
+          <span className={cn(
+            'mr-1.5 inline-block rounded-sm px-1 py-px align-text-bottom text-[11px] font-bold leading-tight',
+            listing.intent === 'wanted' ? 'bg-gold/15 text-gold' : 'bg-field/10 text-field dark:bg-blue-400/15 dark:text-blue-400'
+          )}>
+            {INTENT_LABELS[listing.intent ?? 'sell']}
+          </span>
           {listing.title}
         </p>
         {/* 場次清單：日期 + 座位（最多 3 筆，其餘收合） */}
