@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createStaticClient } from '@/lib/supabase/static'
 import { notFound } from 'next/navigation'
 import { ListingCard } from '@/components/listings/ListingCard'
 import Image from 'next/image'
@@ -6,15 +6,25 @@ import { CalendarDays, Package, Handshake, MessageSquareQuote } from 'lucide-rea
 import { formatDate, todayTaipei } from '@/lib/utils'
 import { ReviewList } from '@/components/ReviewList'
 import { SocialLinkRow } from '@/components/SocialLinkRow'
-import { SuspendUserButton } from '@/components/SuspendUserButton'
+import { AdminSuspendControl } from '@/components/AdminSuspendControl'
 import type { Listing, Profile } from '@/types'
+
+// 個人頁只查公開資料（管理員停權鈕由 AdminSuspendControl 客端判斷），
+// ISR 快取 60 秒吸收真人與爬蟲流量
+export const revalidate = 60
+
+// 空陣列＝build 不預產任何頁，但宣告此路由為靜態候選：
+// 每個 user id 首次被訪問時渲染，之後照 revalidate 快取
+export function generateStaticParams() {
+  return []
+}
 
 interface Props {
   params: { id: string }
 }
 
 export async function generateMetadata({ params }: Props) {
-  const supabase = createClient()
+  const supabase = createStaticClient()
   const { data: profile } = await supabase
     .from('profiles')
     .select('username')
@@ -29,10 +39,10 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export default async function UserProfilePage({ params }: Props) {
-  const supabase = createClient()
+  const supabase = createStaticClient()
 
   // 個人資料與刊登互不依賴，平行查詢（評價由 ReviewList 客端分頁載入）
-  const [{ data: profile }, { data: rawListings }, { data: { user } }] = await Promise.all([
+  const [{ data: profile }, { data: rawListings }] = await Promise.all([
     supabase
       .from('profiles')
       .select('id, username, avatar_url, bio, social_links, rating, rating_count, deal_count, created_at, suspended_until, suspended_reason')
@@ -50,22 +60,10 @@ export default async function UserProfilePage({ params }: Props) {
       // 球票場次全過期即時消失（周邊 last_game_date 為 null 不受影響）
       .or(`last_game_date.is.null,last_game_date.gte.${todayTaipei()}`)
       .order('created_at', { ascending: false }),
-    supabase.auth.getUser(),
   ])
 
   if (!profile) notFound()
   const p = profile as Profile
-
-  // 停權操作只給管理者（且不能對自己）；欄位保護由 DB trigger 強制
-  let viewerIsAdmin = false
-  if (user && user.id !== p.id) {
-    const { data: viewer } = await supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single()
-    viewerIsAdmin = (viewer as any)?.is_admin === true
-  }
 
   const listings = (rawListings?.map(listing => ({
     ...listing,
@@ -121,13 +119,11 @@ export default async function UserProfilePage({ params }: Props) {
             {p.bio || '這個人很神秘，還沒留下自我介紹'}
           </p>
           <SocialLinkRow socialLinks={p.social_links} />
-          {viewerIsAdmin && (
-            <SuspendUserButton
-              userId={p.id}
-              suspendedUntil={p.suspended_until}
-              suspendedReason={p.suspended_reason}
-            />
-          )}
+          <AdminSuspendControl
+            userId={p.id}
+            suspendedUntil={p.suspended_until}
+            suspendedReason={p.suspended_reason}
+          />
         </div>
       </div>
 
