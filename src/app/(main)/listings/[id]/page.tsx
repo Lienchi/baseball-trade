@@ -141,7 +141,7 @@ export default async function ListingDetailPage({ params }: Props) {
           <div className="mt-6">
             <h1 className="font-display text-xl text-scoreboard">
               <span className={`mr-2 inline-block rounded-sm px-1.5 py-0.5 align-middle text-sm font-bold leading-tight ${
-                l.intent === 'wanted' ? 'bg-gold/25 text-gold' : 'bg-field/10 text-field dark:bg-blue-400/15 dark:text-blue-400'
+                l.intent === 'wanted' ? 'bg-gold/15 text-gold' : 'bg-field/10 text-field dark:bg-blue-400/15 dark:text-blue-400'
               }`}>
                 {l.intent === 'wanted' ? '徵求' : '出售'}
               </span>
