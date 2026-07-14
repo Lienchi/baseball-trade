@@ -15,7 +15,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, Calendar, Package, Users, Clock, ShoppingBag } from 'lucide-react'
 import { BackToListLink } from '@/components/listings/BackToListLink'
-import { DEAL_METHOD_LABELS, INTENT_LABELS } from '@/types'
+import { DEAL_METHOD_LABELS } from '@/types'
 import type { Listing } from '@/types'
 
 interface Props {
@@ -141,9 +141,9 @@ export default async function ListingDetailPage({ params }: Props) {
           <div className="mt-6">
             <h1 className="font-display text-xl text-scoreboard">
               <span className={`mr-2 inline-block rounded-sm px-1.5 py-0.5 align-middle text-sm font-bold leading-tight ${
-                l.intent === 'wanted' ? 'bg-gold/15 text-gold' : 'bg-field/10 text-field dark:bg-blue-400/15 dark:text-blue-400'
+                l.intent === 'wanted' ? 'bg-gold/25 text-gold' : 'bg-field/10 text-field dark:bg-blue-400/15 dark:text-blue-400'
               }`}>
-                {INTENT_LABELS[l.intent ?? 'sell']}
+                {l.intent === 'wanted' ? '徵求' : '出售'}
               </span>
               {l.title}
             </h1>

@@ -39,7 +39,7 @@ const config: Config = {
         surface: 'rgb(var(--color-surface) / <alpha-value>)',
         gold: {
           DEFAULT: '#D4A437',  // 冠軍金 — 評分 / 稀有強調
-          dark: '#9A7420',     // 深金 — 淺色底上需要更高對比時（如徵求徽章）
+          dark: '#B8892B',     // 深金 — 淺色底上需要更高對比時（如徵求徽章）
         },
 
         // 中華職棒六隊代表色
