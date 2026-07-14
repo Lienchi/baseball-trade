@@ -37,7 +37,10 @@ const config: Config = {
         scoreboard: 'rgb(var(--color-scoreboard) / <alpha-value>)',
         dugout: 'rgb(var(--color-dugout) / <alpha-value>)',
         surface: 'rgb(var(--color-surface) / <alpha-value>)',
-        gold: '#D4A437',        // 冠軍金 — 評分 / 稀有強調
+        gold: {
+          DEFAULT: '#D4A437',  // 冠軍金 — 評分 / 稀有強調
+          dark: '#9A7420',     // 深金 — 淺色底上需要更高對比時（如徵求徽章）
+        },
 
         // 中華職棒六隊代表色
         brother: '#F2C12E',     // 中信兄弟 — 黃色

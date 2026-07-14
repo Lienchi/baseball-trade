@@ -40,7 +40,7 @@ export function TicketListRow({ listing }: Props) {
         <p className="truncate text-sm font-semibold text-scoreboard">
           <span className={cn(
             'mr-1.5 inline-block rounded-sm px-1 py-px align-text-bottom text-[11px] font-bold leading-tight',
-            listing.intent === 'wanted' ? 'bg-gold/15 text-gold' : 'bg-field/10 text-field dark:bg-blue-400/15 dark:text-blue-400'
+            listing.intent === 'wanted' ? 'bg-gold/15 text-gold-dark dark:text-gold' : 'bg-field/10 text-field dark:bg-blue-400/15 dark:text-blue-400'
           )}>
             {INTENT_LABELS[listing.intent ?? 'sell']}
           </span>
