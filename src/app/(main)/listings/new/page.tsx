@@ -259,7 +259,7 @@ function NewListingForm() {
               type="button"
               className={`flex-1 rounded-md border-2 py-3 text-sm font-bold transition ${
                 form.type === t
-                  ? 'border-field bg-field/10 text-field'
+                  ? 'border-field bg-field/10 text-field dark:border-blue-400 dark:bg-blue-400/15 dark:text-blue-400'
                   : 'border-scoreboard/10 text-dugout hover:border-scoreboard/20'
               }`}
               onClick={() => setType(t)}
@@ -280,7 +280,7 @@ function NewListingForm() {
               className={`flex-1 rounded-md border-2 py-2 text-sm font-bold transition ${
                 form.intent === i
                   ? i === 'sell'
-                    ? 'border-field bg-field/10 text-field'
+                    ? 'border-field bg-field/10 text-field dark:border-blue-400 dark:bg-blue-400/15 dark:text-blue-400'
                     : 'border-gold bg-gold/10 text-gold'
                   : 'border-scoreboard/10 text-dugout hover:border-scoreboard/20'
               }`}
@@ -420,7 +420,7 @@ function NewListingForm() {
                 type="button"
                 className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
                   form.deal_methods.includes(m)
-                    ? 'border-field bg-field/10 text-field'
+                    ? 'border-field bg-field/10 text-field dark:border-blue-400 dark:bg-blue-400/15 dark:text-blue-400'
                     : 'border-scoreboard/20 text-dugout hover:border-scoreboard/40'
                 }`}
                 onClick={() => toggleDealMethod(m)}
@@ -439,7 +439,7 @@ function NewListingForm() {
         <div>
           <label className="mb-1 block text-sm font-medium text-scoreboard">
             商品圖片（最多 5 張）
-            {form.type === 'ticket' && form.intent === 'sell' && <span className="ml-1 text-clay">*必填</span>}
+            {form.type === 'ticket' && form.intent === 'sell' && <span className="ml-1 text-clay dark:text-blue-300">*必填</span>}
           </label>
           {form.type === 'ticket' && form.intent === 'sell' && (
             <p className="mb-2 text-xs text-dugout">
