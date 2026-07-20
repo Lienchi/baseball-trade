@@ -9,9 +9,11 @@ import { SocialLinkRow } from '@/components/SocialLinkRow'
 import { AdminSuspendControl } from '@/components/AdminSuspendControl'
 import type { Listing, Profile } from '@/types'
 
-// 個人頁只查公開資料（管理員停權鈕由 AdminSuspendControl 客端判斷），
-// ISR 快取 60 秒吸收真人與爬蟲流量
-export const revalidate = 60
+// 個人頁只查公開資料（管理員停權鈕由 AdminSuspendControl 客端判斷）。
+// ISR 快取一天：更新主要靠寫入點打 /api/revalidate 主動刷新
+// （評價、成交、刊登增刪、個資編輯），revalidate 只是漏網時的安全網。
+// 60 秒太短——小流量站重訪間隔幾乎都超過 60 秒，等於每次都觸發背景重算。
+export const revalidate = 86400
 
 // 空陣列＝build 不預產任何頁，但宣告此路由為靜態候選：
 // 每個 user id 首次被訪問時渲染，之後照 revalidate 快取

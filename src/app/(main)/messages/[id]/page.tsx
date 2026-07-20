@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { formatRelativeTime } from '@/lib/utils'
 import { Send, CheckCircle2, Circle, Star } from 'lucide-react'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { revalidatePaths } from '@/lib/revalidate'
 import type { Message, Profile } from '@/types'
 
 interface Props {
@@ -310,6 +311,10 @@ export default function ConversationPage({ params }: Props) {
         : `✅ ${me.username} 已標記這筆交易完成，等待對方確認`
 
       await insertMessage(systemMsg, true)
+      // 成交數顯示在雙方個人頁，刷 ISR 快取
+      if (otherAlreadyConfirmed) {
+        revalidatePaths(`/users/${me.id}`, ...(otherUser ? [`/users/${otherUser.id}`] : []))
+      }
     }
     setConfirming(false)
   }
@@ -328,6 +333,8 @@ export default function ConversationPage({ params }: Props) {
       setHasReviewed(true)
       setShowReviewModal(false)
       await insertMessage(`⭐ ${me.username} 給了 ${reviewRating} 星評價`, true)
+      // 評價顯示在對方個人頁，刷 ISR 快取
+      if (otherUser) revalidatePaths(`/users/${otherUser.id}`)
     } else {
       alert('評價送出失敗，請稍後再試')
     }

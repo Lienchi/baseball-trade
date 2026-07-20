@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { ListingStatus } from '@/types'
+import { revalidatePaths } from '@/lib/revalidate'
 
 // 管理者下架（soft delete）：status 改 removed 並記錄原因，作者在自己的頁面看得到。
 // 真刪另有 DeleteListingButton；removed 狀態的變更由 DB trigger 限管理員。
@@ -12,10 +13,12 @@ const OTHER = '其他'
 
 interface Props {
   listingId: string
+  ownerId: string
+  listingType: 'ticket' | 'merchandise'
   status: ListingStatus
 }
 
-export function RemoveListingButton({ listingId, status }: Props) {
+export function RemoveListingButton({ listingId, ownerId, listingType, status }: Props) {
   const supabase = createClient()
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -31,6 +34,7 @@ export function RemoveListingButton({ listingId, status }: Props) {
       .update({ status: 'active', removed_reason: null, removed_at: null })
       .eq('id', listingId)
     if (error) alert('解除下架失敗，請稍後再試')
+    else revalidatePaths(`/users/${ownerId}`, '/', listingType === 'ticket' ? '/tickets' : '/merchandise')
     router.refresh()
     setLoading(false)
   }
@@ -55,6 +59,7 @@ export function RemoveListingButton({ listingId, status }: Props) {
       setLoading(false)
       return
     }
+    revalidatePaths(`/users/${ownerId}`, '/', listingType === 'ticket' ? '/tickets' : '/merchandise')
     setOpen(false)
     router.refresh()
     setLoading(false)

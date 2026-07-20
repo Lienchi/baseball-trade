@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { isSuspendedUntil, formatDate } from '@/lib/utils'
+import { revalidatePaths } from '@/lib/revalidate'
 
 // 管理者停權：寫 profiles.suspended_*，DB 層由 RLS 擋停權者的發文/留言/訊息/評價。
 // 到期自動失效（判斷都是 suspended_until > now()），解除＝清空欄位。
@@ -42,6 +43,7 @@ export function SuspendUserButton({ userId, suspendedUntil, suspendedReason }: P
       .update({ suspended_until: null, suspended_reason: null, suspended_at: null })
       .eq('id', userId)
     if (error) alert('解除停權失敗，請稍後再試')
+    else revalidatePaths(`/users/${userId}`)  // 停權狀態影響個人頁刊登顯示，刷 ISR 快取
     router.refresh()
     setLoading(false)
   }
@@ -69,6 +71,7 @@ export function SuspendUserButton({ userId, suspendedUntil, suspendedReason }: P
       setLoading(false)
       return
     }
+    revalidatePaths(`/users/${userId}`)
     setOpen(false)
     router.refresh()
     setLoading(false)

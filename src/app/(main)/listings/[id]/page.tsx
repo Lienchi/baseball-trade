@@ -243,7 +243,7 @@ export default async function ListingDetailPage({ params }: Props) {
 
             {canManage ? (
               <div className="mt-4 space-y-2">
-                {l.status === 'active' && <MarkSoldButton listingId={l.id} />}
+                {l.status === 'active' && <MarkSoldButton listingId={l.id} ownerId={l.user_id} listingType={l.type} />}
                 <Link
                   href={`/listings/${l.id}/edit`}
                   className="btn-secondary mt-2 flex w-full items-center justify-center"
@@ -251,8 +251,8 @@ export default async function ListingDetailPage({ params }: Props) {
                   編輯刊登
                 </Link>
                 {/* 管理者：下架（記錄原因，作者看得到）優先於真刪；真刪留給垃圾內容 */}
-                {isAdmin && !isOwner && <RemoveListingButton listingId={l.id} status={l.status} />}
-                <DeleteListingButton listingId={l.id} isAdmin={isAdmin && !isOwner} />
+                {isAdmin && !isOwner && <RemoveListingButton listingId={l.id} ownerId={l.user_id} listingType={l.type} status={l.status} />}
+                <DeleteListingButton listingId={l.id} ownerId={l.user_id} listingType={l.type} isAdmin={isAdmin && !isOwner} />
               </div>
             ) : (
               <>

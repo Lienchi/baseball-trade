@@ -13,6 +13,7 @@ import { getCroppedImage, formatDate, normalizeSocialHandle, isPastGameDate, isS
 import Link from 'next/link'
 import { Camera, Megaphone } from 'lucide-react'
 import type { Profile, Listing } from '@/types'
+import { revalidatePaths } from '@/lib/revalidate'
 
 export default function ProfilePage() {
   const supabase = createClient()
@@ -107,6 +108,7 @@ export default function ProfilePage() {
 
     setSaving(true)
     await supabase.from('profiles').update({ bio, social_links }).eq('id', profile.id)
+    revalidatePaths(`/users/${profile.id}`)  // 簡介與社群連結顯示在公開個人頁，刷 ISR 快取
     setProfile({ ...profile, bio, social_links })
     setThreads(normalizedThreads)
     setInstagram(normalizedInstagram)
@@ -181,6 +183,7 @@ export default function ProfilePage() {
         const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
         const avatarUrl = `${publicUrl}?t=${Date.now()}`
         await supabase.from('profiles').update({ avatar_url: avatarUrl }).eq('id', profile.id)
+        revalidatePaths(`/users/${profile.id}`)  // 頭像顯示在公開個人頁，刷 ISR 快取
         setProfile({ ...profile, avatar_url: avatarUrl })
       }
     } catch {

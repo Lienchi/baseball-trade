@@ -3,12 +3,15 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { revalidatePaths } from '@/lib/revalidate'
 
 interface Props {
   listingId: string
+  ownerId: string
+  listingType: 'ticket' | 'merchandise'
 }
 
-export function MarkSoldButton({ listingId }: Props) {
+export function MarkSoldButton({ listingId, ownerId, listingType }: Props) {
   const supabase = createClient()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -20,6 +23,8 @@ export function MarkSoldButton({ listingId }: Props) {
       .from('listings')
       .update({ status: 'sold' })
       .eq('id', listingId)
+    // 售出狀態顯示在個人頁與首頁（未來含列表頁 ISR），刷快取
+    revalidatePaths(`/users/${ownerId}`, '/', listingType === 'ticket' ? '/tickets' : '/merchandise')
     router.refresh()
     setLoading(false)
   }

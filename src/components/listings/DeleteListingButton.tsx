@@ -4,13 +4,16 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { storagePathFromUrl } from '@/lib/utils'
+import { revalidatePaths } from '@/lib/revalidate'
 
 interface Props {
   listingId: string
+  ownerId: string
+  listingType: 'ticket' | 'merchandise'
   isAdmin?: boolean  // 管理者刪別人的文章時，確認文案強調作者不會收到說明（日常處置應優先用下架）
 }
 
-export function DeleteListingButton({ listingId, isAdmin = false }: Props) {
+export function DeleteListingButton({ listingId, ownerId, listingType, isAdmin = false }: Props) {
   const supabase = createClient()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -46,6 +49,8 @@ export function DeleteListingButton({ listingId, isAdmin = false }: Props) {
       await supabase.storage.from('images').remove(paths)
     }
 
+    // 刪除後從個人頁與首頁（未來含列表頁 ISR）消失，刷快取
+    revalidatePaths(`/users/${ownerId}`, '/', listingType === 'ticket' ? '/tickets' : '/merchandise')
     router.push('/')
   }
 

@@ -9,6 +9,7 @@ import { CPBL_TEAMS, DEAL_METHOD_LABELS, DEAL_METHOD_OPTIONS, MAX_ITEMS_PER_LIST
 import type { DealMethod, ListingIntent, TicketItem } from '@/types'
 import { Upload, X, Ticket, Shirt, Plus, Trash2, EyeOff } from 'lucide-react'
 import { RedactModal } from '@/components/listings/RedactModal'
+import { revalidatePaths } from '@/lib/revalidate'
 
 // 表單內的場次列（票價以字串暫存，送出時轉數字）
 interface TicketItemForm {
@@ -263,6 +264,10 @@ export default function EditListingPage() {
       await supabase.storage.from('images').remove(removedPaths)
     }
 
+    // 刊登內容顯示在個人頁與首頁（未來含列表頁 ISR），刷快取
+    if (user) {
+      revalidatePaths(`/users/${user.id}`, '/', form.type === 'ticket' ? '/tickets' : '/merchandise')
+    }
     router.push(`/listings/${id}`)
   }
 
