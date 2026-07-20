@@ -264,9 +264,9 @@ export default function EditListingPage() {
       await supabase.storage.from('images').remove(removedPaths)
     }
 
-    // 刊登內容顯示在個人頁與首頁（未來含列表頁 ISR），刷快取
+    // 詳情頁、個人頁、首頁、列表頁都是 ISR；await 刷完再導回詳情頁才看得到新內容
     if (user) {
-      revalidatePaths(`/users/${user.id}`, '/', form.type === 'ticket' ? '/tickets' : '/merchandise')
+      await revalidatePaths(`/listings/${id}`, `/users/${user.id}`, '/', form.type === 'ticket' ? '/tickets' : '/merchandise')
     }
     router.push(`/listings/${id}`)
   }

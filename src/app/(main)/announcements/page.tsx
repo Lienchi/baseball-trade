@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createStaticClient } from '@/lib/supabase/static'
 import Link from 'next/link'
 import { Megaphone, ExternalLink } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
@@ -9,9 +9,12 @@ export const metadata: Metadata = {
   description: '本質球迷交易所的最新功能與全站訊息',
 }
 
-// 公告歷史頁：RLS 只開放 is_active 的公告，下架的自然不會出現
+// 公告歷史頁：RLS 只開放 is_active 的公告，下架的自然不會出現。
+// ISR 快取一天，admin 發佈/上下架時打 /api/revalidate 主動刷新
+export const revalidate = 86400
+
 export default async function AnnouncementsPage() {
-  const supabase = createClient()
+  const supabase = createStaticClient()
   const { data: announcements } = await supabase
     .from('announcements')
     .select('id, message, link_url, created_at')

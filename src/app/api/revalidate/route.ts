@@ -7,8 +7,10 @@ import { createClient } from '@/lib/supabase/server'
 // 僅接受白名單路徑，revalidatePath 只作廢快取、不觸發重算，濫用風險低，
 // 但仍要求登入或 cron secret，避免匿名者惡意打快取。
 
-const STATIC_PATHS = new Set(['/', '/tickets', '/merchandise'])
-const USER_PATH = /^\/users\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+const STATIC_PATHS = new Set(['/', '/tickets', '/merchandise', '/announcements'])
+const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+const USER_PATH = new RegExp(`^/users/${UUID}$`)
+const LISTING_PATH = new RegExp(`^/listings/${UUID}$`)
 
 export async function POST(request: Request) {
   let paths: unknown
@@ -32,7 +34,7 @@ export async function POST(request: Request) {
   const revalidated: string[] = []
   for (const p of paths) {
     if (typeof p !== 'string') continue
-    if (STATIC_PATHS.has(p) || USER_PATH.test(p)) {
+    if (STATIC_PATHS.has(p) || USER_PATH.test(p) || LISTING_PATH.test(p)) {
       revalidatePath(p)
       revalidated.push(p)
     }

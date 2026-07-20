@@ -34,7 +34,7 @@ export function RemoveListingButton({ listingId, ownerId, listingType, status }:
       .update({ status: 'active', removed_reason: null, removed_at: null })
       .eq('id', listingId)
     if (error) alert('解除下架失敗，請稍後再試')
-    else revalidatePaths(`/users/${ownerId}`, '/', listingType === 'ticket' ? '/tickets' : '/merchandise')
+    else await revalidatePaths(`/listings/${listingId}`, `/users/${ownerId}`, '/', listingType === 'ticket' ? '/tickets' : '/merchandise')
     router.refresh()
     setLoading(false)
   }
@@ -59,7 +59,7 @@ export function RemoveListingButton({ listingId, ownerId, listingType, status }:
       setLoading(false)
       return
     }
-    revalidatePaths(`/users/${ownerId}`, '/', listingType === 'ticket' ? '/tickets' : '/merchandise')
+    await revalidatePaths(`/listings/${listingId}`, `/users/${ownerId}`, '/', listingType === 'ticket' ? '/tickets' : '/merchandise')
     setOpen(false)
     router.refresh()
     setLoading(false)

@@ -7,7 +7,8 @@ import { ArrowRight, Ticket, Shirt, Trophy, Star } from 'lucide-react'
 import type { Listing, Profile } from '@/types'
 import { todayTaipei } from '@/lib/utils'
 
-export const revalidate = 60
+// ISR 快取一天：刊登增刪改與售出/下架時由寫入點打 /api/revalidate 主動刷新
+export const revalidate = 86400
 
 const PREVIEW_COUNT = 6
 const DEAL_STARS_COUNT = 10

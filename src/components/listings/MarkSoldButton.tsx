@@ -23,8 +23,8 @@ export function MarkSoldButton({ listingId, ownerId, listingType }: Props) {
       .from('listings')
       .update({ status: 'sold' })
       .eq('id', listingId)
-    // 售出狀態顯示在個人頁與首頁（未來含列表頁 ISR），刷快取
-    revalidatePaths(`/users/${ownerId}`, '/', listingType === 'ticket' ? '/tickets' : '/merchandise')
+    // 售出後詳情頁、個人頁、首頁、列表頁都要刷；await 完再 refresh 才拿得到新頁
+    await revalidatePaths(`/listings/${listingId}`, `/users/${ownerId}`, '/', listingType === 'ticket' ? '/tickets' : '/merchandise')
     router.refresh()
     setLoading(false)
   }

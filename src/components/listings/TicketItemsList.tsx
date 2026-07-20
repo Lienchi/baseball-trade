@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { formatDateWithWeekday, formatPrice, isPastGameDate } from '@/lib/utils'
+import { revalidatePaths } from '@/lib/revalidate'
 import { Heart } from 'lucide-react'
 import type { ListingType, TicketItem } from '@/types'
 
@@ -32,6 +33,8 @@ export function TicketItemsList({
     setLoadingIdx(i)
     const updated = items.map((t, idx) => idx === i ? { ...t, sold: !t.sold } : t)
     await supabase.from('listings').update({ ticket_items: updated }).eq('id', listingId)
+    // 詳情頁與列表頁都是 ISR，刷完快取再 refresh 才拿得到新資料
+    await revalidatePaths(`/listings/${listingId}`, type === 'ticket' ? '/tickets' : '/merchandise')
     router.refresh()
     setLoadingIdx(null)
   }

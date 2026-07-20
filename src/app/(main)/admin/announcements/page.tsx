@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate } from '@/lib/utils'
+import { revalidatePaths } from '@/lib/revalidate'
 import { Megaphone, Trash2 } from 'lucide-react'
 
 // 管理員專用：發佈／上下架／刪除全站置頂公告。
@@ -57,7 +58,7 @@ export default function AdminAnnouncementsPage() {
       link_url: linkUrl.trim() || null,
     })
     if (error) alert('發佈失敗，請稍後再試')
-    else { setMessage(''); setLinkUrl(''); await load() }
+    else { setMessage(''); setLinkUrl(''); revalidatePaths('/announcements'); await load() }
     setLoading(false)
   }
 
@@ -67,14 +68,14 @@ export default function AdminAnnouncementsPage() {
       .update({ is_active: !item.is_active })
       .eq('id', item.id)
     if (error) alert('更新失敗，請稍後再試')
-    else await load()
+    else { revalidatePaths('/announcements'); await load() }
   }
 
   const handleDelete = async (item: Announcement) => {
     if (!confirm('確定要刪除這則公告嗎？')) return
     const { error } = await supabase.from('announcements').delete().eq('id', item.id)
     if (error) alert('刪除失敗，請稍後再試')
-    else await load()
+    else { revalidatePaths('/announcements'); await load() }
   }
 
   if (!checked) return null

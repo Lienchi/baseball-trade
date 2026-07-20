@@ -49,8 +49,8 @@ export function DeleteListingButton({ listingId, ownerId, listingType, isAdmin =
       await supabase.storage.from('images').remove(paths)
     }
 
-    // 刪除後從個人頁與首頁（未來含列表頁 ISR）消失，刷快取
-    revalidatePaths(`/users/${ownerId}`, '/', listingType === 'ticket' ? '/tickets' : '/merchandise')
+    // 刪除後詳情頁、個人頁、首頁、列表頁都要刷；await 完再導回首頁才拿得到新頁
+    await revalidatePaths(`/listings/${listingId}`, `/users/${ownerId}`, '/', listingType === 'ticket' ? '/tickets' : '/merchandise')
     router.push('/')
   }
 

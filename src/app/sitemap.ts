@@ -1,10 +1,13 @@
 import type { MetadataRoute } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createStaticClient } from '@/lib/supabase/static'
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://benjifan.com').replace(/\/+$/, '')
 
+// 爬蟲高頻打 sitemap，用匿名 client 保持靜態、一天重算一次即可
+export const revalidate = 86400
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = createClient()
+  const supabase = createStaticClient()
   const { data: listings } = await supabase
     .from('listings')
     .select('id, updated_at')
