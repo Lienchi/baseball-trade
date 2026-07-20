@@ -1,8 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
-import { ListingCard } from '@/components/listings/ListingCard'
+import { Suspense } from 'react'
+import { createStaticClient } from '@/lib/supabase/static'
 import { MerchandiseSortFilterBar } from '@/components/listings/MerchandiseSortFilterBar'
-import { Pagination } from '@/components/listings/Pagination'
-import Link from 'next/link'
+import { FilteredListingList, FilteredListingCount } from '@/components/listings/FilteredListingList'
 import { Shirt } from 'lucide-react'
 import type { Listing } from '@/types'
 
@@ -11,56 +10,26 @@ export const metadata = {
   description: '中華職棒周邊商品交易：球衣、應援毛巾、球員卡等球迷收藏',
 }
 
-const PAGE_SIZE = 20
+// ISR 快取一天：刊登增刪改與售出/下架時由寫入點打 /api/revalidate 主動刷新。
+// 篩選/排序/分頁全在客端做（FilteredListingList），server 不讀 searchParams 保持靜態。
+export const revalidate = 86400
 
-interface SearchParams {
-  page?: string
-  team?: string
-  q?: string
-  sort?: string
-}
+const MAX_LISTINGS = 500
 
-export default async function MerchandisePage({
-  searchParams,
-}: {
-  searchParams: SearchParams
-}) {
-  const supabase = createClient()
-  const currentPage = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1)
-  const from = (currentPage - 1) * PAGE_SIZE
-  const to = from + PAGE_SIZE - 1
+export default async function MerchandisePage() {
+  const supabase = createStaticClient()
 
-  let query = supabase
+  const { data: rawListings } = await supabase
     .from('listings')
     .select(`
       *,
       profile:profiles!listings_user_id_fkey(id, username, avatar_url, rating, rating_count, deal_count),
       comment_count:comments(count)
-    `, { count: 'exact' })
+    `)
     .eq('status', 'active')
     .eq('type', 'merchandise')
-
-  if (searchParams.team) query = query.eq('team', searchParams.team)
-  if (searchParams.q) query = query.ilike('title', `%${searchParams.q}%`)
-
-  query = query.order('created_at', { ascending: false })
-
-  query = query.range(from, to)
-
-  const { data: rawListings, count, error } = await query
-
-  // 查詢失敗（如超出範圍的頁碼）要跟「真的沒資料」區分開
-  if (error) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-8">
-        <div className="mt-20 flex flex-col items-center text-center">
-          <p className="text-lg font-semibold text-scoreboard">載入失敗</p>
-          <p className="mt-1 text-sm text-dugout">請檢查篩選條件或稍後再試</p>
-          <Link href="/merchandise" className="btn-primary mt-5 inline-flex">清除篩選重試</Link>
-        </div>
-      </div>
-    )
-  }
+    .order('created_at', { ascending: false })
+    .limit(MAX_LISTINGS)
 
   const listings = (rawListings?.map(listing => ({
     ...listing,
@@ -68,8 +37,6 @@ export default async function MerchandisePage({
       ? (listing.comment_count[0]?.count ?? 0)
       : 0,
   })) ?? []) as Listing[]
-
-  const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE)
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -82,33 +49,18 @@ export default async function MerchandisePage({
             周邊商品
           </h1>
           <p className="mt-1 text-sm text-dugout">
-            {count ?? 0} 件周邊商品刊登中
+            <Suspense fallback={<>{listings.length}</>}>
+              <FilteredListingCount listings={listings} type="merchandise" />
+            </Suspense>{' '}
+            件周邊商品刊登中
           </p>
         </div>
       </div>
 
-      <MerchandiseSortFilterBar />
-
-      {listings.length > 0 ? (
-        <>
-          <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-3">
-            {listings.map(listing => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
-          <Pagination currentPage={currentPage} totalPages={totalPages} basePath="/merchandise" />
-        </>
-      ) : (
-        <div className="mt-20 flex flex-col items-center text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-clay/10 text-clay dark:bg-blue-300/15 dark:text-blue-300">
-            <Shirt size={26} strokeWidth={2} />
-          </span>
-          <p className="mt-3 text-lg font-semibold text-scoreboard">目前沒有符合條件的商品</p>
-          <Link href="/listings/new?type=merchandise" className="btn-primary mt-5 inline-flex">
-            成為第一個刊登者
-          </Link>
-        </div>
-      )}
+      <Suspense>
+        <MerchandiseSortFilterBar />
+        <FilteredListingList listings={listings} type="merchandise" />
+      </Suspense>
     </div>
   )
 }
