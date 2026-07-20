@@ -264,11 +264,14 @@ export default function EditListingPage() {
       await supabase.storage.from('images').remove(removedPaths)
     }
 
-    // 詳情頁、個人頁、首頁、列表頁都是 ISR；await 刷完再導回詳情頁才看得到新內容
+    // 詳情頁、個人頁、首頁、列表頁都是 ISR；await 刷完 server 快取後，
+    // 還要 router.refresh() 清掉瀏覽器的 Router Cache（靜態頁客端快取 5 分鐘），
+    // 否則 push 回詳情頁拿到的是記憶體裡的舊頁
     if (user) {
       await revalidatePaths(`/listings/${id}`, `/users/${user.id}`, '/', form.type === 'ticket' ? '/tickets' : '/merchandise')
     }
     router.push(`/listings/${id}`)
+    router.refresh()
   }
 
   const set = (k: string, v: unknown) => setForm(f => ({ ...f, [k]: v }))

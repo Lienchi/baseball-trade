@@ -49,9 +49,11 @@ export function DeleteListingButton({ listingId, ownerId, listingType, isAdmin =
       await supabase.storage.from('images').remove(paths)
     }
 
-    // 刪除後詳情頁、個人頁、首頁、列表頁都要刷；await 完再導回首頁才拿得到新頁
+    // 刪除後詳情頁、個人頁、首頁、列表頁都要刷；push 後 refresh 清客端 Router Cache，
+    // 否則首頁可能還是記憶體裡的舊頁（含剛刪掉的刊登）
     await revalidatePaths(`/listings/${listingId}`, `/users/${ownerId}`, '/', listingType === 'ticket' ? '/tickets' : '/merchandise')
     router.push('/')
+    router.refresh()
   }
 
   return (
