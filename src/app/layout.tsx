@@ -68,7 +68,8 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: `
           try {
-            const theme = localStorage.getItem('theme')
+            var m = document.cookie.match(/(?:^|; )theme=(dark|light)/)
+            var theme = m ? m[1] : null
             if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
               document.documentElement.classList.add('dark')
             }

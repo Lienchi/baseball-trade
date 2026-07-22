@@ -28,7 +28,9 @@ export function Navbar() {
     const next = !dark
     setDark(next)
     document.documentElement.classList.toggle('dark', next)
-    localStorage.setItem('theme', next ? 'dark' : 'light')
+    // 用第一方 cookie 保存偏好：iOS Safari 在 ITP／封鎖跨站儲存時 localStorage.setItem 會拋錯，
+    // 導致切了深色一重整就打回淺色。cookie 較穩，且能在繪製前的 inline script 讀取。
+    document.cookie = `theme=${next ? 'dark' : 'light'};path=/;max-age=31536000;samesite=lax`
   }
 
   useEffect(() => {
