@@ -90,7 +90,9 @@ export function TicketListRow({ listing }: Props) {
             <MessageCircle size={12} />
             {listing.comment_count ?? 0}
           </span>
-          <span className="flex-shrink-0 text-dugout/60">{formatRelativeTime(listing.created_at)}</span>
+          {/* ISR 快取的相對時間會與 client 當下重算的值不同，suppressHydrationWarning 避免
+              整頁 hydration 失敗（否則 React 18 會整份重繪，連 <html> 的 dark class 都被洗掉） */}
+          <span suppressHydrationWarning className="flex-shrink-0 text-dugout/60">{formatRelativeTime(listing.created_at)}</span>
         </div>
       </div>
     </Link>

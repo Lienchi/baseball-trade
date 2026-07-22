@@ -142,7 +142,8 @@ export function ListingCard({ listing, hideImage = false }: Props) {
                 </>
               )}
             </span>
-            <span>{formatRelativeTime(listing.created_at)}</span>
+            {/* 見 TicketListRow：ISR 相對時間避免 hydration mismatch 導致整頁重繪 */}
+            <span suppressHydrationWarning>{formatRelativeTime(listing.created_at)}</span>
           </div>
         </div>
       </div>
