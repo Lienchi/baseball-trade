@@ -19,6 +19,8 @@ export function ListingCard({ listing, hideImage = false }: Props) {
   // 列表用 400px 縮圖省流量；縮圖不存在（補產前的舊圖）時 onError 退回原圖
   const [imgSrc, setImgSrc] = useState(firstImage ? listingThumbUrl(firstImage) : undefined)
   const team = getTeamColor(listing.team)
+  // 已標記售出的單一品項/場次不顯示在卡片上（整張刊登售出另有 status === 'sold' 標籤）
+  const visibleItems = listing.ticket_items?.filter(item => !item.sold) ?? []
 
   return (
     <Link
@@ -73,9 +75,9 @@ export function ListingCard({ listing, hideImage = false }: Props) {
         </p>
 
         {/* 品項清單：周邊用名稱、球票用日期＋座位（最多 3 筆，其餘收合），跟球票列表卡一致 */}
-        {(listing.ticket_items?.length ?? 0) > 0 && (
+        {visibleItems.length > 0 && (
           <ul className="mt-1.5 space-y-0.5">
-            {listing.ticket_items.slice(0, 3).map((item, i) => (
+            {visibleItems.slice(0, 3).map((item, i) => (
               <li key={i} className="flex items-center gap-1.5 text-xs text-dugout">
                 {item.name ? (
                   <span className="truncate font-medium text-scoreboard">{item.name}</span>
@@ -95,8 +97,8 @@ export function ListingCard({ listing, hideImage = false }: Props) {
                 )}
               </li>
             ))}
-            {listing.ticket_items.length > 3 && (
-              <li className="text-xs text-dugout/60">還有 {listing.ticket_items.length - 3} 項…</li>
+            {visibleItems.length > 3 && (
+              <li className="text-xs text-dugout/60">還有 {visibleItems.length - 3} 項…</li>
             )}
           </ul>
         )}

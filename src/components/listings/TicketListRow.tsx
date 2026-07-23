@@ -13,6 +13,8 @@ interface Props {
 
 export function TicketListRow({ listing }: Props) {
   const team = getTeamColor(listing.team)
+  // 已標記售出的單場不顯示在卡片上（整張刊登售出另有 status === 'sold' 標籤）
+  const visibleItems = listing.ticket_items?.filter(item => !item.sold) ?? []
 
   return (
     <Link
@@ -47,9 +49,9 @@ export function TicketListRow({ listing }: Props) {
           {listing.title}
         </p>
         {/* 場次清單：日期 + 座位（最多 3 筆，其餘收合） */}
-        {(listing.ticket_items?.length ?? 0) > 0 && (
+        {visibleItems.length > 0 && (
           <ul className="mt-1.5 space-y-0.5">
-            {listing.ticket_items.slice(0, 3).map((item, i) => (
+            {visibleItems.slice(0, 3).map((item, i) => (
               <li key={i} className="flex items-center gap-2 text-xs text-dugout">
                 <span className="flex flex-shrink-0 items-center gap-1 font-medium text-scoreboard">
                   <Calendar size={11} className="text-dugout/50" />
@@ -63,8 +65,8 @@ export function TicketListRow({ listing }: Props) {
                 )}
               </li>
             ))}
-            {listing.ticket_items.length > 3 && (
-              <li className="text-xs text-dugout/60">還有 {listing.ticket_items.length - 3} 場…</li>
+            {visibleItems.length > 3 && (
+              <li className="text-xs text-dugout/60">還有 {visibleItems.length - 3} 場…</li>
             )}
           </ul>
         )}
