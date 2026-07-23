@@ -6,10 +6,10 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
 // 對話清理（pg_cron 每日打一次，migration 20260723000000）。省 Supabase 免費版空間：
-//   A) 已成交滿 3 個月 → 只刪圖（storage 物件 + messages.image_url 設 null），保留文字與評價
-//   B) 未成交且最後訊息滿 3 個月 → 整段對話刪除（先刪圖檔，再 delete conversation 連帶 cascade）
+//   A) 已成交滿 1 個月 → 只刪圖（storage 物件 + messages.image_url 設 null），保留文字與評價
+//   B) 未成交且最後訊息滿 1 個月 → 整段對話刪除（先刪圖檔，再 delete conversation 連帶 cascade）
 // 圖檔刪除一定要走 storage API（.remove）——DB cascade 只清 row，實體檔會留在儲存後端變孤兒。
-const RETENTION_DAYS = 90
+const RETENTION_DAYS = 30
 
 // public URL → bucket 內路徑：.../object/public/images/messages/{uid}/{file} → messages/{uid}/{file}
 function urlToStoragePath(url: string): string | null {
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   let deletedConversations = 0
 
   try {
-    // ─── A) 已成交滿 3 個月：只刪圖 ───
+    // ─── A) 已成交滿 1 個月：只刪圖 ───
     // 雙方確認時間都早於 cutoff ⇒ 成交完成（兩者較晚那筆）也早於 cutoff
     const { data: doneConvs, error: doneErr } = await admin
       .from('conversations')
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // ─── B) 未成交且最後訊息滿 3 個月：整段刪除 ───
+    // ─── B) 未成交且最後訊息滿 1 個月：整段刪除 ───
     // 未成交＝任一方尚未確認；閒置＝last_message_at 早於 cutoff（空對話沿用 created_at，已由預設保證有值）
     const { data: idleConvs, error: idleErr } = await admin
       .from('conversations')
