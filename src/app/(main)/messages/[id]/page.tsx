@@ -59,9 +59,18 @@ export default function ConversationPage({ params }: Props) {
   const composerRef = useRef<HTMLTextAreaElement>(null)
   // realtime callback 是在 effect 建立時綁定的，用 ref 拿到最新的自己 id
   const myIdRef = useRef<string | null>(null)
+  // rolling 刪掉的圖片訊息 id：手機選圖器回來的 visibilitychange 會觸發 catchUp 重抓全部，
+  // 若那次 SELECT 早於 DELETE commit 會把已刪的圖抓回來復活，故所有寫入畫面處都濾掉這些 id
+  const deletedIdsRef = useRef<Set<string>>(new Set())
+
+  // catchUp / init 用：把整批訊息寫進畫面前先濾掉已刪 id
+  const setMessagesFiltered = (rows: Message[]) => {
+    setMessages(rows.filter(m => !deletedIdsRef.current.has(m.id)))
+  }
 
   // 自己送出的訊息直接塞進畫面（不等 realtime），realtime 再收到同一筆時靠 id 去重
   const appendMessage = (msg: Message) => {
+    if (deletedIdsRef.current.has(msg.id)) return
     setMessages(prev => prev.some(m => m.id === msg.id) ? prev : [...prev, msg])
   }
 
@@ -99,6 +108,7 @@ export default function ConversationPage({ params }: Props) {
       .filter((p): p is string => !!p)
     if (paths.length > 0) await supabase.storage.from('images').remove(paths)
     const ids = victims.map(m => m.id)
+    ids.forEach(id => deletedIdsRef.current.add(id))
     await supabase.from('messages').delete().in('id', ids)
     setMessages(prev => prev.filter(m => !ids.includes(m.id)))
   }
@@ -157,7 +167,7 @@ export default function ConversationPage({ params }: Props) {
         .select('*, sender:profiles(id, username, avatar_url)')
         .eq('conversation_id', params.id)
         .order('created_at')
-      if (data) setMessages(data as Message[])
+      if (data) setMessagesFiltered(data as Message[])
       setLoadingMessages(false)
 
       await supabase
@@ -229,7 +239,7 @@ export default function ConversationPage({ params }: Props) {
         .select('*, sender:profiles(id, username, avatar_url)')
         .eq('conversation_id', params.id)
         .order('created_at')
-      if (data) setMessages(data as Message[])
+      if (data) setMessagesFiltered(data as Message[])
       if (myIdRef.current) {
         await supabase
           .from('messages')
