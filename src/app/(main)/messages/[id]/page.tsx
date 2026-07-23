@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-import { formatRelativeTime } from '@/lib/utils'
-import { Send, CheckCircle2, Circle, Star } from 'lucide-react'
+import { formatRelativeTime, compressImage, storagePathFromUrl } from '@/lib/utils'
+import { Send, ImageIcon, CheckCircle2, Circle, Star } from 'lucide-react'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { revalidatePaths } from '@/lib/revalidate'
 import type { Message, Profile } from '@/types'
@@ -13,6 +13,9 @@ import type { Message, Profile } from '@/types'
 interface Props {
   params: { id: string }
 }
+
+// 每人每對話最多保留的照片數；超過時 rolling 刪掉自己最舊那張（省 Supabase 免費版空間）
+const MAX_MY_IMAGES = 5
 
 interface OtherUser {
   id: string
@@ -40,6 +43,8 @@ export default function ConversationPage({ params }: Props) {
   const [me, setMe] = useState<Profile | null>(null)
   const [content, setContent] = useState('')
   const [sending, setSending] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [imageError, setImageError] = useState('')
   const [deal, setDeal] = useState<DealState | null>(null)
   const [otherUser, setOtherUser] = useState<OtherUser | null>(null)
   const [confirming, setConfirming] = useState(false)
@@ -62,15 +67,76 @@ export default function ConversationPage({ params }: Props) {
 
   // 送出並立刻顯示；select 帶回 sender 讓新訊息的頭像/名稱正常
   // isSystem：確認/評價產生的系統訊息，不算進成交判定的對話門檻
-  const insertMessage = async (content: string, isSystem = false) => {
+  const insertMessage = async (content: string, isSystem = false, imageUrl?: string) => {
     if (!me) return { error: new Error('尚未登入') }
     const { data, error } = await supabase
       .from('messages')
-      .insert({ conversation_id: params.id, sender_id: me.id, content, is_system: isSystem })
+      .insert({ conversation_id: params.id, sender_id: me.id, content, is_system: isSystem, image_url: imageUrl ?? null })
       .select('*, sender:profiles(id, username, avatar_url)')
       .single()
     if (data) appendMessage(data as Message)
     return { error }
+  }
+
+  // 傳新圖後把自己在這段對話的圖片數壓回 MAX_MY_IMAGES：刪最舊的（storage 物件 + 訊息 row）。
+  // 盡力而為，失敗不擋主流程——cron 過期清理最終也會回收殘留圖檔。
+  const pruneMyImages = async () => {
+    if (!me) return
+    // 從 DB 撈權威清單（含剛插入那張），不靠可能過期的 messages state
+    const { data: mine } = await supabase
+      .from('messages')
+      .select('id, image_url')
+      .eq('conversation_id', params.id)
+      .eq('sender_id', me.id)
+      .not('image_url', 'is', null)
+      .order('created_at')
+    if (!mine) return
+    const excess = mine.length - MAX_MY_IMAGES
+    if (excess <= 0) return
+    const victims = mine.slice(0, excess) // 升序，前面的最舊
+    const paths = victims
+      .map(m => (m.image_url ? storagePathFromUrl(m.image_url) : null))
+      .filter((p): p is string => !!p)
+    if (paths.length > 0) await supabase.storage.from('images').remove(paths)
+    const ids = victims.map(m => m.id)
+    await supabase.from('messages').delete().in('id', ids)
+    setMessages(prev => prev.filter(m => !ids.includes(m.id)))
+  }
+
+  const sendImage = async (file: File) => {
+    if (!me || uploadingImage) return
+    setUploadingImage(true)
+    setImageError('')
+    try {
+      // 對話照片 800px / webp 就夠看票號座位，壓縮後多落在 100–150KB
+      const { blob, ext, contentType } = await compressImage(file, 800, 0.75)
+      if (blob.size > 500 * 1024) {
+        setImageError('圖片太大，請換一張或先裁切')
+        return
+      }
+      // storage policy 依路徑中的 uid 判權限，第一層必須是 messages/{me.id}
+      const path = `messages/${me.id}/${params.id}-${Date.now()}.${ext}`
+      const { error } = await supabase.storage
+        .from('images')
+        .upload(path, blob, { contentType, cacheControl: '31536000' })
+      if (error) {
+        // 手機開不了 devtools，把實際錯誤帶進畫面才好回報
+        setImageError(`圖片上傳失敗：${error.message}`)
+        return
+      }
+      const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path)
+      const { error: insertError } = await insertMessage('', false, publicUrl)
+      if (insertError) {
+        setImageError(`訊息寫入失敗：${insertError.message}`)
+        return
+      }
+      await pruneMyImages()
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : '不支援的圖片格式'
+      setImageError(`圖片處理失敗：${detail}`)
+    } finally {
+      setUploadingImage(false)
+    }
   }
 
   useEffect(() => {
@@ -492,6 +558,11 @@ export default function ConversationPage({ params }: Props) {
                   <a href={msg.image_url} target="_blank" rel="noreferrer">
                     <img src={msg.image_url} alt="圖片" className="max-h-48 max-w-full rounded-md" />
                   </a>
+                ) : !msg.content && !msg.is_system ? (
+                  // 圖片過期清理後留下的空訊息（image_url 已被 cron 設 null）
+                  <div className="rounded-2xl border border-dashed border-dugout/30 px-3 py-2 text-xs italic text-dugout/60">
+                    圖片已過期
+                  </div>
                 ) : (
                   <div className={`whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-sm ${
                     isMe
@@ -514,7 +585,32 @@ export default function ConversationPage({ params }: Props) {
       </div>
 
       <div className="border-t border-scoreboard/10 bg-surface p-3">
+        {imageError && (
+          <p className="mb-2 text-xs text-wei">{imageError}</p>
+        )}
         <div className="flex items-end gap-2">
+          <label
+            className={`flex-shrink-0 self-end pb-2 ${
+              uploadingImage
+                ? 'cursor-not-allowed text-dugout/25'
+                : 'cursor-pointer text-dugout/50 hover:text-clay'
+            }`}
+            title="傳送照片"
+          >
+            <ImageIcon size={20} />
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={uploadingImage}
+              onChange={e => {
+                const file = e.target.files?.[0]
+                if (file) sendImage(file)
+                // 清空 value 才能連續選同一張重試
+                e.target.value = ''
+              }}
+            />
+          </label>
           <textarea
             ref={composerRef}
             className="input max-h-32 flex-1 resize-none"
