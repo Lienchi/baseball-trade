@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { MessageCircle, MapPin, Tag, Star, Calendar } from 'lucide-react'
 import { formatRelativeTime, formatDateWithWeekday, formatPrice, cn, listingThumbUrl } from '@/lib/utils'
-import { getTeamColor, DEAL_METHOD_LABELS, INTENT_LABELS } from '@/types'
+import { getTeamColor, DEAL_METHOD_LABELS } from '@/types'
 import type { Listing } from '@/types'
 
 interface Props {
@@ -66,10 +66,12 @@ export function ListingCard({ listing, hideImage = false }: Props) {
         )}
         <p className="line-clamp-2 text-sm font-semibold text-scoreboard">
           <span className={cn(
-            'mr-1.5 inline-block rounded-sm px-1 py-px align-text-bottom text-[11px] font-bold leading-tight',
-            listing.intent === 'wanted' ? 'bg-gold/15 text-gold' : 'bg-field/10 text-field dark:bg-blue-400/15 dark:text-blue-400'
+            'mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full border align-middle text-sm font-bold leading-none',
+            listing.intent === 'wanted'
+              ? 'border-[#FAC775] bg-[#FAEEDA] text-[#854F0B]'
+              : 'border-[#85B7EB] bg-[#E6F1FB] text-[#0C447C]'
           )}>
-            {INTENT_LABELS[listing.intent ?? 'sell']}
+            {listing.intent === 'wanted' ? '徵' : '售'}
           </span>
           {listing.title}
         </p>

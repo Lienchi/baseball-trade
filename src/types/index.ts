@@ -45,8 +45,8 @@ export const DEAL_METHOD_OPTIONS: Record<ListingType, DealMethod[]> = {
 export type ListingIntent = 'sell' | 'wanted'
 
 export const INTENT_LABELS: Record<ListingIntent, string> = {
-  sell: '售',
-  wanted: '徵',
+  sell: '出售',
+  wanted: '徵求',
 }
 
 // 同時上架（active）數量上限，防黃牛/洗版；DB 端另有 trigger 強制

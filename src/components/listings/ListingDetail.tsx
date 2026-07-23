@@ -57,8 +57,10 @@ function ListingDetailInner({ listing: l }: { listing: Listing }) {
 
           <div className="mt-6">
             <h1 className="font-display text-xl text-scoreboard">
-              <span className={`mr-2 inline-block rounded-sm px-1.5 py-0.5 align-middle text-sm font-bold leading-tight ${
-                l.intent === 'wanted' ? 'bg-gold/15 text-gold' : 'bg-field/10 text-field dark:bg-blue-400/15 dark:text-blue-400'
+              <span className={`mr-2 inline-block rounded-full border px-2.5 py-0.5 align-middle text-sm font-bold leading-tight ${
+                l.intent === 'wanted'
+                  ? 'border-[#FAC775] bg-[#FAEEDA] text-[#854F0B]'
+                  : 'border-[#85B7EB] bg-[#E6F1FB] text-[#0C447C]'
               }`}>
                 {l.intent === 'wanted' ? '徵求' : '出售'}
               </span>
