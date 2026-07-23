@@ -290,6 +290,16 @@ export default function ConversationPage({ params }: Props) {
           m.id === payload.new.id ? { ...m, is_read: payload.new.is_read } : m
         ))
       })
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'messages',
+        // DELETE 事件的 payload.old 在預設 replica identity 下只有主鍵，
+        // 無法用 conversation_id 過濾（會收不到），故不加 filter，改用 id 比對移除
+      }, (payload) => {
+        const id = (payload.old as { id?: string })?.id
+        if (id) setMessages(prev => prev.filter(m => m.id !== id))
+      })
       .subscribe((status, err) => {
         // 重連成功時補抓斷線期間的訊息；失敗時留下線索方便排查
         if (status === 'SUBSCRIBED') {
