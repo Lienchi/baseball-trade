@@ -60,10 +60,18 @@ export async function POST(request: Request) {
   if (!email) return NextResponse.json({ sent: false })
 
   // 記錄最後寄信時間（若之後要恢復節流可直接使用）
+  const now = new Date().toISOString()
   await admin
     .from('profiles')
-    .update({ last_message_email_at: new Date().toISOString() })
+    .update({ last_message_email_at: now })
     .eq('id', recipientId)
+
+  // 首訊已即時通知過 → 同步標記對話的未讀提醒時間，
+  // 讓 unread-reminders cron 不會 24 小時內對同一則首訊再補一封提醒
+  await admin
+    .from('conversations')
+    .update({ unread_email_at: now })
+    .eq('id', conversationId)
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://benjifan.com'
   const listingInfo = listing
