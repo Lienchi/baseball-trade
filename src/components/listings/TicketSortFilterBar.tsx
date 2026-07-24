@@ -5,6 +5,7 @@ import { useCallback } from 'react'
 import { ArrowUpDown, Search, X } from 'lucide-react'
 import { TEAM_FILTER_ORDER, getTeamShortName } from '@/types'
 import { todayTaipei } from '@/lib/utils'
+import { IntentFilter } from '@/components/listings/IntentFilter'
 
 export function TicketSortFilterBar() {
   // 可搜尋的比賽日期：今天（過期場次不會顯示）到今年年底（球季範圍）
@@ -39,6 +40,9 @@ export function TicketSortFilterBar() {
           onChange={e => update('q', e.target.value)}
         />
       </div>
+
+      {/* 徵求／出售：預設不選（全部），可複選 */}
+      <IntentFilter />
 
       {/* 球隊按鈕：固定一列，窄螢幕可橫向滑動 */}
       <div className="scrollbar-none flex gap-2 overflow-x-auto">

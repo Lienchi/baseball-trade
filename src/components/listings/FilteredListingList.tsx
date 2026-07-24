@@ -26,6 +26,7 @@ function filterListings(
   const today = todayTaipei()
   const yearEnd = `${today.slice(0, 4)}-12-31`
   const team = searchParams.get('team') ?? ''
+  const intents = new Set((searchParams.get('intent') ?? '').split(',').filter(Boolean))
   const q = (searchParams.get('q') ?? '').trim().toLowerCase()
   const clampDate = (d: string | null) =>
     d ? (d < today ? today : d > yearEnd ? yearEnd : d) : ''
@@ -36,6 +37,7 @@ function filterListings(
     // 場次全數過期的刊登即時消失（比賽當天仍顯示）；周邊無場次概念
     if (type === 'ticket' && l.last_game_date && l.last_game_date < today) return false
     if (team && l.team !== team) return false
+    if (intents.size && !intents.has(l.intent)) return false
     if (q && !l.title.toLowerCase().includes(q)) return false
 
     if (dateFrom || dateTo) {
@@ -62,9 +64,11 @@ function filterListings(
 interface Props {
   listings: Listing[]
   type: ListingType
+  /** 分頁連結的基底路徑；首頁 tab 版傳 '/' 才不會跳去 /tickets、/merchandise */
+  basePath?: string
 }
 
-export function FilteredListingList({ listings, type }: Props) {
+export function FilteredListingList({ listings, type, basePath: basePathProp }: Props) {
   const searchParams = useSearchParams()
 
   let filtered = filterListings(listings, type, searchParams)
@@ -82,7 +86,7 @@ export function FilteredListingList({ listings, type }: Props) {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const pageItems = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
-  const basePath = type === 'ticket' ? '/tickets' : '/merchandise'
+  const basePath = basePathProp ?? (type === 'ticket' ? '/tickets' : '/merchandise')
   const Icon = type === 'ticket' ? Ticket : Shirt
   const iconClass =
     type === 'ticket'

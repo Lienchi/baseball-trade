@@ -79,7 +79,7 @@ export default async function FavoritesPage() {
           </span>
           <p className="mt-3 text-lg font-semibold text-scoreboard">還沒有關注任何球票</p>
           <p className="mt-1 text-sm text-dugout">到球票列表逛逛，點「關注球票」追蹤有興趣的刊登</p>
-          <Link href="/tickets" className="btn-primary mt-5 inline-flex">
+          <Link href="/" className="btn-primary mt-5 inline-flex">
             瀏覽球票
           </Link>
         </div>

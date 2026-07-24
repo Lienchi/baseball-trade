@@ -34,7 +34,7 @@ export function TicketItemsList({
     const updated = items.map((t, idx) => idx === i ? { ...t, sold: !t.sold } : t)
     await supabase.from('listings').update({ ticket_items: updated }).eq('id', listingId)
     // 詳情頁與列表頁都是 ISR，刷完快取再 refresh 才拿得到新資料
-    await revalidatePaths(`/listings/${listingId}`, type === 'ticket' ? '/tickets' : '/merchandise')
+    await revalidatePaths(`/listings/${listingId}`, '/', type === 'ticket' ? '/tickets' : '/merchandise')
     router.refresh()
     setLoadingIdx(null)
   }

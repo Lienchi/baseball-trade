@@ -4,6 +4,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useCallback } from 'react'
 import { Search } from 'lucide-react'
 import { TEAM_FILTER_ORDER, getTeamShortName } from '@/types'
+import { IntentFilter } from '@/components/listings/IntentFilter'
 
 export function MerchandiseSortFilterBar() {
   const router = useRouter()
@@ -33,6 +34,9 @@ export function MerchandiseSortFilterBar() {
           />
         </div>
       </div>
+
+      {/* 徵求／出售：預設不選（全部），可複選 */}
+      <IntentFilter />
 
       {/* 球隊按鈕：固定一列，窄螢幕可橫向滑動 */}
       <div className="scrollbar-none flex gap-2 overflow-x-auto">

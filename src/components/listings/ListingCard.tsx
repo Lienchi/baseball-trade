@@ -58,9 +58,9 @@ export function ListingCard({ listing, hideImage = false }: Props) {
       )}
 
       {/* 內容區 */}
-      <div className="flex flex-1 flex-col p-3">
+      <div className="flex flex-1 flex-col px-3 py-2">
         {listing.team && (
-          <span className={cn('mb-1 inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[11px] font-bold', team.bg, team.textOnBg)}>
+          <span className={cn('mb-2 inline-flex w-fit items-center rounded-md px-2 py-0.5 text-sm font-bold', team.bg, team.textOnBg)}>
             {listing.team}
           </span>
         )}

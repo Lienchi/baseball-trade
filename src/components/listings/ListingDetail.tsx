@@ -37,7 +37,7 @@ function ListingDetailInner({ listing: l }: { listing: Listing }) {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <BackToListLink
-        href={l.type === 'ticket' ? '/tickets' : '/merchandise'}
+        href={l.type === 'ticket' ? '/' : '/merchandise'}
         label={l.type === 'ticket' ? '返回球票列表' : '返回周邊列表'}
       />
       {l.status === 'removed' && (

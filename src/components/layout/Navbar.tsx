@@ -5,12 +5,14 @@ import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { MessageCircle, PlusCircle, User, Heart, LogOut, LogIn, Menu, X, Moon, Sun, Ticket, Shirt } from 'lucide-react'
+import { MessageCircle, PlusCircle, User, Heart, LogOut, LogIn, Menu, X, Moon, Sun, Ticket, Shirt, Trophy } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export function Navbar() {
   const supabase = createClient()
   const pathname = usePathname()
+  // 球票 = 首頁 '/'，周邊 = '/merchandise'；周邊情境用來高亮與預選刊登類別
+  const onMerch = pathname.startsWith('/merchandise')
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [profile, setProfile] = useState<{ username: string; avatar_url: string | null } | null>(null)
   const [unread, setUnread] = useState(0)
@@ -104,14 +106,15 @@ export function Navbar() {
         {/* 分區連結（桌面）：手機版放在漢堡選單裡 */}
         <div className="ml-6 mr-auto hidden items-center gap-1 sm:flex">
           {([
-            { href: '/tickets', label: '球票' },
-            { href: '/merchandise', label: '周邊' },
-          ] as const).map(({ href, label }) => (
+            { href: '/', label: '球票', active: pathname === '/' },
+            { href: '/merchandise', label: '周邊', active: onMerch },
+            { href: '/deal-stars', label: '交易之星', active: pathname.startsWith('/deal-stars') },
+          ] as const).map(({ href, label, active }) => (
             <Link
               key={href}
               href={href}
               className={`rounded-md px-3 py-1.5 text-sm font-bold transition ${
-                pathname.startsWith(href)
+                active
                   ? 'bg-white/10 text-white'
                   : 'text-white/70 hover:text-white'
               }`}
@@ -134,7 +137,7 @@ export function Navbar() {
           </button>
 
           <Link
-            href={pathname.startsWith('/merchandise') ? '/listings/new?type=merchandise' : '/listings/new'}
+            href={onMerch ? '/listings/new?type=merchandise' : '/listings/new'}
             className="btn-primary inline-flex px-3 sm:px-5"
           >
             <PlusCircle size={16} />
@@ -242,13 +245,17 @@ export function Navbar() {
           </div>
 
           <div className="flex flex-col gap-1 p-3">
-            <Link href="/tickets" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
+            <Link href="/" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
               <Ticket size={18} />
               球票交易
             </Link>
             <Link href="/merchandise" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
               <Shirt size={18} />
               周邊商品
+            </Link>
+            <Link href="/deal-stars" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white">
+              <Trophy size={18} />
+              交易之星
             </Link>
 
             <div className="my-2 border-t border-white/10" />

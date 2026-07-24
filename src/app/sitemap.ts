@@ -16,9 +16,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .limit(1000)
 
   const staticPages: MetadataRoute.Sitemap = [
+    // 首頁即球票列表；周邊為獨立頁；/tickets 只做轉址故不列
     { url: SITE_URL, changeFrequency: 'hourly', priority: 1 },
-    { url: `${SITE_URL}/tickets`, changeFrequency: 'hourly', priority: 0.9 },
     { url: `${SITE_URL}/merchandise`, changeFrequency: 'hourly', priority: 0.9 },
+    { url: `${SITE_URL}/deal-stars`, changeFrequency: 'daily', priority: 0.5 },
     { url: `${SITE_URL}/terms`, changeFrequency: 'monthly', priority: 0.2 },
   ]
 
