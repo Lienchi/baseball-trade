@@ -30,13 +30,13 @@ export function ListingTabs({ ticketCount, merchCount }: Props) {
           className={cn(
             'flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition',
             active
-              ? 'bg-chalk text-scoreboard shadow-sm dark:bg-field dark:text-white'
+              ? 'bg-field text-white shadow-sm'
               : 'text-dugout hover:text-scoreboard dark:hover:text-blue-300'
           )}
         >
           <Icon size={16} />
           {label}
-          <span className={cn('text-xs font-medium', active ? 'text-dugout dark:text-white/70' : 'text-dugout/60')}>{count}</span>
+          <span className={cn('text-xs font-medium', active ? 'text-white/70' : 'text-dugout/60')}>{count}</span>
         </Link>
       ))}
     </div>
