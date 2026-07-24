@@ -20,8 +20,10 @@ const MAX_LISTINGS = 500
 export default async function MerchandisePage() {
   const supabase = createStaticClient()
 
+  // 只取列表卡片與客端篩選/排序實際會用到的欄位，避免把 description 等長欄位塞進
+  // 500 筆的 ISR HTML（見 FilteredListingList / ListingCard 用到的欄位）。
   const select =
-    '*, profile:profiles!listings_user_id_fkey(id, username, avatar_url, rating, rating_count, deal_count), comment_count:comments(count)'
+    'id, title, type, status, intent, team, deal_methods, location, ticket_items, images, game_date, last_game_date, created_at, profile:profiles!listings_user_id_fkey(id, username, avatar_url, rating, rating_count), comment_count:comments(count)'
 
   const [merchRes, ticketCountRes] = await Promise.all([
     supabase
@@ -43,7 +45,7 @@ export default async function MerchandisePage() {
     comment_count: Array.isArray(listing.comment_count)
       ? (listing.comment_count[0]?.count ?? 0)
       : 0,
-  })) ?? []) as Listing[]
+  })) ?? []) as unknown as Listing[]
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-8 pt-3 sm:pt-8">
