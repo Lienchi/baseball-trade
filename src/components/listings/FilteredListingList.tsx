@@ -1,9 +1,9 @@
 'use client'
 
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import type { ReadonlyURLSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Ticket, Shirt } from 'lucide-react'
+import { Ticket, Shirt, X } from 'lucide-react'
 import { TicketListRow } from '@/components/listings/TicketListRow'
 import { ListingCard } from '@/components/listings/ListingCard'
 import { Pagination } from '@/components/listings/Pagination'
@@ -70,6 +70,11 @@ interface Props {
 
 export function FilteredListingList({ listings, type, basePath: basePathProp }: Props) {
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  // 清除篩選跟「共 N 筆」排同一行；篩選列的搜尋框會自行跟著 URL 同步清空
+  const hasFilters = ['q', 'intent', 'team', 'date_from', 'date_to', 'sort'].some(k => searchParams.get(k))
 
   let filtered = filterListings(listings, type, searchParams)
 
@@ -114,7 +119,19 @@ export function FilteredListingList({ listings, type, basePath: basePathProp }: 
 
   return (
     <>
-      <p className="mt-4 text-xs text-dugout">共 {filtered.length} 筆</p>
+      <div className="mt-4 flex items-center justify-between gap-2">
+        <p className="text-xs text-dugout">共 {filtered.length} 筆</p>
+        {hasFilters && (
+          <button
+            type="button"
+            className="flex flex-shrink-0 items-center gap-1 text-xs font-bold text-dugout transition hover:text-clay"
+            onClick={() => router.push(pathname)}
+          >
+            <X size={12} />
+            清除篩選
+          </button>
+        )}
+      </div>
       {type === 'ticket' ? (
         <div className="mt-2 space-y-2">
           {pageItems.map(listing => (
