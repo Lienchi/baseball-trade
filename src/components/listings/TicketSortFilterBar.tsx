@@ -55,7 +55,11 @@ export function TicketSortFilterBar() {
   // 手機、桌機擺在不同行，用 className 控制哪一顆顯示。
   const sortButton = (className: string) => (
     <button
-      className={`flex-shrink-0 items-center justify-center gap-1.5 rounded-full border border-scoreboard/20 px-3 py-1 text-xs font-bold text-dugout transition hover:border-scoreboard/40 ${className}`}
+      className={`flex-shrink-0 items-center justify-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold transition ${
+        currentSort === 'game_date_asc'
+          ? 'border-scoreboard bg-scoreboard text-chalk'
+          : 'border-scoreboard/20 text-dugout hover:border-scoreboard/40'
+      } ${className}`}
       onClick={() => update('sort', currentSort === 'game_date_asc' ? '' : 'game_date_asc')}
     >
       <ArrowUpDown size={12} />
@@ -157,20 +161,20 @@ export function TicketSortFilterBar() {
           {sortButton('hidden sm:flex')}
         </div>
 
-        {/* 手機：出售／徵求／排序三顆等寬撐滿一行，中間不留空洞 */}
+        {/* 手機：出售／徵求大小同球隊按鈕；排序是「排序模式」不是篩選條件，靠右擺開，
+            右緣跟上面日期框對齊（同一層容器，ml-auto 即可） */}
         <div className="flex items-center gap-2">
-          <div className="flex-[2] [&>div]:w-full [&_button]:flex-1 sm:flex-none sm:[&>div]:w-auto sm:[&_button]:flex-none">
-            <IntentFilter />
-          </div>
-          {sortButton('flex flex-1 sm:hidden')}
+          <IntentFilter />
+          {sortButton('ml-auto flex w-[6.75rem] sm:hidden')}
         </div>
       </div>
 
       {/* 球隊：可複選，窄螢幕橫向滑動 */}
       <TeamFilter />
 
-      {/* 已選條件 chips：僅手機，抽屜收起時仍看得到並可單獨移除（清除全部在列表的「共 N 筆」那行） */}
-      {chips.length > 0 && (
+      {/* 已選條件 chips：僅手機且抽屜收起時顯示（展開時控制項本身就會變色，再列一次是重複資訊）。
+          可單獨移除；清除全部在列表的「共 N 筆」那行 */}
+      {chips.length > 0 && !open && (
         <div className="flex flex-wrap items-center gap-2 sm:hidden">
           {chips.map(c => (
             <button
