@@ -22,20 +22,13 @@ export default async function HomePage() {
   const select =
     'id, title, type, status, intent, team, deal_methods, location, ticket_items, images, game_date, last_game_date, created_at, profile:profiles!listings_user_id_fkey(id, username, avatar_url, rating, rating_count), comment_count:comments(count)'
 
-  const [ticketsRes, merchCountRes] = await Promise.all([
-    supabase
-      .from('listings')
-      .select(select)
-      .eq('status', 'active')
-      .eq('type', 'ticket')
-      .order('created_at', { ascending: false })
-      .limit(MAX_LISTINGS),
-    supabase
-      .from('listings')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'active')
-      .eq('type', 'merchandise'),
-  ])
+  const ticketsRes = await supabase
+    .from('listings')
+    .select(select)
+    .eq('status', 'active')
+    .eq('type', 'ticket')
+    .order('created_at', { ascending: false })
+    .limit(MAX_LISTINGS)
 
   const tickets = (ticketsRes.data?.map(listing => ({
     ...listing,
@@ -47,7 +40,7 @@ export default async function HomePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-8 pt-3 sm:pt-8">
       <Suspense>
-        <ListingTabs ticketCount={tickets.length} merchCount={merchCountRes.count ?? 0} />
+        <ListingTabs />
         <TicketSortFilterBar />
         <FilteredListingList listings={tickets} type="ticket" basePath="/" />
       </Suspense>

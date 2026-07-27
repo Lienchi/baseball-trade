@@ -25,20 +25,13 @@ export default async function MerchandisePage() {
   const select =
     'id, title, type, status, intent, team, deal_methods, location, ticket_items, images, game_date, last_game_date, created_at, profile:profiles!listings_user_id_fkey(id, username, avatar_url, rating, rating_count), comment_count:comments(count)'
 
-  const [merchRes, ticketCountRes] = await Promise.all([
-    supabase
-      .from('listings')
-      .select(select)
-      .eq('status', 'active')
-      .eq('type', 'merchandise')
-      .order('created_at', { ascending: false })
-      .limit(MAX_LISTINGS),
-    supabase
-      .from('listings')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'active')
-      .eq('type', 'ticket'),
-  ])
+  const merchRes = await supabase
+    .from('listings')
+    .select(select)
+    .eq('status', 'active')
+    .eq('type', 'merchandise')
+    .order('created_at', { ascending: false })
+    .limit(MAX_LISTINGS)
 
   const merchandise = (merchRes.data?.map(listing => ({
     ...listing,
@@ -50,7 +43,7 @@ export default async function MerchandisePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-8 pt-3 sm:pt-8">
       <Suspense>
-        <ListingTabs ticketCount={ticketCountRes.count ?? 0} merchCount={merchandise.length} />
+        <ListingTabs />
         <MerchandiseSortFilterBar />
         <FilteredListingList listings={merchandise} type="merchandise" basePath="/merchandise" />
       </Suspense>
