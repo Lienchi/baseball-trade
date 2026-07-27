@@ -51,6 +51,18 @@ export function TicketSortFilterBar() {
     ...(currentSort === 'game_date_asc' ? [{ key: 'sort', label: '近到遠', remove: () => update('sort', '') }] : []),
   ]
 
+  // 排序 toggle：點一下在「新到舊（上架時間）／近到遠（比賽日期）」之間切換。
+  // 手機、桌機擺在不同行，用 className 控制哪一顆顯示。
+  const sortButton = (className: string) => (
+    <button
+      className={`flex-shrink-0 items-center justify-center gap-1.5 rounded-full border border-scoreboard/20 px-3 py-1 text-xs font-bold text-dugout transition hover:border-scoreboard/40 ${className}`}
+      onClick={() => update('sort', currentSort === 'game_date_asc' ? '' : 'game_date_asc')}
+    >
+      <ArrowUpDown size={12} />
+      {currentSort === 'game_date_asc' ? '近到遠' : '新到舊'}
+    </button>
+  )
+
   return (
     <div className="space-y-3">
       {/* 搜尋（左）＋ 篩選抽屜開關（右，僅手機） */}
@@ -94,13 +106,14 @@ export function TicketSortFilterBar() {
       <div className={`${open ? 'block' : 'hidden'} space-y-3 sm:block`}>
         {/* 比賽日期範圍 */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1 sm:gap-2">
-            <span className="text-xs text-dugout">比賽日期</span>
-            <div className="relative">
+          {/* 手機：兩個日期各佔一半撐滿整行，不留半行空白；sm 以上維持固定寬度 */}
+          <div className="flex w-full items-center gap-1 sm:w-auto sm:gap-2">
+            <span className="flex-shrink-0 text-xs text-dugout">比賽日期</span>
+            <div className="relative flex-1 sm:flex-none">
               <input
                 type="date"
                 required
-                className={`input w-[5.5rem] min-w-0 px-1.5 text-xs sm:w-[6.5rem] sm:px-2 ${currentDateFrom ? 'pr-6' : ''}`}
+                className={`input w-full min-w-0 px-2 text-sm sm:w-[6.5rem] sm:text-xs ${currentDateFrom ? 'pr-6' : ''}`}
                 value={currentDateFrom}
                 min={minDate}
                 max={currentDateTo || maxDate}
@@ -117,12 +130,12 @@ export function TicketSortFilterBar() {
                 </button>
               )}
             </div>
-            <span className="text-xs text-dugout">-</span>
-            <div className="relative">
+            <span className="flex-shrink-0 text-xs text-dugout">-</span>
+            <div className="relative flex-1 sm:flex-none">
               <input
                 type="date"
                 required
-                className={`input w-[5.5rem] min-w-0 px-1.5 text-xs sm:w-[6.5rem] sm:px-2 ${currentDateTo ? 'pr-6' : ''}`}
+                className={`input w-full min-w-0 px-2 text-sm sm:w-[6.5rem] sm:text-xs ${currentDateTo ? 'pr-6' : ''}`}
                 value={currentDateTo}
                 min={currentDateFrom || minDate}
                 max={maxDate}
@@ -140,19 +153,16 @@ export function TicketSortFilterBar() {
               )}
             </div>
           </div>
+          {/* sm 以上排序接在日期後面；手機版改跟出售／徵求同一行（見下方） */}
+          {sortButton('hidden sm:flex')}
         </div>
 
-        {/* 徵求／出售（左）＋ 排序 toggle（右）：併成一行，日期才不會被擠到折行 */}
-        <div className="flex items-center justify-between gap-2">
-          <IntentFilter />
-          {/* 點一下在「新到舊（上架時間）／近到遠（比賽日期）」之間切換 */}
-          <button
-            className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-scoreboard/20 px-3 py-1 text-xs font-bold text-dugout transition hover:border-scoreboard/40"
-            onClick={() => update('sort', currentSort === 'game_date_asc' ? '' : 'game_date_asc')}
-          >
-            <ArrowUpDown size={12} />
-            {currentSort === 'game_date_asc' ? '近到遠' : '新到舊'}
-          </button>
+        {/* 手機：出售／徵求／排序三顆等寬撐滿一行，中間不留空洞 */}
+        <div className="flex items-center gap-2">
+          <div className="flex-[2] [&>div]:w-full [&_button]:flex-1 sm:flex-none sm:[&>div]:w-auto sm:[&_button]:flex-none">
+            <IntentFilter />
+          </div>
+          {sortButton('flex flex-1 sm:hidden')}
         </div>
       </div>
 
