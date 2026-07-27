@@ -32,7 +32,13 @@ export function TicketItemsList({
   const toggleSold = async (i: number) => {
     setLoadingIdx(i)
     const updated = items.map((t, idx) => idx === i ? { ...t, sold: !t.sold } : t)
-    await supabase.from('listings').update({ ticket_items: updated }).eq('id', listingId)
+    // 全部品項都售出時整張刊登自動標記 sold；只要還有未售品項就退回 available
+    // 全部品項都售出時整張刊登自動標記 sold（取消售出不退回，維持手動控制）
+    const allSold = updated.length > 0 && updated.every(t => t.sold)
+    await supabase
+      .from('listings')
+      .update(allSold ? { ticket_items: updated, status: 'sold' } : { ticket_items: updated })
+      .eq('id', listingId)
     // 詳情頁與列表頁都是 ISR，刷完快取再 refresh 才拿得到新資料
     await revalidatePaths(`/listings/${listingId}`, '/', type === 'ticket' ? '/tickets' : '/merchandise')
     router.refresh()

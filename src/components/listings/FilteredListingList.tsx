@@ -25,7 +25,7 @@ function filterListings(
 ): Listing[] {
   const today = todayTaipei()
   const yearEnd = `${today.slice(0, 4)}-12-31`
-  const team = searchParams.get('team') ?? ''
+  const teams = new Set((searchParams.get('team') ?? '').split(',').filter(Boolean))
   const intents = new Set((searchParams.get('intent') ?? '').split(',').filter(Boolean))
   const q = (searchParams.get('q') ?? '').trim().toLowerCase()
   const clampDate = (d: string | null) =>
@@ -36,7 +36,7 @@ function filterListings(
   return listings.filter(l => {
     // 場次全數過期的刊登即時消失（比賽當天仍顯示）；周邊無場次概念
     if (type === 'ticket' && l.last_game_date && l.last_game_date < today) return false
-    if (team && l.team !== team) return false
+    if (teams.size && (!l.team || !teams.has(l.team))) return false
     if (intents.size && !intents.has(l.intent)) return false
     if (q && !l.title.toLowerCase().includes(q)) return false
 
@@ -114,14 +114,15 @@ export function FilteredListingList({ listings, type, basePath: basePathProp }: 
 
   return (
     <>
+      <p className="mt-4 text-xs text-dugout">共 {filtered.length} 筆</p>
       {type === 'ticket' ? (
-        <div className="mt-6 space-y-2">
+        <div className="mt-2 space-y-2">
           {pageItems.map(listing => (
             <TicketListRow key={listing.id} listing={listing} />
           ))}
         </div>
       ) : (
-        <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-3">
+        <div className="mt-2 grid grid-cols-2 gap-3 lg:grid-cols-3">
           {pageItems.map(listing => (
             <ListingCard key={listing.id} listing={listing} />
           ))}

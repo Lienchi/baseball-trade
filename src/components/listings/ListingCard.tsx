@@ -64,7 +64,7 @@ export function ListingCard({ listing, hideImage = false }: Props) {
             {listing.team}
           </span>
         )}
-        <p className="line-clamp-2 text-sm font-semibold text-scoreboard">
+        <p className="line-clamp-3 text-sm font-semibold text-scoreboard">
           <span className={cn(
             'mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full border align-middle text-sm font-bold leading-none',
             listing.intent === 'wanted'
