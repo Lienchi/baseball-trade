@@ -74,7 +74,8 @@ function ListingDetailInner({ listing: l }: { listing: Listing }) {
           <CommentSection listingId={l.id} ownerId={l.user_id} viewerId={userId} />
         </div>
 
-        <div className="lg:col-span-2">
+        {/* min-w-0：grid item 預設 min-width:auto，長使用者名稱會撐爆整張卡 */}
+        <div className="min-w-0 lg:col-span-2">
           <div className="sticky top-20 card p-5">
             <ul className="space-y-2 text-sm text-dugout">
               {l.team && (
@@ -144,8 +145,8 @@ function ListingDetailInner({ listing: l }: { listing: Listing }) {
                     {l.profile.username.slice(0, 2).toUpperCase()}
                   </div>
                 )}
-                <div>
-                  <p className="text-sm font-semibold text-scoreboard">{l.profile.username}</p>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-scoreboard">{l.profile.username}</p>
                   <p className="flex items-center gap-2 text-xs text-dugout">
                     <span>
                       成交 <span className="font-bold text-scoreboard">{l.profile.deal_count ?? 0}</span> 次
