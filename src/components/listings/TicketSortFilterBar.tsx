@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
-import { ArrowUpDown, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ArrowUpDown, Calendar, Search, SlidersHorizontal, X } from 'lucide-react'
 import { todayTaipei } from '@/lib/utils'
 import { IntentFilter } from '@/components/listings/IntentFilter'
 import { TeamFilter } from '@/components/listings/TeamFilter'
@@ -92,56 +92,45 @@ export function TicketSortFilterBar() {
 
   // 比賽日期範圍。compact 是手機版：要跟篩選鈕擠同一行，所以拿掉「比賽日期」label、
   // 字級壓到 text-xs，兩個 input 各佔一半撐滿剩下的寬度。
-  const dateRange = (className: string, compact: boolean) => (
-    <div className={`items-center gap-1 sm:w-auto sm:gap-2 ${className}`}>
-      {!compact && <span className="flex-shrink-0 text-xs text-dugout">比賽日期</span>}
+  const dateRange = (className: string, compact: boolean) => {
+    // 日曆 icon 固定放左邊（原生的已在 globals.css 關掉）：不管有沒有選日期都看得到，
+    // 也不會跟右邊的清除 X 疊在一起。原生 icon 關掉後桌機點框不會自動開日曆，補 showPicker()。
+    const field = (key: 'date_from' | 'date_to', label: string, value: string, min: string, max: string) => (
       <div className="relative min-w-0 flex-1 sm:flex-none">
+        <Calendar size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-dugout/60" />
         <input
           type="date"
           required
-          aria-label="比賽日期起"
-          className={`input w-full min-w-0 px-2 text-xs sm:w-[6.5rem] ${currentDateFrom ? 'pr-6' : ''}`}
-          value={currentDateFrom}
-          min={minDate}
-          max={currentDateTo || maxDate}
-          onChange={e => update('date_from', e.target.value)}
+          aria-label={label}
+          className={`input w-full min-w-0 pl-7 pr-2 text-xs sm:w-[6.5rem] ${value ? 'pr-6' : ''}`}
+          value={value}
+          min={min}
+          max={max}
+          onChange={e => update(key, e.target.value)}
+          onClick={e => e.currentTarget.showPicker?.()}
         />
-        {currentDateFrom && (
+        {value && (
           <button
             type="button"
-            aria-label="清除開始日期"
+            aria-label={`清除${label}`}
             className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-dugout/50 hover:text-clay"
-            onClick={() => update('date_from', '')}
+            onClick={() => update(key, '')}
           >
             <X size={14} />
           </button>
         )}
       </div>
-      <span className="flex-shrink-0 text-xs text-dugout">-</span>
-      <div className="relative min-w-0 flex-1 sm:flex-none">
-        <input
-          type="date"
-          required
-          aria-label="比賽日期迄"
-          className={`input w-full min-w-0 px-2 text-xs sm:w-[6.5rem] ${currentDateTo ? 'pr-6' : ''}`}
-          value={currentDateTo}
-          min={currentDateFrom || minDate}
-          max={maxDate}
-          onChange={e => update('date_to', e.target.value)}
-        />
-        {currentDateTo && (
-          <button
-            type="button"
-            aria-label="清除結束日期"
-            className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-dugout/50 hover:text-clay"
-            onClick={() => update('date_to', '')}
-          >
-            <X size={14} />
-          </button>
-        )}
+    )
+
+    return (
+      <div className={`items-center gap-1 sm:w-auto sm:gap-2 ${className}`}>
+        {!compact && <span className="flex-shrink-0 text-xs text-dugout">比賽日期</span>}
+        {field('date_from', '比賽日期起', currentDateFrom, minDate, currentDateTo || maxDate)}
+        <span className="flex-shrink-0 text-xs text-dugout">-</span>
+        {field('date_to', '比賽日期迄', currentDateTo, currentDateFrom || minDate, maxDate)}
       </div>
-    </div>
-  )
+    )
+  }
 
   return (
     <div className="space-y-3">
