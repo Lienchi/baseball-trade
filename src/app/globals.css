@@ -86,6 +86,21 @@
     line-height: 1.5rem;
     text-align: left;
   }
+  /* 日曆按鈕：原生 icon 偏小又淡，放大＋提高不透明度，讓「這是可以點的日期」更明顯。
+     深色模式沒設 color-scheme，WebKit 仍畫深色 icon，用 invert 轉成淺色才看得到 */
+  input[type='date'].input::-webkit-calendar-picker-indicator {
+    opacity: 0.8;
+    cursor: pointer;
+    transform: scale(1.2);
+    transform-origin: center;
+    transition: opacity 0.15s;
+  }
+  input[type='date'].input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
+  .dark input[type='date'].input::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
 
   /* 數字輸入框不顯示上下調整按鈕（桌機瀏覽器才會出現） */
   input[type='number'].input {
