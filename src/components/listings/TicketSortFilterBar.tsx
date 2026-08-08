@@ -90,6 +90,11 @@ export function TicketSortFilterBar() {
     </div>
   )
 
+  // min／max 只限制原生日曆能點的範圍，手動輸入或滑過頭還是塞得進超範圍的值。
+  // 值一旦超範圍 input 就變 :invalid，而 iOS 的假 placeholder 掛在 :invalid::before 上
+  // （見 globals.css），yyyy/mm/dd 會疊在真正的日期上面。夾回邊界以維持「:invalid == 空值」。
+  const clamp = (v: string, min: string, max: string) => (!v ? v : v < min ? min : v > max ? max : v)
+
   // 比賽日期範圍。compact 是手機版：要跟篩選鈕擠同一行，所以拿掉「比賽日期」label、
   // 字級壓到 text-xs，兩個 input 各佔一半撐滿剩下的寬度。
   const dateRange = (className: string, compact: boolean) => {
@@ -115,10 +120,10 @@ export function TicketSortFilterBar() {
           required
           aria-label={label}
           className={`input w-full min-w-0 pl-7 pr-2 text-xs sm:w-[6.5rem] ${value ? 'pr-6' : ''}`}
-          value={value || fallback}
+          value={clamp(value, min, max) || fallback}
           min={min}
           max={max}
-          onChange={e => update(key, e.target.value)}
+          onChange={e => update(key, clamp(e.target.value, min, max))}
           onClick={e => e.currentTarget.showPicker?.()}
         />
         {value && (
