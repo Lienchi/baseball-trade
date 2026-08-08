@@ -107,12 +107,12 @@ export function TicketSortFilterBar() {
       fallback = '',
     ) => (
       <div className="relative min-w-0 flex-1 sm:flex-none">
-        <Calendar size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-dugout/60" />
+        <Calendar size={15} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-dugout/60" />
         <input
           type="date"
           required
           aria-label={label}
-          className={`input w-full min-w-0 pl-7 pr-2 text-xs sm:w-[6.5rem] ${value ? 'pr-6' : ''}`}
+          className={`input w-full min-w-0 pl-7 pr-2 text-sm sm:w-[8.5rem] ${value ? 'pr-6' : ''}`}
           value={value || fallback}
           min={min}
           max={max}
