@@ -73,10 +73,17 @@
            focus:border-clay focus:ring-0 dark:border-clay/60;
   }
 
-  /* iOS Safari 的 date input 陰影元件會撐高輸入框，強制與其他 .input 同高 */
+  /* iOS Safari 的 date input 陰影元件會撐高輸入框，強制與其他 .input 同高。
+     值的盒子被固定成 1.5rem(24px)，但 .input 的內容區只有 20px（h-11 扣掉 border-2 和 py-2.5），
+     多出來的 4px 會把日期文字往下擠，跟左側置中的日曆 icon 對不齊（只有 iOS 吃得到這段）。
+     改成不用垂直 padding、由 flex 置中，文字與 icon 就對在同一個中心 */
   input[type='date'].input {
     -webkit-appearance: none;
     appearance: none;
+    display: flex;
+    align-items: center;
+    padding-top: 0;
+    padding-bottom: 0;
     line-height: 1.5rem;
     /* 空值時 iOS 沒有內容撐寬，給固定最小寬度以免縮成一小塊 */
     min-width: 8rem;
